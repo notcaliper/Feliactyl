@@ -1,307 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <%- include('../../Components/Header.ejs') %>
 <%- include('../../Components/Styles.ejs') %>
 
-<body style="font-family: 'DM Sans', sans-serif;">
-	<div class="wrapper">
-      <%- include('../../Routers/Navigation.ejs') %>
-		<div class="main">
-			<nav style="background-color: #353539; color: white;" class="navbar navbar-expand navbar-light navbar-bg">
-				<a class="sidebar-toggle js-sidebar-toggle">
-          <i class="hamburger align-self-center"></i>
-        </a>
+<body>
+  <div class="wrapper">
+    <%- include('../../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../../Components/Topbar.ejs') %>
 
-				<div class="navbar-collapse collapse">
-					<ul class="navbar-nav navbar-align">
-						<li class="nav-item dropdown">
-							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
-                <i style="color: white;" class="align-middle text-white" data-feather="copy"></i>
-              </a>
+      <main class="content">
 
-							<a class="nav-link dropdown-toggle d-none d-sm-inline-block text-white" href="#" data-bs-toggle="dropdown">
-                <span class="text-white">View account info</span>
-              </a>
-							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance" data-coins="<%= coins %>"></span></a>
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
-            <script>
-              let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(parseFloat(balance.dataset.coins) * 100) / 100
-            </script>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</nav>
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title">Redeem Coupon</div>
+          <div class="page-subtitle">Got a coupon code? Enter it below to claim your reward 🎟️</div>
+        </div>
 
-			<main style="background-color: #212122;" class="content">
-				<div class="container-fluid p-0">
+        <% if (req.query.err) { %>
+        <% const _errMap = {
+          'SUCCESSCOUPONCODE': ['green', '✓ Coupon redeemed successfully! Your rewards have been added.'],
+          'MISSINGCOUPONCODE': ['red', 'Please enter a coupon code.'],
+          'INVALIDCOUPONCODE': ['red', 'Invalid or expired coupon code.'],
+        }; const _e = _errMap[req.query.err] || ['red', 'Error: ' + req.query.err]; %>
+        <div class="alert-banner alert-banner--<%= _e[0] %> mb-4"><%= _e[1] %></div>
+        <% } %>
 
-						<div class="col-xl-4 col-xxl-7">
-							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
-								<div style="background-color: #3a3a40; color: white;" class="card-header">
+        <div class="row g-4">
 
-									<h5 class="card-title mb-0">Redeem Coupon</h5>
-								</div>
-								<div class="card-body py-3">
-                                <form action="/coupon_redeem">
-                                            <label style="color: #6c757d;">Code:</label>
-											<input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" type="text" class="form-control" placeholder="EXAMPLE100" name="code">
-											<br>
-											<button class="btn btn-info btn-lg">Redeem</button>
-                                </form>
-								</div>
-							</div>
-			</main>
+          <!-- Redeem form card -->
+          <div class="col-12 col-lg-5">
+            <div class="coupon-card">
+              <div class="coupon-card-header">
+                <div class="coupon-card-icon">
+                  <svg width="18" height="18" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="coupon-card-title">Enter Coupon Code</div>
+                  <div class="coupon-card-sub">Codes are case-sensitive</div>
+                </div>
+              </div>
 
-			<footer style="background-color: #37373B;" class="footer">
-				<div class="container-fluid">
-					<div class="row text-muted">
-						<div class="col-4 text-start">
-							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
-							</p>
-						</div>
-						<div class="col-8 text-end">
-							<ul class="list-inline">
-								<li class="list-inline-item">
-									<p><code style="color: #17a2b8;"">v<%= settings.version.replace(/"/g, `\\\\"`) %></code> - <span id="loadtime"></span></p>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</footer>
-		</div>
-	</div>
+              <form action="/coupon_redeem" method="POST">
+                <div class="coupon-field">
+                  <label for="couponCode">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    Coupon Code
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control coupon-input"
+                    id="couponCode"
+                    name="code"
+                    placeholder="EXAMPLE100"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                  >
+                  <div class="coupon-hint">Enter your code exactly as provided</div>
+                </div>
 
-	<%- include('../../Scripts/Scripts.ejs') %>
+                <button type="submit" class="btn coupon-btn">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Redeem
+                </button>
+              </form>
+            </div>
+          </div>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var ctx = document.getElementById("chartjs-dashboard-line").getContext("2d");
-			var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-			gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-			gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-			// Line chart
-			new Chart(document.getElementById("chartjs-dashboard-line"), {
-				type: "line",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "Sales ($)",
-						fill: true,
-						backgroundColor: gradient,
-						borderColor: window.theme.primary,
-						data: [
-							2115,
-							1562,
-							1584,
-							1892,
-							1587,
-							1923,
-							2566,
-							2448,
-							2805,
-							3438,
-							2917,
-							3327
-						]
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					tooltips: {
-						intersect: false
-					},
-					hover: {
-						intersect: true
-					},
-					plugins: {
-						filler: {
-							propagate: false
-						}
-					},
-					scales: {
-						xAxes: [{
-							reverse: true,
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}],
-						yAxes: [{
-							ticks: {
-								stepSize: 1000
-							},
-							display: true,
-							borderDash: [3, 3],
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Pie chart
-			new Chart(document.getElementById("chartjs-dashboard-pie"), {
-				type: "pie",
-				data: {
-					labels: ["Chrome", "Firefox", "IE"],
-					datasets: [{
-						data: [4306, 3801, 1689],
-						backgroundColor: [
-							window.theme.primary,
-							window.theme.warning,
-							window.theme.danger
-						],
-						borderWidth: 5
-					}]
-				},
-				options: {
-					responsive: !window.MSInputMethodContext,
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					cutoutPercentage: 75
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Bar chart
-			new Chart(document.getElementById("chartjs-dashboard-bar"), {
-				type: "bar",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "This year",
-						backgroundColor: window.theme.primary,
-						borderColor: window.theme.primary,
-						hoverBackgroundColor: window.theme.primary,
-						hoverBorderColor: window.theme.primary,
-						data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-						barPercentage: .75,
-						categoryPercentage: .5
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					scales: {
-						yAxes: [{
-							gridLines: {
-								display: false
-							},
-							stacked: false,
-							ticks: {
-								stepSize: 20
-							}
-						}],
-						xAxes: [{
-							stacked: false,
-							gridLines: {
-								color: "transparent"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var markers = [{
-					coords: [31.230391, 121.473701],
-					name: "Shanghai"
-				},
-				{
-					coords: [28.704060, 77.102493],
-					name: "Delhi"
-				},
-				{
-					coords: [6.524379, 3.379206],
-					name: "Lagos"
-				},
-				{
-					coords: [35.689487, 139.691711],
-					name: "Tokyo"
-				},
-				{
-					coords: [23.129110, 113.264381],
-					name: "Guangzhou"
-				},
-				{
-					coords: [40.7127837, -74.0059413],
-					name: "New York"
-				},
-				{
-					coords: [34.052235, -118.243683],
-					name: "Los Angeles"
-				},
-				{
-					coords: [41.878113, -87.629799],
-					name: "Chicago"
-				},
-				{
-					coords: [51.507351, -0.127758],
-					name: "London"
-				},
-				{
-					coords: [40.416775, -3.703790],
-					name: "Madrid "
-				}
-			];
-			var map = new jsVectorMap({
-				map: "world",
-				selector: "#world_map",
-				zoomButtons: true,
-				markers: markers,
-				markerStyle: {
-					initial: {
-						r: 9,
-						strokeWidth: 7,
-						stokeOpacity: .4,
-						fill: window.theme.primary
-					},
-					hover: {
-						fill: window.theme.primary,
-						stroke: window.theme.primary
-					}
-				},
-				zoomOnScroll: false
-			});
-			window.addEventListener("resize", () => {
-				map.updateSize();
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-			var defaultDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate();
-			document.getElementById("datetimepicker-dashboard").flatpickr({
-				inline: true,
-				prevArrow: "<span title=\"Previous month\">&laquo;</span>",
-				nextArrow: "<span title=\"Next month\">&raquo;</span>",
-				defaultDate: defaultDate
-			});
-		});
-	</script>
-    <%- include('../../Components/LoadingBar.ejs') %>
+          <!-- Info card -->
+          <div class="col-12 col-lg-7">
+            <div class="coupon-info-card">
+              <div class="coupon-info-title">How coupons work</div>
+              <ul class="coupon-info-list">
+                <li>
+                  <div class="coupon-dot coupon-dot--amber"></div>
+                  <span>Each coupon code can only be <strong>redeemed once</strong> per account</span>
+                </li>
+                <li>
+                  <div class="coupon-dot coupon-dot--purple"></div>
+                  <span>Codes may grant <strong>coins, resources, or plan upgrades</strong> depending on the coupon</span>
+                </li>
+                <li>
+                  <div class="coupon-dot coupon-dot--green"></div>
+                  <span>Rewards are applied to your account <strong>instantly</strong> upon redemption</span>
+                </li>
+                <li>
+                  <div class="coupon-dot coupon-dot--blue"></div>
+                  <span>Codes are <strong>case-sensitive</strong> — make sure to enter them exactly as given</span>
+                </li>
+              </ul>
+
+              <!-- Balance pill -->
+              <div class="coupon-balance-row">
+                <div class="coupon-balance-icon">
+                  <svg width="14" height="14" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="coupon-balance-label">Current balance</span>
+                <span class="coupon-balance-val">🪙 <%= Math.floor(parseFloat(coins) * 100) / 100 %> coins</span>
+                <span class="badge-purple coupon-plan-badge"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../../Components/LoadingBar.ejs') %>
+
+  <style>
+    /* ── Coupon card ── */
+    .coupon-card {
+      background: var(--surface);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+    .coupon-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, #d97706, #fcd34d, #f59e0b);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .coupon-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid rgba(245,158,11,0.1);
+    }
+    .coupon-card-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 10px;
+      background: rgba(245,158,11,0.14);
+      border: 1px solid rgba(245,158,11,0.22);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .coupon-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+    .coupon-card-sub   { font-size: 11px; color: #7a6030; margin-top: 2px; }
+
+    /* field */
+    .coupon-field {
+      padding: 18px 22px 0;
+    }
+    .coupon-field label {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #9d8ec7 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 8px !important;
+      display: block;
+    }
+    .coupon-input {
+      background: var(--surface2) !important;
+      border: 1px solid rgba(245,158,11,0.22) !important;
+      border-radius: 10px !important;
+      color: #fcd34d !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      letter-spacing: 2px;
+      padding: 12px 14px !important;
+      width: 100% !important;
+      transition: border-color 0.15s, box-shadow 0.15s !important;
+    }
+    .coupon-input::placeholder { color: #4a3a1a !important; font-weight: 400 !important; letter-spacing: 1px; }
+    .coupon-input:focus {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.15) !important;
+      outline: none !important;
+    }
+    .coupon-hint {
+      font-size: 11px;
+      color: #4b4669;
+      margin-top: 6px;
+    }
+
+    /* button */
+    .coupon-btn {
+      margin: 18px 22px 22px;
+      width: calc(100% - 44px);
+      padding: 11px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #d97706, #fcd34d) !important;
+      color: #1a1000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      box-shadow: 0 2px 14px rgba(217,119,6,0.3) !important;
+      transition: all 0.15s !important;
+    }
+    .coupon-btn:hover {
+      transform: translateY(-1px) !important;
+      filter: brightness(1.08) !important;
+    }
+
+    /* ── Info card ── */
+    .coupon-info-card {
+      background: rgba(245,158,11,0.04);
+      border: 1px solid rgba(245,158,11,0.14);
+      border-radius: 16px;
+      padding: 22px 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .coupon-info-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: #7c6faa;
+      margin-bottom: 16px;
+    }
+    .coupon-info-list {
+      list-style: none;
+      padding: 0; margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      flex: 1;
+    }
+    .coupon-info-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13px; color: #9d8ec7; line-height: 1.55;
+    }
+    .coupon-info-list li strong { color: #c4b5fd; font-weight: 600; }
+    .coupon-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 5px;
+    }
+    .coupon-dot--amber  { background: #f59e0b; }
+    .coupon-dot--purple { background: #7c3aed; }
+    .coupon-dot--green  { background: #10b981; }
+    .coupon-dot--blue   { background: #3b82f6; }
+
+    /* balance row */
+    .coupon-balance-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(245,158,11,0.1);
+    }
+    .coupon-balance-icon {
+      width: 26px; height: 26px;
+      border-radius: 7px;
+      background: rgba(245,158,11,0.14);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .coupon-balance-label { font-size: 12px; color: #7c6faa; }
+    .coupon-balance-val   { font-size: 13px; font-weight: 700; color: #fcd34d; }
+    .coupon-plan-badge    { font-size: 11px; margin-left: auto; }
+  </style>
 
 </body>
-
 </html>

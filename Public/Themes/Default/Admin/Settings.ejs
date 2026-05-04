@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../Components/Header.ejs') %>
+<%- include('../Components/Styles.ejs') %>
+
+<body>
+  <div class="wrapper">
+    <%- include('../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../Components/Topbar.ejs') %>
+
+      <main class="content">
+
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">Settings Editor</div>
+            <div class="page-subtitle">Configure your Feliactyl instance</div>
+          </div>
+          <button onclick="saveSettings()" class="btn cfg-save-btn" id="save-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Settings
+          </button>
+        </div>
+
+        <div id="alert-box" class="cfg-alert" style="display:none;"></div>
+
+        <!-- Tabs -->
+        <div class="cfg-tabs mb-4">
+          <button class="cfg-tab active" data-tab="general">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>General
+          </button>
+          <button class="cfg-tab" data-tab="pterodactyl">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>Pterodactyl
+          </button>
+          <button class="cfg-tab" data-tab="oauth2">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77"/></svg>OAuth2
+          </button>
+          <button class="cfg-tab" data-tab="store">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Store &amp; Coins
+          </button>
+          <button class="cfg-tab" data-tab="stripe">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Stripe
+          </button>
+          <button class="cfg-tab" data-tab="features">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Features
+          </button>
+          <button class="cfg-tab" data-tab="logging">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Logging
+          </button>
+        </div>
+
+        <!-- Tab panels -->
+        <div id="tab-general" class="cfg-panel active">
+          <div class="cfg-section">
+            <div class="cfg-section-title">General</div>
+            <div class="row g-3">
+              <div class="col-md-6"><div class="cfg-field"><label>Dashboard Name</label><input type="text" id="cfg-name" class="form-control cfg-input" value="<%= currentsettings.name %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Icon URL</label><input type="text" id="cfg-icon" class="form-control cfg-input" value="<%= currentsettings.icon %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Default Theme <small>folder in Public/Themes/</small></label><input type="text" id="cfg-defaulttheme" class="form-control cfg-input" value="<%= currentsettings.defaulttheme %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Port</label><input type="number" id="cfg-port" class="form-control cfg-input" value="<%= currentsettings.website.port %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Session Secret</label><input type="text" id="cfg-secret" class="form-control cfg-input" value="<%= currentsettings.website.secret %>"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-pterodactyl" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Pterodactyl Panel</div>
+            <div class="row g-3">
+              <div class="col-md-6"><div class="cfg-field"><label>Panel Domain</label><input type="text" id="cfg-ptero-domain" class="form-control cfg-input" value="<%= currentsettings.pterodactyl.domain %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Admin API Key</label><input type="text" id="cfg-ptero-key" class="form-control cfg-input" value="<%= currentsettings.pterodactyl.key %>"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-oauth2" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Discord OAuth2</div>
+            <div class="row g-3">
+              <div class="col-md-6"><div class="cfg-field"><label>Client ID</label><input type="text" id="cfg-oauth-id" class="form-control cfg-input" value="<%= currentsettings.api.client.oauth2.id %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Client Secret</label><input type="text" id="cfg-oauth-secret" class="form-control cfg-input" value="<%= currentsettings.api.client.oauth2.secret %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Base URL</label><input type="text" id="cfg-oauth-link" class="form-control cfg-input" value="<%= currentsettings.api.client.oauth2.link %>"></div></div>
+              <div class="col-md-6"><div class="cfg-field"><label>Callback Path</label><input type="text" id="cfg-oauth-callback" class="form-control cfg-input" value="<%= currentsettings.api.client.oauth2.callbackpath %>"></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Trust X-Forwarded-For</label><select id="cfg-oauth-xforward" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.oauth2.ip['trust x-forwarded-for'] ? 'selected' : '' %>>Yes</option><option value="false" <%= !currentsettings.api.client.oauth2.ip['trust x-forwarded-for'] ? 'selected' : '' %>>No</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Allow New Users</label><select id="cfg-allow-newusers" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.allow.newusers ? 'selected' : '' %>>Yes</option><option value="false" <%= !currentsettings.api.client.allow.newusers ? 'selected' : '' %>>No</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Password Regen</label><select id="cfg-allow-regen" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.allow.regen ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.api.client.allow.regen ? 'selected' : '' %>>Disabled</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-store" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Store Limits</div>
+            <div class="row g-3">
+              <div class="col-md-3"><div class="cfg-field"><label>Max RAM (MB)</label><input type="number" id="cfg-limit-ram" class="form-control cfg-input" value="<%= currentsettings.storelimits.ram %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Max Disk (MB)</label><input type="number" id="cfg-limit-disk" class="form-control cfg-input" value="<%= currentsettings.storelimits.disk %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Max CPU (%)</label><input type="number" id="cfg-limit-cpu" class="form-control cfg-input" value="<%= currentsettings.storelimits.cpu %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Max Servers</label><input type="number" id="cfg-limit-servers" class="form-control cfg-input" value="<%= currentsettings.storelimits.servers %>"></div></div>
+            </div>
+          </div>
+          <div class="cfg-section mt-3">
+            <div class="cfg-section-title">Pricing per resource</div>
+            <div class="row g-3">
+              <div class="col-12"><div class="cfg-sub-label">RAM</div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Cost (coins)</label><input type="number" id="cfg-store-ram-cost" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.ram.cost %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Per (MB)</label><input type="number" id="cfg-store-ram-per" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.ram.per %>"></div></div>
+              <div class="col-12"><div class="cfg-sub-label">Disk</div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Cost (coins)</label><input type="number" id="cfg-store-disk-cost" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.disk.cost %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Per (MB)</label><input type="number" id="cfg-store-disk-per" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.disk.per %>"></div></div>
+              <div class="col-12"><div class="cfg-sub-label">CPU</div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Cost (coins)</label><input type="number" id="cfg-store-cpu-cost" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.cpu.cost %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Per (%)</label><input type="number" id="cfg-store-cpu-per" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.cpu.per %>"></div></div>
+              <div class="col-12"><div class="cfg-sub-label">Server Slots</div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Cost (coins)</label><input type="number" id="cfg-store-srv-cost" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.servers.cost %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Per (slots)</label><input type="number" id="cfg-store-srv-per" class="form-control cfg-input" value="<%= currentsettings.api.client.coins.store.servers.per %>"></div></div>
+            </div>
+          </div>
+          <div class="cfg-section mt-3">
+            <div class="cfg-section-title">Other</div>
+            <div class="row g-3">
+              <div class="col-md-3"><div class="cfg-field"><label>Server Creation Cost</label><input type="number" id="cfg-servercost" class="form-control cfg-input" value="<%= currentsettings.servercreation.cost %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Linkvertise Coins</label><input type="number" id="cfg-lv-coins" class="form-control cfg-input" value="<%= currentsettings.linkvertise.coins %>"></div></div>
+              <div class="col-md-3"><div class="cfg-field"><label>Linkvertise User ID</label><input type="text" id="cfg-lv-userid" class="form-control cfg-input" value="<%= currentsettings.linkvertise.userid %>"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-stripe" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Stripe Payments</div>
+            <div class="row g-3">
+              <div class="col-md-4"><div class="cfg-field"><label>Enable Stripe</label><select id="cfg-stripe-enabled" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.stripe.enabled ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.stripe.enabled ? 'selected' : '' %>>Disabled</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Stripe API Key</label><input type="text" id="cfg-stripe-key" class="form-control cfg-input" value="<%= currentsettings.stripe.key %>"></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Coins per &pound;1</label><input type="number" id="cfg-stripe-coins" class="form-control cfg-input" value="<%= currentsettings.stripe.coins %>"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-features" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Feature Toggles</div>
+            <div class="row g-3">
+              <div class="col-md-4"><div class="cfg-field"><label>Whitelist</label><select id="cfg-whitelist" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.whitelist.status ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.whitelist.status ? 'selected' : '' %>>Disabled</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Anti-VPN</label><select id="cfg-antivpn" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.antivpn.status ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.antivpn.status ? 'selected' : '' %>>Disabled</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Anti-VPN API Key</label><input type="text" id="cfg-antivpn-key" class="form-control cfg-input" value="<%= currentsettings.antivpn.APIKey %>"></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Renewals</label><select id="cfg-renewals" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.renewals.status ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.renewals.status ? 'selected' : '' %>>Disabled</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Renewal Cost (coins)</label><input type="number" id="cfg-renewals-cost" class="form-control cfg-input" value="<%= currentsettings.renewals.cost %>"></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Renewal Delay (days)</label><input type="number" id="cfg-renewals-delay" class="form-control cfg-input" value="<%= currentsettings.renewals.delay %>"></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Allow Server Create</label><select id="cfg-allow-create" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.allow.server.create ? 'selected' : '' %>>Yes</option><option value="false" <%= !currentsettings.api.client.allow.server.create ? 'selected' : '' %>>No</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Allow Server Modify</label><select id="cfg-allow-modify" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.allow.server.modify ? 'selected' : '' %>>Yes</option><option value="false" <%= !currentsettings.api.client.allow.server.modify ? 'selected' : '' %>>No</option></select></div></div>
+              <div class="col-md-4"><div class="cfg-field"><label>Allow Server Delete</label><select id="cfg-allow-delete" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.api.client.allow.server.delete ? 'selected' : '' %>>Yes</option><option value="false" <%= !currentsettings.api.client.allow.server.delete ? 'selected' : '' %>>No</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-logging" class="cfg-panel">
+          <div class="cfg-section">
+            <div class="cfg-section-title">Logging (Discord Webhook)</div>
+            <div class="row g-3">
+              <div class="col-md-4"><div class="cfg-field"><label>Enable Logging</label><select id="cfg-logging" class="form-control cfg-input cfg-select"><option value="true" <%= currentsettings.logging.status ? 'selected' : '' %>>Enabled</option><option value="false" <%= !currentsettings.logging.status ? 'selected' : '' %>>Disabled</option></select></div></div>
+              <div class="col-md-8"><div class="cfg-field"><label>Webhook URL</label><input type="text" id="cfg-webhook" class="form-control cfg-input" value="<%= currentsettings.logging.webhook %>"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">&copy; <%= settings.name %> &middot; <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> &middot; <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../Components/LoadingBar.ejs') %>
+
+  <style>
+    /* tabs */
+    .cfg-tabs { display:flex;flex-wrap:wrap;gap:6px; }
+    .cfg-tab {
+      background: var(--surface);
+      border: 1px solid rgba(139,92,246,0.16);
+      border-radius: 9px;
+      color: #7c6faa;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+    }
+    .cfg-tab:hover { border-color: rgba(124,58,237,0.4); color: #c4b5fd; }
+    .cfg-tab.active { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.4); color: #c4b5fd; }
+
+    /* panels */
+    .cfg-panel { display:none; }
+    .cfg-panel.active { display:block; }
+
+    /* section card */
+    .cfg-section {
+      background: var(--surface);
+      border: 1px solid rgba(139,92,246,0.14);
+      border-radius: 14px;
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cfg-section::before {
+      content:'';position:absolute;inset:0 0 auto 0;height:3px;
+      background:linear-gradient(90deg,#7c3aed,#a78bfa);
+      border-radius:14px 14px 0 0;
+    }
+    .cfg-section-title {
+      font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.9px;color:#7c3aed;margin-bottom:16px;
+    }
+    .cfg-sub-label {
+      font-size:12px;font-weight:600;color:#6b5f8a;
+      padding: 6px 0 2px;
+      border-bottom: 1px solid rgba(139,92,246,0.1);
+    }
+
+    /* fields */
+    .cfg-field { display:flex;flex-direction:column;gap:6px; }
+    .cfg-field label { font-size:12px;font-weight:600;color:#9d8ec7;text-transform:uppercase;letter-spacing:0.6px; }
+    .cfg-field label small { font-size:10px;color:#4b4669;text-transform:none;font-weight:400;margin-left:6px; }
+    .cfg-input {
+      background: var(--surface2) !important;
+      border: 1px solid rgba(139,92,246,0.2) !important;
+      border-radius: 9px !important;
+      color: #e2e8f0 !important;
+      font-size: 13px !important;
+      padding: 9px 12px !important;
+    }
+    .cfg-input:focus { border-color:#7c3aed!important;box-shadow:0 0 0 3px rgba(124,58,237,0.15)!important;outline:none!important; }
+    .cfg-input::placeholder { color:#4b4669!important; }
+    .cfg-select { appearance:auto!important;cursor:pointer; }
+
+    /* save button */
+    .cfg-save-btn {
+      background: linear-gradient(135deg,#7c3aed,#a78bfa) !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 10px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      padding: 10px 20px !important;
+      display:inline-flex;align-items:center;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important;
+      transition: all 0.15s !important;
+    }
+    .cfg-save-btn:hover { transform:translateY(-1px)!important;filter:brightness(1.1)!important; }
+    .cfg-save-btn:disabled { opacity:.6!important;cursor:not-allowed!important; }
+
+    /* alert */
+    .cfg-alert {
+      padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:20px;
+    }
+    .cfg-alert.success { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);color:#6ee7b7; }
+    .cfg-alert.error   { background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);color:#fca5a5; }
+  </style>
+
+  <script>
+    // Custom tab switching
+    document.querySelectorAll('.cfg-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.cfg-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    async function saveSettings() {
+      const btn = document.getElementById("save-btn");
+      btn.disabled = true;
+      btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><path d="M12 2v20M2 12h20"/></svg>Saving...`;
+
+      const payload = {
+        name: document.getElementById("cfg-name").value,
+        icon: document.getElementById("cfg-icon").value,
+        defaulttheme: document.getElementById("cfg-defaulttheme").value,
+        website: { port: parseInt(document.getElementById("cfg-port").value), secret: document.getElementById("cfg-secret").value },
+        pterodactyl: { domain: document.getElementById("cfg-ptero-domain").value, key: document.getElementById("cfg-ptero-key").value },
+        storelimits: { ram: document.getElementById("cfg-limit-ram").value, disk: document.getElementById("cfg-limit-disk").value, cpu: document.getElementById("cfg-limit-cpu").value, servers: document.getElementById("cfg-limit-servers").value },
+        stripe: { enabled: document.getElementById("cfg-stripe-enabled").value === "true", key: document.getElementById("cfg-stripe-key").value, coins: parseInt(document.getElementById("cfg-stripe-coins").value) },
+        linkvertise: { userid: document.getElementById("cfg-lv-userid").value, coins: parseInt(document.getElementById("cfg-lv-coins").value) },
+        whitelist: { status: document.getElementById("cfg-whitelist").value === "true" },
+        antivpn: { status: document.getElementById("cfg-antivpn").value === "true", APIKey: document.getElementById("cfg-antivpn-key").value },
+        renewals: { status: document.getElementById("cfg-renewals").value === "true", cost: parseInt(document.getElementById("cfg-renewals-cost").value), delay: parseInt(document.getElementById("cfg-renewals-delay").value) },
+        logging: { status: document.getElementById("cfg-logging").value === "true", webhook: document.getElementById("cfg-webhook").value },
+        servercreation: { cost: parseInt(document.getElementById("cfg-servercost").value) },
+        api: { client: {
+          oauth2: { id: document.getElementById("cfg-oauth-id").value, secret: document.getElementById("cfg-oauth-secret").value, link: document.getElementById("cfg-oauth-link").value, callbackpath: document.getElementById("cfg-oauth-callback").value, ip: { "trust x-forwarded-for": document.getElementById("cfg-oauth-xforward").value === "true" } },
+          allow: { newusers: document.getElementById("cfg-allow-newusers").value === "true", regen: document.getElementById("cfg-allow-regen").value === "true", server: { create: document.getElementById("cfg-allow-create").value === "true", modify: document.getElementById("cfg-allow-modify").value === "true", delete: document.getElementById("cfg-allow-delete").value === "true" } },
+          coins: { store: {
+            ram:     { cost: parseInt(document.getElementById("cfg-store-ram-cost").value),  per: parseInt(document.getElementById("cfg-store-ram-per").value) },
+            disk:    { cost: parseInt(document.getElementById("cfg-store-disk-cost").value), per: parseInt(document.getElementById("cfg-store-disk-per").value) },
+            cpu:     { cost: parseInt(document.getElementById("cfg-store-cpu-cost").value),  per: parseInt(document.getElementById("cfg-store-cpu-per").value) },
+            servers: { cost: parseInt(document.getElementById("cfg-store-srv-cost").value),  per: parseInt(document.getElementById("cfg-store-srv-per").value) }
+          }}
+        }}
+      };
+
+      try {
+        const res = await fetch("/admin/settings/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        const box = document.getElementById("alert-box");
+        if (data.success) {
+          box.className = "cfg-alert success";
+          box.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>Settings saved! Changes like port require a server restart.`;
+        } else {
+          box.className = "cfg-alert error";
+          box.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Error: ` + (data.error || "Unknown error.");
+        }
+        box.style.display = "block";
+        setTimeout(() => box.style.display = "none", 5000);
+      } catch (e) { console.error(e); }
+
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Settings`;
+    }
+  </script>
+
+</body>
+</html>

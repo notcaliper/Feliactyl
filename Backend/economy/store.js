@@ -266,6 +266,44 @@ module.exports.load = async function (app, db) {
     }
   });
 
+  app.post("/buyplan", async (req, res) => {
+    let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
+    if (!req.session.userinfo || !req.session.pterodactyl) return res.redirect("/login");
+    let theme = indexjs.get(req);
+    let failredirect = "/store?err=";
+
+    const planName = req.body.plan;
+    if (!planName) return res.redirect(failredirect + "MISSINGPLAN");
+
+    const planList = newsettings.api.client.packages.list;
+    if (!planList[planName]) return res.redirect(failredirect + "INVALIDPLAN");
+
+    const currentPlan = await db.get("package-" + req.session.userinfo.id) || newsettings.api.client.packages.default;
+    if (currentPlan === planName) return res.redirect(failredirect + "ALREADYONPLAN");
+
+    let planCost = planList[planName].cost || 0;
+    const discounts = newsettings.api.client.packages.discounts || {};
+    const disc = discounts[planName];
+    if (disc) {
+      const expired = disc.expiresAt && disc.expiresAt < Date.now();
+      if (!expired) planCost = Math.round(planCost * (1 - disc.pct / 100));
+    }
+    let usercoins = await db.get("coins-" + req.session.userinfo.id) || 0;
+
+    if (usercoins < planCost) return res.redirect(failredirect + "NOTENOUGHCOINS");
+
+    await db.set("coins-" + req.session.userinfo.id, usercoins - planCost);
+    if (planName === newsettings.api.client.packages.default) {
+      await db.delete("package-" + req.session.userinfo.id);
+    } else {
+      await db.set("package-" + req.session.userinfo.id, planName);
+    }
+
+    adminjs.suspend(req.session.userinfo.id);
+    log("plan purchase", `${req.session.userinfo.username} upgraded to plan \`${planName}\` for \`${planCost}\` coins.`);
+    res.redirect("/store?err=none");
+  });
+
   async function enabledCheck(req, res) {
     let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
     if (newsettings.api.client.coins.store.enabled == true) return newsettings;

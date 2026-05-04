@@ -7,6 +7,9 @@ const fetch = require('node-fetch')
  * @param {string} message 
  */
 module.exports = (action, message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`\x1b[35m[${timestamp}]\x1b[0m \x1b[36m[${action}]\x1b[0m ${message.replace(/`/g, '').replace(/\n/g, ' | ')}`);
+
     if (!settings.logging.status) return
     if (!settings.logging.actions.user[action] && !settings.logging.actions.admin[action]) return
 

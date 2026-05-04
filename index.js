@@ -19,6 +19,7 @@ const glob = require('fast-glob');
 const path = require('path');
 global.Buffer = global.Buffer || require('buffer').Buffer;
 
+
 if (typeof btoa === 'undefined') {
   global.btoa = function (str) {
     return Buffer.from(str, 'binary').toString('base64');
@@ -35,8 +36,8 @@ if (typeof atob === 'undefined') {
 const settings = require("./settings.json");
 
 const defaultthemesettings = {
-  index: "index.ejs",
-  notfound: "index.ejs",
+  index: "Authentication/Login.ejs",
+  notfound: "Errors/404.ejs",
   redirect: {},
   pages: {},
   mustbeloggedin: [],
@@ -44,17 +45,16 @@ const defaultthemesettings = {
   variables: {}
 };
 
-const JavaScriptObfuscator = require('javascript-obfuscator');
-
 async function renderData(req, db, theme) {
   try {
+    const settings = JSON.parse(fs.readFileSync("./settings.json").toString());
     let renderdata = {
       req: req,
       settings: settings,
       userinfo: req.session.userinfo,
       packagename: req.session.userinfo ? await db.get("package-" + req.session.userinfo.id) || settings.api.client.packages.default : null,
       extraresources: !req.session.userinfo ? null : (await db.get("extra-" + req.session.userinfo.id) || { ram: 0, disk: 0, cpu: 0, servers: 0 }),
-      packages: req.session.userinfo ? settings.api.client.packages.list[await db.get("package-" + req.session.userinfo.id) || settings.api.client.packages.default] : null,
+      packages: req.session.userinfo ? (settings.api.client.packages.list[await db.get("package-" + req.session.userinfo.id) || settings.api.client.packages.default] || settings.api.client.packages.list[settings.api.client.packages.default] || { ram: 0, disk: 0, cpu: 0, servers: 0 }) : null,
       coins: settings.api.client.coins.enabled == true ? (req.session.userinfo ? (await db.get("coins-" + req.session.userinfo.id) || 0) : null) : null,
       pterodactyl: req.session.pterodactyl,
       theme: theme.name,
@@ -71,7 +71,7 @@ async function renderData(req, db, theme) {
         let arciopath = "${settings.api.arcio["afk page"].path.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}";
         ${arciotext}`;
 
-      renderdata.arcioafktext = JavaScriptObfuscator.obfuscate(arcioafktext);
+      renderdata.arcioafktext = arcioafktext;
     };
 
     return renderdata;
@@ -112,6 +112,8 @@ module.exports.app = app;
 
 app.use(session({ secret: settings.website.secret, resave: false, saveUninitialized: false }));
 
+app.use("/assets", express.static("./assets"));
+
 app.use(express.json({
   inflate: true,
   limit: '500kb',
@@ -120,6 +122,8 @@ app.use(express.json({
   type: 'application/json',
   verify: undefined
 }));
+
+app.use(express.urlencoded({ extended: true }));
 
 const listener = app.listen(settings.website.port, function () {
   console.log(chalk.white("                                                                   "));
@@ -130,7 +134,7 @@ const listener = app.listen(settings.website.port, function () {
   console.log(chalk.white("                                                                   "));
   console.log(chalk.white("                                                                   "));
   console.log(chalk.white("                                                                   "));
-  console.log(gradient.retro("\u2588\u2588\u2557  \u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2557     \u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2557   \u2588\u2588\u2557\u2588\u2588\u2557     \r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2551     \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u2550\u2588\u2588\u2554\u2550\u2550\u255D\u255A\u2588\u2588\u2557 \u2588\u2588\u2554\u255D\u2588\u2588\u2551     \r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551     \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2551        \u2588\u2588\u2551    \u255A\u2588\u2588\u2588\u2588\u2554\u255D \u2588\u2588\u2551     \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u255D  \u2588\u2588\u2551     \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2551\u2588\u2588\u2551        \u2588\u2588\u2551     \u255A\u2588\u2588\u2554\u255D  \u2588\u2588\u2551     \r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2557   \u2588\u2588\u2551      \u2588\u2588\u2551   \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\r\n\u255A\u2550\u255D  \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u255D\u255A\u2550\u255D  \u255A\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D   \u255A\u2550\u255D      \u255A\u2550\u255D   \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D"));
+  console.log(gradient.retro("███████╗███████╗██╗     ██╗  █████╗  ██████╗████████╗██╗   ██╗██╗     \r\n██╔════╝██╔════╝██║     ██║ ██╔══██╗██╔════╝╚══██╔══╝╚██╗ ██╔╝██║     \r\n█████╗  █████╗  ██║     ██║ ███████║██║        ██║    ╚████╔╝ ██║     \r\n██╔══╝  ██╔══╝  ██║     ██║ ██╔══██║██║        ██║     ╚██╔╝  ██║     \r\n██║     ███████╗███████╗██║ ██║  ██║╚██████╗   ██║      ██║   ███████╗\r\n╚═╝     ╚══════╝╚══════╝╚═╝ ╚═╝  ╚═╝ ╚═════╝   ╚═╝      ╚═╝   ╚══════╝"));
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("🚀 Welcome to Feliactyl 1.0!🚀");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -142,8 +146,6 @@ const listener = app.listen(settings.website.port, function () {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("📝 Sidenote: If you ever encounter a 502 Bad Gateway error,");
   console.log("   remember it's likely a proxy issue, not Feliactyl itself.");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("📧 Need assistance? Feel free to contact us via our Discord Server: https://discord.gg/SE8GvAckWN");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
 });

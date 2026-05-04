@@ -1,444 +1,375 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-
 <%- include('../Components/Header.ejs') %>
 <%- include('../Components/Styles.ejs') %>
+<body>
+  <div class="wrapper">
+    <%- include('../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../Components/Topbar.ejs') %>
 
-<body style="font-family: 'DM Sans', sans-serif;">
-	<div class="wrapper">
-      <%- include('../Routers/Navigation.ejs') %>
-		<div class="main">
-			<nav style="background-color: #353539; color: white;" class="navbar navbar-expand navbar-light navbar-bg">
-				<a class="sidebar-toggle js-sidebar-toggle">
-          <i class="hamburger align-self-center"></i>
-        </a>
+      <main class="content">
 
-				<div class="navbar-collapse collapse">
-					<ul class="navbar-nav navbar-align">
-						<li class="nav-item dropdown">
-							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
-                <i style="color: white;" class="align-middle text-white" data-feather="copy"></i>
-              </a>
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">Admin Panel</div>
+            <div class="page-subtitle">Manage users, coins, resources and coupons</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="/admin/users" class="btn adm-btn adm-btn--muted">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </a>
+            <a href="/admin/plans" class="btn adm-btn adm-btn--muted">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Plans
+            </a>
+            <a href="/admin/settings" class="btn adm-btn adm-btn--muted">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Settings
+            </a>
+          </div>
+        </div>
 
-							<a class="nav-link dropdown-toggle d-none d-sm-inline-block text-white" href="#" data-bs-toggle="dropdown">
-                <span class="text-white">View account info</span>
-              </a>
-							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance" data-coins="<%= coins %>"></span></a>
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
-            <script>
-              let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(parseFloat(balance.dataset.coins) * 100) / 100
-            </script>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</nav>
+        <% if (req.query.err === 'none') { %>
+        <div class="adm-alert adm-alert--green mb-4">
+          <svg width="14" height="14" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Action completed successfully.
+        </div>
+        <% } else if (req.query.err && req.query.err !== 'none') { %>
+        <div class="adm-alert adm-alert--red mb-4">
+          <svg width="14" height="14" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Error: <strong><%= req.query.err %></strong>
+        </div>
+        <% } %>
+        <% if (req.query.code) { %>
+        <div class="adm-alert adm-alert--green mb-4">
+          <svg width="14" height="14" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Coupon created: <strong><%= req.query.code %></strong>
+        </div>
+        <% } %>
 
-			<main style="background-color: #212122;" class="content">
-				<div class="container-fluid p-0">
+        <!-- Version bar -->
+        <div class="adm-version-bar mb-4">
+          <div class="adm-version-icon">
+            <svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <span id="version" style="font-size:13px;color:#9ca3af;">Checking for updates...</span>
+          <script>
+            (async()=>{
+                const cur=<%- JSON.stringify(settings.version) %>;
+                const el=document.getElementById("version");
+                try{
+                  const r=await fetch("https://api.github.com/repos/notcaliper/feliactyl/releases/latest");
+                  const ver=await r.json();
+                  if(!ver||!ver.tag_name){el.innerHTML=`<span class="badge-green" style="margin-right:8px;">&#10003; Running</span><code>v${cur}</code>`;return;}
+                  const latest=ver.tag_name.replace('v','');
+                  if(latest===cur){el.innerHTML=`<span class="badge-green" style="margin-right:8px;">&#10003; Up to date</span>Running <code>v${cur}</code>`;}
+                  else{el.innerHTML=`<span class="badge-red" style="margin-right:8px;">&#9888; Update available</span>On <code>v${cur}</code> &mdash; latest <code>v${latest}</code> &nbsp;<a href="https://github.com/notcaliper/feliactyl" target="_blank" style="color:#a78bfa;">Update &rarr;</a>`;}
+                }catch(e){el.innerHTML=`<span style="color:#6b7280">Offline &mdash;</span> Running <code>v${cur}</code>`;}
+              })();
+          </script>
+        </div>
 
-				    <% if (req.query.code) { %>
-					<div style="background-image: linear-gradient(to right, #03989E, #33B0CB); color: white; padding: 11px; border-radius: 3px;" class="alert">
-					You have created a coupon code with the name of: <%= req.query.code %>
-					</div><br>
-				    <% } %>
+        <!-- Admin action grid -->
+        <div class="row g-4">
 
-						<div class="col-xl-12 col-xxl-7">
-							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
-								<div style="background-color: #3a3a40; color: white;" class="card-header">
+          <!-- Coins -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--purple">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--purple">
+                  <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <span class="adm-card-title">Coins</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/addcoins" method="GET">
+                  <div class="adm-section-label adm-section-label--purple">Add Coins</div>
+                  <div class="row g-2 mb-1">
+                    <div class="col-7"><input class="form-control adm-input" name="id" placeholder="Discord ID"></div>
+                    <div class="col-3"><input class="form-control adm-input" name="coins" placeholder="100" type="number" min="0"></div>
+                    <div class="col-2"><button class="btn adm-btn adm-btn--purple w-100" type="submit" title="Add">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button></div>
+                  </div>
+                </form>
+                <div class="adm-divider"></div>
+                <form action="/setcoins" method="GET">
+                  <div class="adm-section-label" style="color:#6b7280;">Set Coins</div>
+                  <div class="row g-2">
+                    <div class="col-7"><input class="form-control adm-input" name="id" placeholder="Discord ID"></div>
+                    <div class="col-3"><input class="form-control adm-input" name="coins" placeholder="100" type="number" min="0"></div>
+                    <div class="col-2"><button class="btn adm-btn adm-btn--muted w-100" type="submit" title="Set">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button></div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
 
-									<h5 class="card-title mb-0">Feliactyl Version</h5>
-								</div>
-								<div class="card-body py-3">
-                                    <p id="version"><span>Fetching...</span></p>
-                                    <script>
-                                        fetch("https://api.github.com/repos/notcaliper/feliactyl/releases/latest")
-                                            .then(res => Promise.resolve(res.json()).then(ver => {
-                                                let currentver = <%- JSON.stringify(settings.version) %>;
-												if (ver.prerelease == currentver) {
-														document.getElementById("version").innerHTML = `<span>You are running a <span class="text-warning">PreRelease</span> of Feliactyl, Version <code style="color: #17a2b8">v${currentver}</code>. Thank you for running and Testing Feliactyl's PreRelease version! </span>`;
-												} else if (ver.version == currentver) {
-                                                    document.getElementById("version").innerHTML = `<span>You are running Feliactyl version <code style="color: #17a2b8" >v${currentver}</code>. Thank you for keeping your Feliactyl instance updated!</span>`;
-                                                } else {
-                                                    document.getElementById("version").innerHTML = `<span>Uh oh! Feliactyl is <span class="text-danger">not up to date</span>! The latest version is <code style="color: #17a2b8;" >v${ver.version}</code> and you are currently running version <code style="color: #17a2b8" >v${currentver}</code>.<br> We highly suggest updating to make sure you have all the latest security patches & features.<br> <a href="https://github.com/notcaliper/feliactyl" class="text-info">Click here<a> to download the latest version.</span>`;
-                                                };
-                                            }));
-                                    </script>
+          <!-- Plan -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--blue">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--blue">
+                  <svg width="16" height="16" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <span class="adm-card-title">Set Plan</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/setplan" method="POST">
+                  <div class="mb-2">
+                    <div class="adm-section-label adm-section-label--blue">Discord ID</div>
+                    <input class="form-control adm-input" name="id" placeholder="0000000000000000">
+                  </div>
+                  <div class="mb-3">
+                    <div class="adm-section-label adm-section-label--blue">Plan</div>
+                    <select class="form-control adm-input adm-select" name="package">
+                      <% for (let [name, value] of Object.entries(settings.api.client.packages.list)) { %>
+                        <option value="<%= name %>"><%= name %> &mdash; <%= value.ram %>MB RAM, <%= value.disk %>MB Disk, <%= value.cpu %>% CPU, <%= value.servers %> servers</option>
+                      <% } %>
+                    </select>
+                  </div>
+                  <button class="btn adm-btn adm-btn--blue" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    Apply Plan
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
 
-								</div>
-							</div>
-							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
-								<div style="background-color: #3a3a40; color: white;" class="card-header">
+          <!-- Add Resources -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--green">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--green">
+                  <svg width="16" height="16" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <span class="adm-card-title">Add Resources</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/addresources" method="POST">
+                  <div class="mb-2"><input class="form-control adm-input" name="id" placeholder="Discord ID"></div>
+                  <div class="row g-2 mb-3">
+                    <div class="col-6"><input class="form-control adm-input" name="ram" placeholder="RAM (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="disk" placeholder="Disk (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="cpu" placeholder="CPU (%)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="servers" placeholder="Servers" type="number" min="0"></div>
+                  </div>
+                  <button class="btn adm-btn adm-btn--green" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Resources
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
 
-									<h5 class="card-title mb-0">Admin</h5>
-								</div>
-								<div class="card-body py-3">
-                                    <h1>Add coins</h1><br>
-                                    <form action="/addcoins">
-                                        <label for="id">Discord ID:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="id" placeholder="0000000000000000"><br><br>
-                                        <label for="coins">Coins:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="coins" placeholder="100" type="number"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Set coins</h1><br>
-                                    <form action="/setcoins">
-                                        <label style="color: #6c757d;" for="id">Discord ID:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="id" placeholder="0000000000000000"><br><br>
-                                        <label style="color: #6c757d;" for="coins">Coins:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="coins" placeholder="100" type="number"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Add resources</h1><br>
-                                    <form action="/addresources">
-                                        <label style="color: #6c757d;" for="id">Discord ID:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="id" placeholder="0000000000000000"><br><br>
-                                        <label style="color: #6c757d;" for="cpu">CPU:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="cpu" placeholder="50" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="ram">RAM:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="ram" placeholder="1024" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Disk:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="disk" placeholder="5120" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Servers:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="servers" placeholder="2" type="number"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Set resources</h1><br>
-                                    <form action="/setresources">
-                                        <label style="color: #6c757d;" for="id">Discord ID:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="id" placeholder="0000000000000000"><br><br>
-                                        <label style="color: #6c757d;" for="cpu">CPU:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="cpu" placeholder="50" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="ram">RAM:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="ram" placeholder="1024" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Disk:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="disk" placeholder="5120" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Servers:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="servers" placeholder="2" type="number"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Create coupon</h1>
-									<p>This uses GB instead of MB</p><br>
-                                    <form action="/create_coupon">
-                                        <label style="color: #6c757d;" for="id">Code:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="code" placeholder="Leave this empty to generate a random code"><br><br>
-                                        <label style="color: #6c757d;" for="coins">Coins:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="coins" placeholder="100" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="cpu">CPU:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="cpu" placeholder="1" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="ram">RAM:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="ram" placeholder="1" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Disk:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="disk" placeholder="5" type="number"><br><br>
-                                        <label style="color: #6c757d;" for="disk">Servers:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" class="form-control" name="servers" placeholder="2" type="number"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Revoke coupon</h1><br>
-                                    <form action="/revoke_coupon">
-                                        <label style="color: #6c757d;" for="id">Code:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="code" placeholder="EXAMPLE100"><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form><br>
-                                    <h1>Set plan</h1><br>
-                                    <form action="/setplan">
-                                        <label style="color: #6c757d;" for="id">Discord ID:</label>
-                                        <input style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;"class="form-control" name="id" placeholder="0000000000000000"><br><br>
-                                        <label style="color: #6c757d;" for="package">Plan:</label>
-                                        <select class="form-control" style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" name="package">
-                                          <% for (let [name, value] of Object.entries(settings.api.client.packages.list)) { %>
-                                             <option value="<%= name %>"><%= name %> (RAM: <%= value.ram %>MB, Disk: <%= value.disk %>MB, CPU: <%= value.cpu %>%, Servers: <%= value.servers %>)</option>
-                                          <% } %>
-                                        </select><br><br>
-                                        <button class="btn btn-info btn-lg" type="submit">Complete action</button>
-                                    </form>
-								</div>
-							</div>
-						</div>
-					</div>
-			</main>
+          <!-- Set Resources -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--amber">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--amber">
+                  <svg width="16" height="16" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </div>
+                <span class="adm-card-title">Set Resources</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/setresources" method="POST">
+                  <div class="mb-2"><input class="form-control adm-input" name="id" placeholder="Discord ID"></div>
+                  <div class="row g-2 mb-3">
+                    <div class="col-6"><input class="form-control adm-input" name="ram" placeholder="RAM (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="disk" placeholder="Disk (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="cpu" placeholder="CPU (%)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="servers" placeholder="Servers" type="number" min="0"></div>
+                  </div>
+                  <button class="btn adm-btn adm-btn--amber" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    Set Resources
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
 
-    <script>
-        async function submitPlan() {
-            let id = encodeURIComponent(document.getElementById("IDPlan").value);
-            let packagename = encodeURIComponent(document.getElementById("package").value);
-            window.location.href = "/setplan?id=" + id + "&package=" + packagename
-        }
-        async function submitSet() {
-            let id = encodeURIComponent(document.getElementById("IDSet").value);
-            let cpu = encodeURIComponent(document.getElementById("SetCPU").value);
-            let ram = encodeURIComponent(document.getElementById("SetRAM").value);
-            let disk = encodeURIComponent(document.getElementById("SetDisk").value);
-            let servers = encodeURIComponent(document.getElementById("SetServers").value);
-            window.location.href = "/setresources?id=" + id + "&cpu=" + cpu + "&ram=" + ram + "&disk=" + disk + "&servers=" + servers
-        }
-        async function submitAdd() {
-            let id = encodeURIComponent(document.getElementById("IDAdd").value);
-            let cpu = encodeURIComponent(document.getElementById("AddCPU").value);
-            let ram = encodeURIComponent(document.getElementById("AddRAM").value);
-            let disk = encodeURIComponent(document.getElementById("AddDisk").value);
-            let servers = encodeURIComponent(document.getElementById("AddServers").value);
-            
-            window.location.href = "/addresources?id=" + id + "&cpu=" + cpu + "&ram=" + ram + "&disk=" + disk + "&servers=" + servers
-        }
-        async function submitRemove() {
-            let id = encodeURIComponent(document.getElementById("IDRemove").value);
-            let cpu = encodeURIComponent(document.getElementById("RemoveCPU").value);
-            let ram = encodeURIComponent(document.getElementById("RemoveRAM").value);
-            let disk = encodeURIComponent(document.getElementById("RemoveDisk").value);
-            let servers = encodeURIComponent(document.getElementById("RemoveServers").value);
-            window.location.href = "/removeresources?id=" + id + "&cpu=" + cpu + "&ram=" + ram + "&disk=" + disk + "&servers=" + servers
-        }
-    </script>
+          <!-- Coupons -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--teal">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--teal">
+                  <svg width="16" height="16" fill="none" stroke="#5eead4" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </div>
+                <span class="adm-card-title">Create Coupon</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/create_coupon" method="POST">
+                  <div class="mb-2"><input class="form-control adm-input" name="code" placeholder="Code (blank = auto-generate)"></div>
+                  <div class="row g-2 mb-3">
+                    <div class="col-6"><input class="form-control adm-input" name="coins" placeholder="Coins" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="ram" placeholder="RAM (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="disk" placeholder="Disk (MB)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="cpu" placeholder="CPU (%)" type="number" min="0"></div>
+                    <div class="col-6"><input class="form-control adm-input" name="servers" placeholder="Servers" type="number" min="0"></div>
+                  </div>
+                  <button class="btn adm-btn adm-btn--teal" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Create Coupon
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
 
-			<footer style="background-color: #37373B;" class="footer">
-				<div class="container-fluid">
-					<div class="row text-muted">
-						<div class="col-4 text-start">
-							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
-							</p>
-						</div>
-						<div class="col-8 text-end">
-							<ul class="list-inline">
-								<li class="list-inline-item">
-									<p><code style="color: #17a2b8;"">v<%= settings.version.replace(/"/g, `\\\\"`) %></code> - <span id="loadtime"></span></p>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</footer>
-		</div>
-	</div>
+          <!-- Revoke Coupon -->
+          <div class="col-md-6">
+            <div class="adm-card adm-card--red">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--red">
+                  <svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </div>
+                <span class="adm-card-title">Revoke Coupon</span>
+              </div>
+              <div class="adm-card-body">
+                <form action="/revoke_coupon" method="POST">
+                  <div class="mb-3">
+                    <div class="adm-section-label" style="color:#f87171;">Coupon Code</div>
+                    <input class="form-control adm-input adm-input--red" name="code" placeholder="EXAMPLE100">
+                  </div>
+                  <button class="btn adm-btn adm-btn--red" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    Revoke Coupon
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
 
-	<script src="../assets/js/app.js"></script>
+          <!-- J4R Management -->
+          <div class="col-12">
+            <div class="adm-card adm-card--purple">
+              <div class="adm-card-header">
+                <div class="adm-card-icon adm-card-icon--purple">
+                  <svg width="16" height="16" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <span class="adm-card-title">Join for Rewards — Servers</span>
+              </div>
+              <div class="adm-card-body">
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var ctx = document.getElementById("chartjs-dashboard-line").getContext("2d");
-			var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-			gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-			gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-			// Line chart
-			new Chart(document.getElementById("chartjs-dashboard-line"), {
-				type: "line",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "Sales ($)",
-						fill: true,
-						backgroundColor: gradient,
-						borderColor: window.theme.primary,
-						data: [
-							2115,
-							1562,
-							1584,
-							1892,
-							1587,
-							1923,
-							2566,
-							2448,
-							2805,
-							3438,
-							2917,
-							3327
-						]
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					tooltips: {
-						intersect: false
-					},
-					hover: {
-						intersect: true
-					},
-					plugins: {
-						filler: {
-							propagate: false
-						}
-					},
-					scales: {
-						xAxes: [{
-							reverse: true,
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}],
-						yAxes: [{
-							ticks: {
-								stepSize: 1000
-							},
-							display: true,
-							borderDash: [3, 3],
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Pie chart
-			new Chart(document.getElementById("chartjs-dashboard-pie"), {
-				type: "pie",
-				data: {
-					labels: ["Chrome", "Firefox", "IE"],
-					datasets: [{
-						data: [4306, 3801, 1689],
-						backgroundColor: [
-							window.theme.primary,
-							window.theme.warning,
-							window.theme.danger
-						],
-						borderWidth: 5
-					}]
-				},
-				options: {
-					responsive: !window.MSInputMethodContext,
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					cutoutPercentage: 75
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Bar chart
-			new Chart(document.getElementById("chartjs-dashboard-bar"), {
-				type: "bar",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "This year",
-						backgroundColor: window.theme.primary,
-						borderColor: window.theme.primary,
-						hoverBackgroundColor: window.theme.primary,
-						hoverBorderColor: window.theme.primary,
-						data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-						barPercentage: .75,
-						categoryPercentage: .5
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					scales: {
-						yAxes: [{
-							gridLines: {
-								display: false
-							},
-							stacked: false,
-							ticks: {
-								stepSize: 20
-							}
-						}],
-						xAxes: [{
-							stacked: false,
-							gridLines: {
-								color: "transparent"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var markers = [{
-					coords: [31.230391, 121.473701],
-					name: "Shanghai"
-				},
-				{
-					coords: [28.704060, 77.102493],
-					name: "Delhi"
-				},
-				{
-					coords: [6.524379, 3.379206],
-					name: "Lagos"
-				},
-				{
-					coords: [35.689487, 139.691711],
-					name: "Tokyo"
-				},
-				{
-					coords: [23.129110, 113.264381],
-					name: "Guangzhou"
-				},
-				{
-					coords: [40.7127837, -74.0059413],
-					name: "New York"
-				},
-				{
-					coords: [34.052235, -118.243683],
-					name: "Los Angeles"
-				},
-				{
-					coords: [41.878113, -87.629799],
-					name: "Chicago"
-				},
-				{
-					coords: [51.507351, -0.127758],
-					name: "London"
-				},
-				{
-					coords: [40.416775, -3.703790],
-					name: "Madrid "
-				}
-			];
-			var map = new jsVectorMap({
-				map: "world",
-				selector: "#world_map",
-				zoomButtons: true,
-				markers: markers,
-				markerStyle: {
-					initial: {
-						r: 9,
-						strokeWidth: 7,
-						stokeOpacity: .4,
-						fill: window.theme.primary
-					},
-					hover: {
-						fill: window.theme.primary,
-						stroke: window.theme.primary
-					}
-				},
-				zoomOnScroll: false
-			});
-			window.addEventListener("resize", () => {
-				map.updateSize();
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-			var defaultDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate();
-			document.getElementById("datetimepicker-dashboard").flatpickr({
-				inline: true,
-				prevArrow: "<span title=\"Previous month\">&laquo;</span>",
-				nextArrow: "<span title=\"Next month\">&raquo;</span>",
-				defaultDate: defaultDate
-			});
-		});
-	</script>
-    <%- include('../Components/LoadingBar.ejs') %>
+                <!-- Existing servers -->
+                <% if (settings.api.client.j4r.ads && settings.api.client.j4r.ads.length > 0) { %>
+                <div class="adm-section-label adm-section-label--purple mb-2">Current Servers</div>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+                  <% for (let i = 0; i < settings.api.client.j4r.ads.length; i++) { %>
+                  <div style="display:flex;align-items:center;gap:12px;background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.16);border-radius:10px;padding:10px 14px;">
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13px;font-weight:600;color:#e2e8f0;"><%= settings.api.client.j4r.ads[i].name %></div>
+                      <div style="font-size:11px;color:#6b7280;margin-top:2px;">ID: <%= settings.api.client.j4r.ads[i].id %> &middot; 🪙 <%= settings.api.client.j4r.ads[i].coins %> coins</div>
+                    </div>
+                    <form action="/admin/j4r/remove" method="POST" style="margin:0;">
+                      <input type="hidden" name="id" value="<%= settings.api.client.j4r.ads[i].id %>">
+                      <button class="btn adm-btn adm-btn--red" type="submit" style="padding:6px 12px!important;font-size:11px!important;">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:4px;vertical-align:-1px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                        Remove
+                      </button>
+                    </form>
+                  </div>
+                  <% } %>
+                </div>
+                <% } else { %>
+                <div style="font-size:13px;color:#6b7280;margin-bottom:18px;">No J4R servers configured yet.</div>
+                <% } %>
 
+                <!-- Add new server -->
+                <div class="adm-section-label adm-section-label--purple mb-2">Add Server</div>
+                <form action="/admin/j4r/add" method="POST">
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-4"><input class="form-control adm-input" name="name" placeholder="Server Name" required></div>
+                    <div class="col-md-4"><input class="form-control adm-input" name="invite" placeholder="Invite URL (https://discord.gg/...)" required></div>
+                    <div class="col-md-2"><input class="form-control adm-input" name="id" placeholder="Server ID" required></div>
+                    <div class="col-md-2"><input class="form-control adm-input" name="coins" placeholder="Coins" type="number" min="1" required></div>
+                  </div>
+                  <button class="btn adm-btn adm-btn--purple" type="submit">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Server
+                  </button>
+                </form>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">&copy; <%= settings.name %> &middot; <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> &middot; <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+
+  <style>
+    .adm-version-bar { display:flex;align-items:center;gap:10px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.16);border-radius:12px;padding:11px 16px; }
+    .adm-version-icon { width:28px;height:28px;flex-shrink:0;border-radius:8px;background:rgba(124,58,237,0.14);display:flex;align-items:center;justify-content:center; }
+    .adm-alert { display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:10px;font-size:13px; }
+    .adm-alert--green { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7; }
+    .adm-alert--green strong { color:#a7f3d0; }
+    .adm-alert--red { background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);color:#fca5a5; }
+    .adm-alert--red strong { color:#fecaca; }
+    .adm-card { background:var(--surface);border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(139,92,246,0.14);height:100%;display:flex;flex-direction:column; }
+    .adm-card::before { content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0; }
+    .adm-card--purple::before { background:linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .adm-card--blue::before   { background:linear-gradient(90deg,#2563eb,#60a5fa); }
+    .adm-card--green::before  { background:linear-gradient(90deg,#059669,#6ee7b7); }
+    .adm-card--amber::before  { background:linear-gradient(90deg,#d97706,#fcd34d); }
+    .adm-card--teal::before   { background:linear-gradient(90deg,#0d9488,#5eead4); }
+    .adm-card--red::before    { background:linear-gradient(90deg,#dc2626,#fca5a5); }
+    .adm-card-header { display:flex;align-items:center;gap:12px;padding:16px 20px 14px;border-bottom:1px solid rgba(139,92,246,0.08); }
+    .adm-card-icon { width:36px;height:36px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center; }
+    .adm-card-icon--purple { background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.22); }
+    .adm-card-icon--blue   { background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.22); }
+    .adm-card-icon--green  { background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.22); }
+    .adm-card-icon--amber  { background:rgba(217,119,6,0.15);border:1px solid rgba(217,119,6,0.22); }
+    .adm-card-icon--teal   { background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.22); }
+    .adm-card-icon--red    { background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.22); }
+    .adm-card-title { font-size:14px;font-weight:700;color:#e2e8f0; }
+    .adm-card-body { padding:16px 20px 20px;flex:1; }
+    .adm-section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px; }
+    .adm-section-label--purple { color:#a78bfa; }
+    .adm-section-label--blue   { color:#93c5fd; }
+    .adm-section-label--green  { color:#6ee7b7; }
+    .adm-section-label--teal   { color:#5eead4; }
+    .adm-divider { border-top:1px solid rgba(139,92,246,0.1);margin:14px 0; }
+    .adm-input { background:var(--surface2)!important;border:1px solid rgba(139,92,246,0.18)!important;border-radius:9px!important;color:#e2e8f0!important;font-size:13px!important;padding:9px 12px!important; }
+    .adm-input:focus { border-color:#7c3aed!important;box-shadow:0 0 0 3px rgba(124,58,237,0.15)!important;outline:none!important; }
+    .adm-input::placeholder { color:#4b4669!important; }
+    .adm-input--red { border-color:rgba(220,38,38,0.25)!important; }
+    .adm-input--red:focus { border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(220,38,38,0.15)!important; }
+    .adm-select { appearance:auto!important;cursor:pointer; }
+    .adm-btn { font-size:13px!important;font-weight:600!important;padding:9px 18px!important;border:none!important;border-radius:9px!important;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s!important; }
+    .adm-btn:hover { transform:translateY(-1px)!important;filter:brightness(1.1)!important; }
+    .adm-btn--purple { background:linear-gradient(135deg,#7c3aed,#a78bfa)!important;color:white!important;box-shadow:0 2px 10px rgba(124,58,237,0.3)!important; }
+    .adm-btn--muted  { background:rgba(139,92,246,0.12)!important;color:#a78bfa!important;border:1px solid rgba(139,92,246,0.22)!important; }
+    .adm-btn--blue   { background:linear-gradient(135deg,#2563eb,#60a5fa)!important;color:white!important;box-shadow:0 2px 10px rgba(37,99,235,0.3)!important; }
+    .adm-btn--green  { background:linear-gradient(135deg,#059669,#34d399)!important;color:white!important;box-shadow:0 2px 10px rgba(16,185,129,0.3)!important; }
+    .adm-btn--amber  { background:linear-gradient(135deg,#d97706,#fcd34d)!important;color:#1a1000!important;box-shadow:0 2px 10px rgba(217,119,6,0.3)!important; }
+    .adm-btn--teal   { background:linear-gradient(135deg,#0d9488,#5eead4)!important;color:#001a18!important;box-shadow:0 2px 10px rgba(13,148,136,0.3)!important; }
+    .adm-btn--red    { background:linear-gradient(135deg,#dc2626,#f87171)!important;color:white!important;box-shadow:0 2px 10px rgba(220,38,38,0.3)!important; }
+  </style>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../Components/LoadingBar.ejs') %>
+
+  <script>
+    // admin panel scripts
+
+  </script>
 </body>
-
 </html>

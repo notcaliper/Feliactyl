@@ -1,329 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <%- include('../../Components/Header.ejs') %>
 <%- include('../../Components/Styles.ejs') %>
 
-<body style="font-family: DM Sans; sans-serif;">
-	<div class="wrapper">
-      <%- include('../../Routers/Navigation.ejs') %>
-		<div class="main">
-			<nav style="background-color: #353539; color: white;" class="navbar navbar-expand navbar-light navbar-bg">
-				<a class="sidebar-toggle js-sidebar-toggle">
-          <i class="hamburger align-self-center"></i>
-        </a>
+<body>
+  <div class="wrapper">
+    <%- include('../../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../../Components/Topbar.ejs') %>
 
-				<div class="navbar-collapse collapse">
-					<ul class="navbar-nav navbar-align">
-						<li class="nav-item dropdown">
-							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
-                <i style="color: white;" class="align-middle text-white" data-feather="copy"></i>
-              </a>
+      <main class="content">
 
-							<a class="nav-link dropdown-toggle d-none d-sm-inline-block text-white" href="#" data-bs-toggle="dropdown">
-                <span class="text-white">View account info</span>
-              </a>
-							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance"></span></a>
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
-            <script>
-              let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(<%= coins %> * 100) / 100
-            </script>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</nav>
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title">Join for Rewards</div>
+          <div class="page-subtitle">Join Discord servers below and earn coins 🪙</div>
+        </div>
 
-			<main style="background-color: #212122;" class="content">
-				<div class="container-fluid p-0">
+        <% if (req.query.err === 'claimed') { %>
+        <div class="alert-banner alert-banner--green mb-4">✓ Reward claimed! Coins have been added to your account.</div>
+        <% } else if (req.query.err) { %>
+        <div class="alert-banner alert-banner--red mb-4">Error: <%= req.query.err %></div>
+        <% } %>
 
-						<div class="col-xl-4 col-xxl-7">
-							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
-								<div style="background-color: #3a3a40; color: white;" class="card-header">
+        <!-- Info banner -->
+        <div class="j4r-banner">
+          <div class="j4r-banner-icon">
+            <svg width="20" height="20" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <div class="j4r-banner-title">How it works</div>
+            <div class="j4r-banner-sub">Click <strong>Join Server</strong>, then come back and hit <strong>Claim Reward</strong> to receive your coins.</div>
+          </div>
+        </div>
 
-									<h5 class="card-title mb-0">J4R Servers</h5>
-								</div>
-								<div class="card-body py-3">
-                    <form class="forms-sample">
-              	      <div class="form-group">
-                      <table style="background-color: #3a3a40;" class="table">
-                        <thead style="background-color: #3a3a40;">
-                          <tr>
-                            <th style="color: white;"> Name </th>
-                            <th style="color: white;"> Reward </th>
-                            <th style="color: white;"> Options </th>
-                          </tr>
-                        </thead>
-                        <tbody style="background-color: #3a3a40;">
-                           <% for (let i = 0, len = settings.api.client.j4r.ads.length; i < len; i++) { %>
-                                <tr style="background-color: #3a3a40;">
-                                <td>
-                                  <span class="pl-2 text-info"><%= settings.api.client.j4r.ads[i].name %></span>
-                                </td>
-                                <td>
-                                  <span class="pl-2 text-white"><%= settings.api.client.j4r.ads[i].coins %> coins</span>
-                                </td>
-                                <td>
-                                <a role="button" class="btn btn-info" href="<%= settings.api.client.j4r.ads[i].invite %>">Join Server</a>
-                                <a role="button" class="btn btn-secondary" href="../login">Claim Reward</a>
-                                </td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                      </table>
-                    </form>
-								</div>
-							</div>
-			</main>
+        <!-- Server cards -->
+        <% if (settings.api.client.j4r.ads.length === 0) { %>
+          <div class="card" style="text-align:center;padding:48px 24px;color:#6b7280;">
+            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px;display:block;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            No J4R servers configured yet.
+          </div>
+        <% } else { %>
+          <div class="j4r-list">
+            <% for (let i = 0, len = settings.api.client.j4r.ads.length; i < len; i++) { %>
+              <div class="j4r-row">
 
-			<footer style="background-color: #37373B;" class="footer">
-				<div class="container-fluid">
-					<div class="row text-muted">
-						<div class="col-4 text-start">
-							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
-							</p>
-						</div>
-						<div class="col-8 text-end">
-							<ul class="list-inline">
-								<li class="list-inline-item">
-									<p><code style="color: #17a2b8;"">v<%= settings.version.replace(/"/g, `\\\\"`) %></code> - <span id="loadtime"></span></p>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</footer>
-		</div>
-	</div>
+                <!-- Left: avatar + name -->
+                <div class="j4r-info">
+                  <div class="j4r-avatar">
+                    <svg width="18" height="18" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <div>
+                    <div class="j4r-name"><%= settings.api.client.j4r.ads[i].name %></div>
+                    <div class="j4r-desc">Discord community server</div>
+                  </div>
+                </div>
 
-	<%- include('../../Scripts/Scripts.ejs') %>
+                <!-- Middle: reward pill -->
+                <div class="j4r-reward">
+                  <span class="j4r-coin-icon">🪙</span>
+                  <span class="j4r-coin-val"><%= settings.api.client.j4r.ads[i].coins %></span>
+                  <span class="j4r-coin-label">coins</span>
+                </div>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var ctx = document.getElementById("chartjs-dashboard-line").getContext("2d");
-			var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-			gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-			gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-			// Line chart
-			new Chart(document.getElementById("chartjs-dashboard-line"), {
-				type: "line",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "Sales ($)",
-						fill: true,
-						backgroundColor: gradient,
-						borderColor: window.theme.primary,
-						data: [
-							2115,
-							1562,
-							1584,
-							1892,
-							1587,
-							1923,
-							2566,
-							2448,
-							2805,
-							3438,
-							2917,
-							3327
-						]
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					tooltips: {
-						intersect: false
-					},
-					hover: {
-						intersect: true
-					},
-					plugins: {
-						filler: {
-							propagate: false
-						}
-					},
-					scales: {
-						xAxes: [{
-							reverse: true,
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}],
-						yAxes: [{
-							ticks: {
-								stepSize: 1000
-							},
-							display: true,
-							borderDash: [3, 3],
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Pie chart
-			new Chart(document.getElementById("chartjs-dashboard-pie"), {
-				type: "pie",
-				data: {
-					labels: ["Chrome", "Firefox", "IE"],
-					datasets: [{
-						data: [4306, 3801, 1689],
-						backgroundColor: [
-							window.theme.primary,
-							window.theme.warning,
-							window.theme.danger
-						],
-						borderWidth: 5
-					}]
-				},
-				options: {
-					responsive: !window.MSInputMethodContext,
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					cutoutPercentage: 75
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Bar chart
-			new Chart(document.getElementById("chartjs-dashboard-bar"), {
-				type: "bar",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "This year",
-						backgroundColor: window.theme.primary,
-						borderColor: window.theme.primary,
-						hoverBackgroundColor: window.theme.primary,
-						hoverBorderColor: window.theme.primary,
-						data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-						barPercentage: .75,
-						categoryPercentage: .5
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					scales: {
-						yAxes: [{
-							gridLines: {
-								display: false
-							},
-							stacked: false,
-							ticks: {
-								stepSize: 20
-							}
-						}],
-						xAxes: [{
-							stacked: false,
-							gridLines: {
-								color: "transparent"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var markers = [{
-					coords: [31.230391, 121.473701],
-					name: "Shanghai"
-				},
-				{
-					coords: [28.704060, 77.102493],
-					name: "Delhi"
-				},
-				{
-					coords: [6.524379, 3.379206],
-					name: "Lagos"
-				},
-				{
-					coords: [35.689487, 139.691711],
-					name: "Tokyo"
-				},
-				{
-					coords: [23.129110, 113.264381],
-					name: "Guangzhou"
-				},
-				{
-					coords: [40.7127837, -74.0059413],
-					name: "New York"
-				},
-				{
-					coords: [34.052235, -118.243683],
-					name: "Los Angeles"
-				},
-				{
-					coords: [41.878113, -87.629799],
-					name: "Chicago"
-				},
-				{
-					coords: [51.507351, -0.127758],
-					name: "London"
-				},
-				{
-					coords: [40.416775, -3.703790],
-					name: "Madrid "
-				}
-			];
-			var map = new jsVectorMap({
-				map: "world",
-				selector: "#world_map",
-				zoomButtons: true,
-				markers: markers,
-				markerStyle: {
-					initial: {
-						r: 9,
-						strokeWidth: 7,
-						stokeOpacity: .4,
-						fill: window.theme.primary
-					},
-					hover: {
-						fill: window.theme.primary,
-						stroke: window.theme.primary
-					}
-				},
-				zoomOnScroll: false
-			});
-			window.addEventListener("resize", () => {
-				map.updateSize();
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-			var defaultDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate();
-			document.getElementById("datetimepicker-dashboard").flatpickr({
-				inline: true,
-				prevArrow: "<span title=\"Previous month\">&laquo;</span>",
-				nextArrow: "<span title=\"Next month\">&raquo;</span>",
-				defaultDate: defaultDate
-			});
-		});
-	</script>
-    <%- include('../../Components/LoadingBar.ejs') %>
+                <!-- Right: actions -->
+                <div class="j4r-actions">
+                  <a href="<%= settings.api.client.j4r.ads[i].invite %>" target="_blank" rel="noopener" class="btn btn-primary btn-sm j4r-btn-join">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Join Server
+                  </a>
+                  <a href="/login?prompt=none&redirect=j4r" class="btn btn-secondary btn-sm j4r-btn-claim">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    Claim Reward
+                  </a>
+                </div>
+
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../../Components/LoadingBar.ejs') %>
+
+  <style>
+    /* ── J4R banner ── */
+    .j4r-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .j4r-banner-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 10px;
+      background: rgba(124,58,237,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .j4r-banner-title {
+      font-size: 13px; font-weight: 700; color: #c4b5fd;
+      margin-bottom: 2px;
+    }
+    .j4r-banner-sub {
+      font-size: 12px; color: #7c6faa;
+    }
+    .j4r-banner-sub strong { color: #a78bfa; font-weight: 600; }
+
+    /* ── J4R list ── */
+    .j4r-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── J4R row ── */
+    .j4r-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid rgba(139,92,246,0.14);
+      border-radius: 14px;
+      padding: 16px 20px;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .j4r-row:hover {
+      border-color: rgba(124,58,237,0.4);
+      box-shadow: 0 6px 28px rgba(124,58,237,0.12);
+      transform: translateY(-1px);
+    }
+
+    /* avatar */
+    .j4r-avatar {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 12px;
+      background: rgba(124,58,237,0.15);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* info */
+    .j4r-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .j4r-name {
+      font-size: 14px; font-weight: 600; color: #e2e8f0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .j4r-desc {
+      font-size: 11px; color: #4b4669;
+      margin-top: 2px;
+    }
+
+    /* reward */
+    .j4r-reward {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 999px;
+      padding: 5px 14px;
+      white-space: nowrap;
+    }
+    .j4r-coin-icon { font-size: 13px; }
+    .j4r-coin-val  { font-size: 15px; font-weight: 800; color: #c4b5fd; letter-spacing: -0.5px; }
+    .j4r-coin-label{ font-size: 11px; color: #7c6faa; }
+
+    /* actions */
+    .j4r-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .j4r-btn-join {
+      font-size: 12px !important;
+      padding: 7px 14px !important;
+      display: inline-flex; align-items: center;
+    }
+    .j4r-btn-claim {
+      font-size: 12px !important;
+      padding: 7px 14px !important;
+      display: inline-flex; align-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .j4r-row { flex-wrap: wrap; }
+      .j4r-reward { order: 3; }
+      .j4r-actions { order: 4; width: 100%; }
+      .j4r-btn-join, .j4r-btn-claim { flex: 1; justify-content: center; }
+    }
+  </style>
 
 </body>
-
 </html>
