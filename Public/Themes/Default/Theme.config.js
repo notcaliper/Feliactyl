@@ -1,6 +1,6 @@
 module.exports = {
   module: ["Theme"],
-  desc: ["One of the Heliactyl theme modules..."],
+  desc: ["One of the Feliactyl theme modules..."],
   plugins: [],
   additionalStyles: [],
 }

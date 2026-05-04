@@ -2,12 +2,12 @@ const indexjs = require("../../index.js");
 const fs = require("fs");
 
 module.exports.load = async function(app, db) {
-  app.get("/coupon_redeem", async (req, res) => {
+  app.post("/coupon_redeem", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
 
     let theme = indexjs.get(req);
 
-    let code = req.query.code;
+    let code = req.body.code;
 
     if (!code) return res.redirect(theme.settings.redirect.missingorinvalidcouponcode + "?err=MISSINGCOUPONCODE");
 
@@ -31,7 +31,7 @@ module.exports.load = async function(app, db) {
 
 
     // Limiting CPU,RAM,DISK and Servers to 999999999999
-    // Why should anyone use more than 999999999999999? - Ghostload
+    // Why should anyone use more than 999999999999999? - notcaliper
     if (extra.ram > 999999999999999) extra.ram = 999999999999999;
     if (extra.disk > 999999999999999) extra.disk = 999999999999999;
     if (extra.cpu > 999999999999999) extra.cpu = 999999999999999;

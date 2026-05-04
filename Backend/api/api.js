@@ -102,7 +102,7 @@ module.exports.load = async function (app, db) {
     res.send({ status: "success" });
   });
 
-  app.get("/api/updateCoins", async (req, res) => {
+  app.post("/api/updateCoins", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
     let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
     let userinfo = req.session.userinfo
@@ -272,12 +272,12 @@ module.exports.load = async function (app, db) {
   });
 
   const queue = new Queue()
-  app.get("/giftcoins", async (req, res) => {
+  app.post("/giftcoins", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect(`/`);
 
-    const coins = parseInt(req.query.coins)
-    if (!coins || !req.query.id) return res.redirect(`/gift?err=MISSINGFIELDS`);
-    if (req.query.id.includes(`${req.session.userinfo.id}`)) return res.redirect(`/gift?err=CANNOTGIFTYOURSELF`)
+    const coins = parseInt(req.body.coins)
+    if (!coins || !req.body.id) return res.redirect(`/gift?err=MISSINGFIELDS`);
+    if (req.body.id.includes(`${req.session.userinfo.id}`)) return res.redirect(`/gift?err=CANNOTGIFTYOURSELF`)
 
 
     if (coins < 1) return res.redirect(`/gift?err=TOOLOWCOINS`)
@@ -285,7 +285,7 @@ module.exports.load = async function (app, db) {
     queue.addJob(async (cb) => {
 
       const usercoins = await db.get(`coins-${req.session.userinfo.id}`)
-      const othercoins = await db.get(`coins-${req.query.id}`)
+      const othercoins = await db.get(`coins-${req.body.id}`)
       if (!othercoins) {
         cb()
         return res.redirect(`/gift?err=USERDOESNTEXIST`)
@@ -295,20 +295,20 @@ module.exports.load = async function (app, db) {
         return res.redirect(`/gift?err=CANTAFFORD`)
       }
 
-      await db.set(`coins-${req.query.id}`, othercoins + coins)
+      await db.set(`coins-${req.body.id}`, othercoins + coins)
       await db.set(`coins-${req.session.userinfo.id}`, usercoins - coins)
 
-      log('gifted coins', `${req.session.userinfo.username}#${req.session.userinfo.discriminator} sent ${coins}\ Coins to the user with the ID \`${req.query.id}\`.`)
+      log('gifted coins', `${req.session.userinfo.username}#${req.session.userinfo.discriminator} sent ${coins}\ Coins to the user with the ID \`${req.body.id}\`.`)
       cb()
       return res.redirect(`/gift?success=true`);
 
     })
   });
 
-  app.get("/giftres", async (req, res) => {
+  app.post("/giftres", async (req, res) => {
     if (!req.session.pterodactyl) return res.send("Not logged in.");
-    if (req.query.ram.includes("-")) return res.send("Invalid number.");
-    if (req.query.ram.includes("+")) return res.send("Invalid number.");
+    if (req.body.ram && req.body.ram.includes("-")) return res.send("Invalid number.");
+    if (req.body.ram && req.body.ram.includes("+")) return res.send("Invalid number.");
     let theme = indexjs.get(req);
     if (!settings.api.client.allow.giftressources) return res.redirect(theme.settings.redirect.giftresources);
 
@@ -316,15 +316,15 @@ module.exports.load = async function (app, db) {
     let failredirect = theme.settings.redirect.failedgiftresources ? theme.settings.redirect.failedgiftresources : "/";
     let successredirect = theme.settings.redirect.giftresources ? theme.settings.redirect.giftresources : "/";
     let usr1 = await db.get("extra-" + req.session.userinfo.id)
-    let usr2 = await db.get("extra-" + req.query.id)
-    let usr3 = await db.get("users-" + req.query.id)
-    if (!req.query.id) return res.redirect(`${failredirect}?err=MISSINGID`);
+    let usr2 = await db.get("extra-" + req.body.id)
+    let usr3 = await db.get("users-" + req.body.id)
+    if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
     if (!usr3) return res.redirect(`${failredirect}?err=INVALIDID`);
-    if (req.query.ram || req.query.disk || req.query.cpu || req.query.servers) {
-      let ramstring = req.query.ram;
-      let diskstring = req.query.disk;
-      let cpustring = req.query.cpu;
-      let serversstring = req.query.servers;
+    if (req.body.ram || req.body.disk || req.body.cpu || req.body.servers) {
+      let ramstring = req.body.ram;
+      let diskstring = req.body.disk;
+      let cpustring = req.body.cpu;
+      let serversstring = req.body.servers;
 
       let extra1;
       if (typeof usr1 == "object") {
@@ -398,7 +398,7 @@ module.exports.load = async function (app, db) {
       }
 
       db.set("extra-" + req.session.userinfo.id, extra1)
-      db.set("extra-" + req.query.id, extra2)
+      db.set("extra-" + req.body.id, extra2)
 
       return res.redirect(`${successredirect}?err=none`);
     }

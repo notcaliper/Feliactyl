@@ -1,8 +1,10 @@
-![Heliactyl](https://media.discordapp.net/attachments/1000768414220038204/1157727962569900192/Heliactyl-preview.png)
+![Feliactyl](https://media.discordapp.net/attachments/1000768414220038204/1157727962569900192/Heliactyl-preview.png)
 
 <hr>
 
-# Heliactyl v13.3
+# Feliactyl v1.0
+
+Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl) 13.3, maintained by [notcaliper](https://github.com/notcaliper). Rebranded and re-versioned starting at **v1.0**.
 
 All features:
 - Resource Management (Use it to create servers, etc)
@@ -21,7 +23,7 @@ All features:
 
 # Warning
 
-We cannot force you to keep the "Powered by Heliactyl" in the footer, but please consider keeping it. It helps getting more visibility to the project and so getting better. We won't provide technical support for installations without the notice in the footer. We may file a DMCA takedown if the website using our Software shares false information or proclaims to be the Software Developers.
+We cannot force you to keep the "Powered by Feliactyl" in the footer, but please consider keeping it. It helps getting more visibility to the project and so getting better. We won't provide technical support for installations without the notice in the footer. We may file a DMCA takedown if the website using our Software shares false information or proclaims to be the Software Developers.
 
 We kindly ask you to keep the footer :)
 
@@ -29,7 +31,7 @@ We kindly ask you to keep the footer :)
 
 # Install Guide
 
-**Caution:** Ensure that Pterodactyl is already configured on a domain or else Heliactyl may not function properly.
+**Caution:** Ensure that Pterodactyl is already configured on a domain or else Feliactyl may not function properly.
 
 Access your VPS through SSH and run these Commands:
 
@@ -37,21 +39,21 @@ Access your VPS through SSH and run these Commands:
 1. sudo apt update -y && sudo apt upgrade -y
 2. sudo apt install nginx
 3. cd /var/www
-4. # Download and unzip the latest Heliactyl release from GitHub into the current folder
+4. # Download and unzip the latest Feliactyl release from GitHub into the current folder
 5. curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
    sudo apt-get install -y nodejs
    # Customize the settings.json file, specifically updating the panel domain, API key, and Discord authentication settings.
-6. node . # Start Heliactyl. Take a look at "Running in background and on startup" if you want Heliactyl to run in the background
-          # Ctrl + C to stop Heliactyl
+6. node . # Start Feliactyl. Take a look at "Running in background and on startup" if you want Feliactyl to run in the background
+          # Ctrl + C to stop Feliactyl
 7. sudo apt install certbot
 8. sudo ufw allow 80
 9. sudo ufw allow 443
-10. sudo certbot certonly -d <Your Heliactyl Domain>
-11. nano /etc/nginx/sites-enabled/heliactyl.conf
-12. # Copy the Ngnix config from # Nginx Proxy Config and replace <domain> with your domain and <port> with the Port Heliactyl is running on 
+10. sudo certbot certonly -d <Your Feliactyl Domain>
+11. nano /etc/nginx/sites-enabled/feliactyl.conf
+12. # Copy the Ngnix config from # Nginx Proxy Config and replace <domain> with your domain and <port> with the Port Feliactyl is running on 
     # (You can find the port in the settings.json)
 13. sudo systemctl restart nginx
-14. # Attempt to access your Heliactyl domain
+14. # Attempt to access your Feliactyl domain
 
 
 # Nginx Proxy Config
@@ -102,40 +104,39 @@ How to other eggs (Minecraft Bedrock):
 
 # Updating 
 
-From Heliactyl v11/v12 or Dashactyl v0.4 to Heliactyl v13:
-1. Store certain information such as your api keys, discord auth settings, etc in a .txt file or somewhere safe
-2. Download database.sqlite (This is the Database which includes important data about the user and servers) 
-3. Delete all files in the directory of the server (or delete and remake the folder if done in ssh)
-4. Upload the latest Heliactyl v13 release and unzip it
-5. Upload database.sqlite and reconfigure settings.json
+Migrating from Heliactyl v13.x to Feliactyl v1:
+1. Store important info (API keys, Discord auth settings, etc.) somewhere safe
+2. Download `database.sqlite` (contains user and server data) 
+3. Delete the old Heliactyl directory contents
+4. Upload the latest Feliactyl v1 release and unzip it
+5. Restore `database.sqlite` and reconfigure `settings.json`
 
-Move to a newer Heliactyl v13 release:
-1. Delete everything except settings.json, database.sqlite
-2. Download the database.sqlite and Store important details from the settings.json such as your api keys, discord auth settings, etc in a .txt file or somewhere safe
-3. Upload the latest Heliactyl v13 release and unzip it
-4. reconfigure settings.json and upload your old database.sqlite
-5. All done now start Heliactyl again
+Updating to a newer Feliactyl v1 release:
+1. Keep `settings.json` and `database.sqlite`, delete everything else
+2. Back up both files somewhere safe first
+3. Upload the latest Feliactyl v1 release and unzip it
+4. Restore `settings.json` and `database.sqlite`
+5. Start Feliactyl again
 
 # Running in background and on startup
 Installing [pm2](https://github.com/Unitech/pm2):
 - Run `npm install pm2 -g` on the vps
 
 Starting the Dashboard in Background:
-- Change directory to your Heliactyl folder Using `cd` command, Example: `cd /var/www/heliactyl` 
-- To run Heliactyl, use `pm2 start index.js --name "heliactyl"`
-- To view logs, run `pm2 logs Heliactyl`
+- Change directory to your Feliactyl folder Using `cd` command, Example: `cd /var/www/feliactyl` 
+- To run Feliactyl, use `pm2 start index.js --name "feliactyl"`
+- To view logs, run `pm2 logs Feliactyl`
 
 Making the dashboard runs on startup:
 - Make sure your dashboard is running in the background with the help of [pm2](https://github.com/Unitech/pm2)
-- You can check if Heliactyl is running in background with `pm2 list`
-- Once you confirmed that Heliactyl is running in background, you can create a startup script by running `pm2 startup` and `pm2 save`
+- You can check if Feliactyl is running in background with `pm2 list`
+- Once you confirmed that Feliactyl is running in background, you can create a startup script by running `pm2 startup` and `pm2 save`
 - Note: Supported init systems are `systemd`, `upstart`, `launchd`, `rc.d`
-- To stop your Heliactyl from running in the background, use `pm2 unstartup`
+- To stop your Feliactyl from running in the background, use `pm2 unstartup`
 
-To stop a currently running Heliactyl instance, use `pm2 stop heliactyl`
+To stop a currently running Feliactyl instance, use `pm2 stop feliactyl`
 
 # Legacy Deprecation Notice
 
-Heliactyl Version v1 to - v12 have now reached their EOL (End Of Life) and should not be used in Production.
-Please update to Heliactyl v12 LTS or v13.
+Legacy Heliactyl versions (pre-13.3) are not supported by this fork. Please use Feliactyl v1 or later.
 

@@ -10,10 +10,10 @@ module.exports.load = async function (app, db) {
   let maxcpu = null;
   let maxservers = null;
   let maxdisk = null;
-  app.get("/buyram", async (req, res) => {
+  app.post("/buyram", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
     if (newsettings) {
-      let amount = req.query.amount;
+      let amount = req.body.amount;
 
       if (!amount) return res.send("missing amount");
 
@@ -74,10 +74,10 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.get("/buydisk", async (req, res) => {
+  app.post("/buydisk", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
     if (newsettings) {
-      let amount = req.query.amount;
+      let amount = req.body.amount;
 
       if (!amount) return res.send("missing amount");
 
@@ -138,10 +138,10 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.get("/buycpu", async (req, res) => {
+  app.post("/buycpu", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
     if (newsettings) {
-      let amount = req.query.amount;
+      let amount = req.body.amount;
 
       if (!amount) return res.send("missing amount");
 
@@ -202,10 +202,10 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.get("/buyservers", async (req, res) => {
+  app.post("/buyservers", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
     if (newsettings) {
-      let amount = req.query.amount;
+      let amount = req.body.amount;
 
       if (!amount) return res.send("missing amount");
 

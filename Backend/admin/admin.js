@@ -12,7 +12,7 @@ const ejs = require("ejs");
 const log = require('../../functions/log.js')
 
 module.exports.load = async function (app, db) {
-    app.get("/setcoins", async (req, res) => {
+    app.post("/setcoins", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -57,7 +57,7 @@ module.exports.load = async function (app, db) {
         res.redirect(successredirect + "?err=none");
     });
 
-    app.get("/addcoins", async (req, res) => {
+    app.post("/addcoins", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -100,11 +100,11 @@ module.exports.load = async function (app, db) {
         }
 
         let successredirect = theme.settings.redirect.setcoins || "/";
-        log(`add coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} added \`${req.query.coins}\` coins to the user with the ID \`${id}\`'s account.`)
+        log(`add coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} added \`${coins}\` coins to the user with the ID \`${id}\`'s account.`)
         res.redirect(successredirect + "?err=none");
     });
 
-    app.get("/setresources", async (req, res) => {
+    app.post("/setresources", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -124,20 +124,20 @@ module.exports.load = async function (app, db) {
 
         let failredirect = theme.settings.redirect.failedsetresources || "/";
 
-        if (!req.query.id) return res.redirect(`${failredirect}?err=MISSINGID`);
+        if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
 
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
+        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         let successredirect = theme.settings.redirect.setresources || "/";
 
-        if (req.query.ram || req.query.disk || req.query.cpu || req.query.servers) {
-            let ramstring = req.query.ram;
-            let diskstring = req.query.disk;
-            let cpustring = req.query.cpu;
-            let serversstring = req.query.servers;
-            let id = req.query.id;
+        if (req.body.ram || req.body.disk || req.body.cpu || req.body.servers) {
+            let ramstring = req.body.ram;
+            let diskstring = req.body.disk;
+            let cpustring = req.body.cpu;
+            let serversstring = req.body.servers;
+            let id = req.body.id;
 
-            let currentextra = await db.get("extra-" + req.query.id);
+            let currentextra = await db.get("extra-" + req.body.id);
             let extra;
 
             if (typeof currentextra == "object") {
@@ -191,14 +191,14 @@ module.exports.load = async function (app, db) {
 
             adminjs.suspend(req.query.id);
 
-            log(`set resources`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the resources of the user with the ID \`${id}\` to:\`\`\`servers: ${serversstring}\nCPU: ${cpustring}%\nMemory: ${ramstring} MB\nDisk: ${diskstring} MB\`\`\``)
+            log(`set resources`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the resources of the user with the ID \`${id}\` to:\`\`\`servers: ${serversstring || 'unchanged'}\nCPU: ${cpustring || 'unchanged'}%\nMemory: ${ramstring || 'unchanged'} MB\nDisk: ${diskstring || 'unchanged'} MB\`\`\``)
             return res.redirect(successredirect + "?err=none");
         } else {
             res.redirect(`${failredirect}?err=MISSINGVARIABLES`);
         }
     });
 
-    app.get("/addresources", async (req, res) => {
+    app.post("/addresources", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -218,19 +218,19 @@ module.exports.load = async function (app, db) {
 
         let failredirect = theme.settings.redirect.failedsetresources ? theme.settings.redirect.failedsetresources : "/";
 
-        if (!req.query.id) return res.redirect(`${failredirect}?err=MISSINGID`);
+        if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
 
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
+        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         let successredirect = theme.settings.redirect.setresources ? theme.settings.redirect.setresources : "/";
 
-        if (req.query.ram || req.query.disk || req.query.cpu || req.query.servers) {
-            let ramstring = req.query.ram;
-            let diskstring = req.query.disk;
-            let cpustring = req.query.cpu;
-            let serversstring = req.query.servers;
+        if (req.body.ram || req.body.disk || req.body.cpu || req.body.servers) {
+            let ramstring = req.body.ram;
+            let diskstring = req.body.disk;
+            let cpustring = req.body.cpu;
+            let serversstring = req.body.servers;
 
-            let currentextra = await db.get("extra-" + req.query.id);
+            let currentextra = await db.get("extra-" + req.body.id);
             let extra;
 
             if (typeof currentextra == "object") {
@@ -277,12 +277,12 @@ module.exports.load = async function (app, db) {
             }
 
             if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-                await db.delete("extra-" + req.query.id);
+                await db.delete("extra-" + req.body.id);
             } else {
-                await db.set("extra-" + req.query.id, extra);
+                await db.set("extra-" + req.body.id, extra);
             }
 
-            adminjs.suspend(req.query.id);
+            adminjs.suspend(req.body.id);
             return res.redirect(successredirect + "?err=none");
         } else {
             res.redirect(`${failredirect}?err=MISSINGVARIABLES`);
@@ -290,7 +290,7 @@ module.exports.load = async function (app, db) {
     });
 
 
-    app.get("/setplan", async (req, res) => {
+    app.post("/setplan", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -310,30 +310,30 @@ module.exports.load = async function (app, db) {
 
         let failredirect = theme.settings.redirect.failedsetplan || "/";
 
-        if (!req.query.id) return res.redirect(`${failredirect}?err=MISSINGID`);
+        if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
 
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
+        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         let successredirect = theme.settings.redirect.setplan || "/";
 
-        if (!req.query.package) {
-            await db.delete("package-" + req.query.id);
-            adminjs.suspend(req.query.id);
+        if (!req.body.package) {
+            await db.delete("package-" + req.body.id);
+            adminjs.suspend(req.body.id);
 
-            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the plan of the user with the ID \`${req.query.id}\`.`)
+            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the plan of the user with the ID \`${req.body.id}\`.`)
             return res.redirect(successredirect + "?err=none");
         } else {
             let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
-            if (!newsettings.api.client.packages.list[req.query.package]) return res.redirect(`${failredirect}?err=INVALIDPACKAGE`);
-            await db.set("package-" + req.query.id, req.query.package);
-            adminjs.suspend(req.query.id);
+            if (!newsettings.api.client.packages.list[req.body.package]) return res.redirect(`${failredirect}?err=INVALIDPACKAGE`);
+            await db.set("package-" + req.body.id, req.body.package);
+            adminjs.suspend(req.body.id);
 
-            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the plan of the user with the ID \`${req.query.id}\` to \`${req.query.package}\`.`)
+            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the plan of the user with the ID \`${req.body.id}\` to \`${req.body.package}\`.`)
             return res.redirect(successredirect + "?err=none");
         }
     });
 
-    app.get("/create_coupon", async (req, res) => {
+    app.post("/create_coupon", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -351,15 +351,15 @@ module.exports.load = async function (app, db) {
         req.session.pterodactyl = cacheaccountinfo.attributes;
         if (cacheaccountinfo.attributes.root_admin !== true) return four0four(req, res, theme);
 
-        let code = req.query.code ? req.query.code.slice(0, 200) : Math.random().toString(36).substring(2, 15);
+        let code = req.body.code ? req.body.code.slice(0, 200) : Math.random().toString(36).substring(2, 15);
 
         if (!code.match(/^[a-z0-9]+$/i)) return res.redirect(theme.settings.redirect.couponcreationfailed + "?err=CREATECOUPONINVALIDCHARACTERS");
 
-        let coins = req.query.coins || 0;
-        let ram = req.query.ram * 1024 || 0;
-        let disk = req.query.disk * 1024 || 0;
-        let cpu = req.query.cpu * 100 || 0;
-        let servers = req.query.servers || 0;
+        let coins = req.body.coins || 0;
+        let ram = req.body.ram * 1024 || 0;
+        let disk = req.body.disk * 1024 || 0;
+        let cpu = req.body.cpu * 100 || 0;
+        let servers = req.body.servers || 0;
 
         coins = parseFloat(coins);
         ram = parseFloat(ram);
@@ -387,7 +387,7 @@ module.exports.load = async function (app, db) {
         res.redirect(theme.settings.redirect.couponcreationsuccess + "?code=" + code)
     });
 
-    app.get("/revoke_coupon", async (req, res) => {
+    app.post("/revoke_coupon", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -405,7 +405,7 @@ module.exports.load = async function (app, db) {
         req.session.pterodactyl = cacheaccountinfo.attributes;
         if (cacheaccountinfo.attributes.root_admin !== true) return four0four(req, res, theme);
 
-        let code = req.query.code;
+        let code = req.body.code;
 
         if (!code.match(/^[a-z0-9]+$/i)) return res.redirect(theme.settings.redirect.couponrevokefailed + "?err=REVOKECOUPONCANNOTFINDCODE");
 
@@ -417,7 +417,7 @@ module.exports.load = async function (app, db) {
         res.redirect(theme.settings.redirect.couponrevokesuccess + "?revokedcode=true");
     });
 
-    app.get("/remove_account", async (req, res) => {
+    app.post("/remove_account", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -437,9 +437,9 @@ module.exports.load = async function (app, db) {
 
         // This doesn't delete the account and doesn't touch the renewal system.
 
-        if (!req.query.id) return res.redirect(theme.settings.redirect.removeaccountfailed + "?err=REMOVEACCOUNTMISSINGID");
+        if (!req.body.id) return res.redirect(theme.settings.redirect.removeaccountfailed + "?err=REMOVEACCOUNTMISSINGID");
 
-        let discordid = req.query.id;
+        let discordid = req.body.id;
         let pteroid = await db.get("users-" + discordid);
 
         // Remove IP.
@@ -482,7 +482,7 @@ module.exports.load = async function (app, db) {
         res.redirect(theme.settings.redirect.removeaccountsuccess + "?success=REMOVEACCOUNT");
     });
 
-    app.get("/getip", async (req, res) => {
+    app.post("/getip", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -500,19 +500,17 @@ module.exports.load = async function (app, db) {
         req.session.pterodactyl = cacheaccountinfo.attributes;
         if (cacheaccountinfo.attributes.root_admin !== true) return four0four(req, res, theme);
 
-        let failredirect = theme.settings.redirect.failedgetip || "/";
-        let successredirect = theme.settings.redirect.getip || "/";
-        if (!req.query.id) return res.redirect(`${failredirect}?err=MISSINGID`);
+        if (!req.body.id) return res.json({ error: "MISSINGID" });
 
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
+        if (!(await db.get("users-" + req.body.id))) return res.json({ error: "INVALIDID" });
 
-        if (!(await db.get("ip-" + req.query.id))) return res.redirect(`${failredirect}?err=NOIP`);
-        let ip = await db.get("ip-" + req.query.id);
-        log(`view ip`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} viewed the IP of the account with the ID \`${req.query.id}\`.`)
-        return res.redirect(successredirect + "?err=NONE&ip=" + ip)
+        if (!(await db.get("ip-" + req.body.id))) return res.json({ error: "NOIP" });
+        let ip = await db.get("ip-" + req.body.id);
+        log(`view ip`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} viewed the IP of the account with the ID \`${req.body.id}\`.`)
+        return res.json({ status: "success", ip: ip });
     });
 
-    app.get("/userinfo", async (req, res) => {
+    app.post("/userinfo", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -530,9 +528,9 @@ module.exports.load = async function (app, db) {
         req.session.pterodactyl = cacheaccountinfo.attributes;
         if (cacheaccountinfo.attributes.root_admin !== true) return four0four(req, res, theme);
 
-        if (!req.query.id) return res.send({ status: "missing id" });
+        if (!req.body.id) return res.send({ status: "missing id" });
 
-        if (!(await db.get("users-" + req.query.id))) return res.send({ status: "invalid id" });
+        if (!(await db.get("users-" + req.body.id))) return res.send({ status: "invalid id" });
 
         let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
 
@@ -545,7 +543,7 @@ module.exports.load = async function (app, db) {
         if (newsettings.pterodactyl.domain.slice(-1) == "/")
             newsettings.pterodactyl.domain = newsettings.pterodactyl.domain.slice(0, -1);
 
-        let packagename = await db.get("package-" + req.query.id);
+        let packagename = await db.get("package-" + req.body.id);
         let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default];
         if (!package) package = {
             ram: 0,
@@ -556,7 +554,7 @@ module.exports.load = async function (app, db) {
 
         package["name"] = packagename;
 
-        let pterodactylid = await db.get("users-" + req.query.id);
+        let pterodactylid = await db.get("users-" + req.body.id);
         let userinforeq = await fetch(
             newsettings.pterodactyl.domain + "/api/application/users/" + pterodactylid + "?include=servers",
             {
@@ -566,7 +564,7 @@ module.exports.load = async function (app, db) {
         );
         if (await userinforeq.statusText == "Not Found") {
             console.log("Warning: An error occured while fetching user information from the Panel");
-            console.log("- Discord ID: " + req.query.id);
+            console.log("- Discord ID: " + req.body.id);
             console.log("- Pterodactyl Panel ID: " + pterodactylid);
             return res.send({ status: "could not find user on panel" });
         }
@@ -575,14 +573,14 @@ module.exports.load = async function (app, db) {
         res.send({
             status: "success",
             package: package,
-            extra: await db.get("extra-" + req.query.id) ? await db.get("extra-" + req.query.id) : {
+            extra: await db.get("extra-" + req.body.id) ? await db.get("extra-" + req.body.id) : {
                 ram: 0,
                 disk: 0,
                 cpu: 0,
                 servers: 0
             },
             userinfo: userinfo,
-            coins: newsettings.api.client.coins.enabled == true ? (await db.get("coins-" + req.query.id) ? await db.get("coins-" + req.query.id) : 0) : null
+            coins: newsettings.api.client.coins.enabled == true ? (await db.get("coins-" + req.body.id) ? await db.get("coins-" + req.body.id) : 0) : null
         });
     });
 

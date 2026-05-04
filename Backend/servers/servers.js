@@ -25,7 +25,7 @@ module.exports.load = async function (app, db) {
   });
 
   const queue = new Queue()
-  app.get("/create", async (req, res) => {
+  app.post("/create", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
 
     let theme = indexjs.get(req);
@@ -42,13 +42,13 @@ module.exports.load = async function (app, db) {
           })
         if (!cacheaccount) {
           cb()
-          return res.send('Heliactyl failed to find an account on the configured panel, try relogging')
+          return res.send('Feliactyl failed to find an account on the configured panel, try relogging')
         }
         req.session.pterodactyl = cacheaccount.attributes;
 
-        if (req.query.name && req.query.ram && req.query.disk && req.query.cpu && req.query.egg && req.query.location) {
+        if (req.body.name && req.body.ram && req.body.disk && req.body.cpu && req.body.egg && req.body.location) {
           try {
-            decodeURIComponent(req.query.name)
+            decodeURIComponent(req.body.name)
           } catch (err) {
             cb()
             return res.redirect(`${redirectlink}?err=COULDNOTDECODENAME`);
@@ -81,7 +81,7 @@ module.exports.load = async function (app, db) {
             return res.redirect(`${redirectlink}?err=TOOMUCHSERVERS`);
           }
 
-          let name = decodeURIComponent(req.query.name);
+          let name = decodeURIComponent(req.body.name);
           if (name.length < 1) {
             cb()
             return res.redirect(`${redirectlink}?err=LITTLESERVERNAME`);
@@ -91,7 +91,7 @@ module.exports.load = async function (app, db) {
             return res.redirect(`${redirectlink}?err=BIGSERVERNAME`);
           }
 
-          let location = req.query.location;
+          let location = req.body.location;
 
           if (Object.entries(newsettings.api.client.locations).filter(vname => vname[0] == location).length !== 1) {
             cb()
@@ -105,16 +105,16 @@ module.exports.load = async function (app, db) {
           }
 
 
-          let egg = req.query.egg;
+          let egg = req.body.egg;
 
           let egginfo = newsettings.api.client.eggs[egg];
           if (!newsettings.api.client.eggs[egg]) {
             cb()
             return res.redirect(`${redirectlink}?err=INVALIDEGG`);
           }
-          let ram = parseFloat(req.query.ram);
-          let disk = parseFloat(req.query.disk);
-          let cpu = parseFloat(req.query.cpu);
+          let ram = parseFloat(req.body.ram);
+          let disk = parseFloat(req.body.disk);
+          let cpu = parseFloat(req.body.cpu);
           if (!isNaN(ram) && !isNaN(disk) && !isNaN(cpu)) {
             if (ram2 + ram > package.ram + extra.ram) {
               cb()
@@ -228,14 +228,14 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.get("/modify", async (req, res) => {
+  app.post("/modify", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
 
     let theme = indexjs.get(req);
 
     let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
     if (newsettings.api.client.allow.server.modify == true) {
-      if (!req.query.id) return res.send("Missing server id.");
+      if (!req.body.id) return res.send("Missing server id.");
 
       const cacheaccount = await getPteroUser(req.session.userinfo.id, db)
         .catch(() => {
@@ -246,12 +246,12 @@ module.exports.load = async function (app, db) {
 
       let redirectlink = theme.settings.redirect.failedmodifyserver ? theme.settings.redirect.failedmodifyserver : "/"; // fail redirect link
 
-      let checkexist = req.session.pterodactyl.relationships.servers.data.filter(name => name.attributes.id == req.query.id);
+      let checkexist = req.session.pterodactyl.relationships.servers.data.filter(name => name.attributes.id == req.body.id);
       if (checkexist.length !== 1) return res.send("Invalid server id.");
 
-      let ram = req.query.ram ? (isNaN(parseFloat(req.query.ram)) ? undefined : parseFloat(req.query.ram)) : undefined;
-      let disk = req.query.disk ? (isNaN(parseFloat(req.query.disk)) ? undefined : parseFloat(req.query.disk)) : undefined;
-      let cpu = req.query.cpu ? (isNaN(parseFloat(req.query.cpu)) ? undefined : parseFloat(req.query.cpu)) : undefined;
+      let ram = req.body.ram ? (isNaN(parseFloat(req.body.ram)) ? undefined : parseFloat(req.body.ram)) : undefined;
+      let disk = req.body.disk ? (isNaN(parseFloat(req.body.disk)) ? undefined : parseFloat(req.body.disk)) : undefined;
+      let cpu = req.body.cpu ? (isNaN(parseFloat(req.body.cpu)) ? undefined : parseFloat(req.body.cpu)) : undefined;
 
       if (ram || disk || cpu) {
         let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
@@ -259,7 +259,7 @@ module.exports.load = async function (app, db) {
         let packagename = await db.get("package-" + req.session.userinfo.id);
         let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default];
 
-        let pterorelationshipsserverdata = req.session.pterodactyl.relationships.servers.data.filter(name => name.attributes.id.toString() !== req.query.id);
+        let pterorelationshipsserverdata = req.session.pterodactyl.relationships.servers.data.filter(name => name.attributes.id.toString() !== req.body.id);
 
         let ram2 = 0;
         let disk2 = 0;
@@ -280,7 +280,7 @@ module.exports.load = async function (app, db) {
         };
         let egginfo = attemptegg ? attemptegg : null;
 
-        if (!egginfo) return res.redirect(`${redirectlink}?id=${req.query.id}&err=MISSINGEGG`);
+        if (!egginfo) return res.redirect(`${redirectlink}?id=${req.body.id}&err=MISSINGEGG`);
 
         let extra =
           await db.get("extra-" + req.session.userinfo.id) ?
@@ -292,16 +292,16 @@ module.exports.load = async function (app, db) {
               servers: 0
             };
 
-        if (ram2 + ram > package.ram + extra.ram) return res.redirect(`${redirectlink}?id=${req.query.id}&err=EXCEEDRAM&num=${package.ram + extra.ram - ram2}`);
-        if (disk2 + disk > package.disk + extra.disk) return res.redirect(`${redirectlink}?id=${req.query.id}&err=EXCEEDDISK&num=${package.disk + extra.disk - disk2}`);
-        if (cpu2 + cpu > package.cpu + extra.cpu) return res.redirect(`${redirectlink}?id=${req.query.id}&err=EXCEEDCPU&num=${package.cpu + extra.cpu - cpu2}`);
-        if (egginfo.minimum.ram) if (ram < egginfo.minimum.ram) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOLITTLERAM&num=${egginfo.minimum.ram}`);
-        if (egginfo.minimum.disk) if (disk < egginfo.minimum.disk) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOLITTLEDISK&num=${egginfo.minimum.disk}`);
-        if (egginfo.minimum.cpu) if (cpu < egginfo.minimum.cpu) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOLITTLECPU&num=${egginfo.minimum.cpu}`);
+        if (ram2 + ram > package.ram + extra.ram) return res.redirect(`${redirectlink}?id=${req.body.id}&err=EXCEEDRAM&num=${package.ram + extra.ram - ram2}`);
+        if (disk2 + disk > package.disk + extra.disk) return res.redirect(`${redirectlink}?id=${req.body.id}&err=EXCEEDDISK&num=${package.disk + extra.disk - disk2}`);
+        if (cpu2 + cpu > package.cpu + extra.cpu) return res.redirect(`${redirectlink}?id=${req.body.id}&err=EXCEEDCPU&num=${package.cpu + extra.cpu - cpu2}`);
+        if (egginfo.minimum.ram) if (ram < egginfo.minimum.ram) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOLITTLERAM&num=${egginfo.minimum.ram}`);
+        if (egginfo.minimum.disk) if (disk < egginfo.minimum.disk) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOLITTLEDISK&num=${egginfo.minimum.disk}`);
+        if (egginfo.minimum.cpu) if (cpu < egginfo.minimum.cpu) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOLITTLECPU&num=${egginfo.minimum.cpu}`);
         if (egginfo.maximum) {
-          if (egginfo.maximum.ram) if (ram > egginfo.maximum.ram) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOMUCHRAM&num=${egginfo.maximum.ram}`);
-          if (egginfo.maximum.disk) if (disk > egginfo.maximum.disk) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOMUCHDISK&num=${egginfo.maximum.disk}`);
-          if (egginfo.maximum.cpu) if (cpu > egginfo.maximum.cpu) return res.redirect(`${redirectlink}?id=${req.query.id}&err=TOOMUCHCPU&num=${egginfo.maximum.cpu}`);
+          if (egginfo.maximum.ram) if (ram > egginfo.maximum.ram) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOMUCHRAM&num=${egginfo.maximum.ram}`);
+          if (egginfo.maximum.disk) if (disk > egginfo.maximum.disk) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOMUCHDISK&num=${egginfo.maximum.disk}`);
+          if (egginfo.maximum.cpu) if (cpu > egginfo.maximum.cpu) return res.redirect(`${redirectlink}?id=${req.body.id}&err=TOOMUCHCPU&num=${egginfo.maximum.cpu}`);
         };
 
         let limits = {
@@ -313,7 +313,7 @@ module.exports.load = async function (app, db) {
         };
 
         let serverinfo = await fetch(
-          settings.pterodactyl.domain + "/api/application/servers/" + req.query.id + "/build",
+          settings.pterodactyl.domain + "/api/application/servers/" + req.body.id + "/build",
           {
             method: "patch",
             headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${settings.pterodactyl.key}`, "Accept": "application/json" },
@@ -324,7 +324,7 @@ module.exports.load = async function (app, db) {
             })
           }
         );
-        if (await serverinfo.statusText !== "OK") return res.redirect(`${redirectlink}?id=${req.query.id}&err=ERRORONMODIFY`);
+        if (await serverinfo.statusText !== "OK") return res.redirect(`${redirectlink}?id=${req.body.id}&err=ERRORONMODIFY`);
         let text = JSON.parse(await serverinfo.text());
         log(`modify server`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} modified the server called \`${text.attributes.name}\` to have the following specs:\n\`\`\`Memory: ${ram} MB\nCPU: ${cpu}%\nDisk: ${disk}\`\`\``)
         pterorelationshipsserverdata.push(text);
@@ -333,26 +333,26 @@ module.exports.load = async function (app, db) {
         adminjs.suspend(req.session.userinfo.id);
         res.redirect("/dashboard");
       } else {
-        res.redirect(`${redirectlink}?id=${req.query.id}&err=MISSINGVARIABLE`);
+        res.redirect(`${redirectlink}?id=${req.body.id}&err=MISSINGVARIABLE`);
       }
     } else {
       res.redirect(theme.settings.redirect.modifyserverdisabled ? theme.settings.redirect.modifyserverdisabled : "/");
     }
   });
 
-  app.get("/delete", async (req, res) => {
+  app.post("/delete", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
 
-    if (!req.query.id) return res.send("Missing id.");
+    if (!req.body.id) return res.send("Missing id.");
 
     let theme = indexjs.get(req);
 
     let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
     if (newsettings.api.client.allow.server.delete == true) {
-      if (req.session.pterodactyl.relationships.servers.data.filter(server => server.attributes.id == req.query.id).length == 0) return res.send("Could not find server with that ID.");
+      if (req.session.pterodactyl.relationships.servers.data.filter(server => server.attributes.id == req.body.id).length == 0) return res.send("Could not find server with that ID.");
 
       let deletionresults = await fetch(
-        settings.pterodactyl.domain + "/api/application/servers/" + req.query.id,
+        settings.pterodactyl.domain + "/api/application/servers/" + req.body.id,
         {
           method: "delete",
           headers: {
@@ -364,10 +364,10 @@ module.exports.load = async function (app, db) {
       let ok = await deletionresults.ok;
       if (ok !== true) return res.send("An error has occur while attempting to delete the server.");
       let pterodactylinfo = req.session.pterodactyl;
-      pterodactylinfo.relationships.servers.data = pterodactylinfo.relationships.servers.data.filter(server => server.attributes.id.toString() !== req.query.id);
+      pterodactylinfo.relationships.servers.data = pterodactylinfo.relationships.servers.data.filter(server => server.attributes.id.toString() !== req.body.id);
       req.session.pterodactyl = pterodactylinfo;
 
-      await db.delete(`lastrenewal-${req.query.id}`)
+      await db.delete(`lastrenewal-${req.body.id}`)
 
       adminjs.suspend(req.session.userinfo.id);
 
@@ -377,19 +377,19 @@ module.exports.load = async function (app, db) {
     }
   });
 
-  app.get("/forcedelete", async (req, res) => {
+  app.post("/forcedelete", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
 
-    if (!req.query.id) return res.send("Missing id.");
+    if (!req.body.id) return res.send("Missing id.");
 
     let theme = indexjs.get(req);
 
     let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
     if (newsettings.api.client.allow.server.delete == true) {
-      if (req.session.pterodactyl.relationships.servers.data.filter(server => server.attributes.id == req.query.id).length == 0) return res.send("Could not find server with that ID.");
+      if (req.session.pterodactyl.relationships.servers.data.filter(server => server.attributes.id == req.body.id).length == 0) return res.send("Could not find server with that ID.");
 
       let deletionresults = await fetch(
-        settings.pterodactyl.domain + "/api/application/servers/" + req.query.id + "/force",
+        settings.pterodactyl.domain + "/api/application/servers/" + req.body.id + "/force",
         {
           method: "delete",
           headers: {
@@ -401,10 +401,10 @@ module.exports.load = async function (app, db) {
       let ok = await deletionresults.ok;
       if (ok !== true) return res.send("An error has occur while attempting to delete the server.");
       let pterodactylinfo = req.session.pterodactyl;
-      pterodactylinfo.relationships.servers.data = pterodactylinfo.relationships.servers.data.filter(server => server.attributes.id.toString() !== req.query.id);
+      pterodactylinfo.relationships.servers.data = pterodactylinfo.relationships.servers.data.filter(server => server.attributes.id.toString() !== req.body.id);
       req.session.pterodactyl = pterodactylinfo;
 
-      await db.delete(`lastrenewal-${req.query.id}`)
+      await db.delete(`lastrenewal-${req.body.id}`)
 
       adminjs.suspend(req.session.userinfo.id);
 
