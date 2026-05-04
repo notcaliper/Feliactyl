@@ -1,9 +1,9 @@
 {
-  "name": "heliactyl",
-  "version": "13.3.0",
+  "name": "feliactyl",
+  "version": "1.0.0",
   "description": "Manage your Pterodactyl Users and their Servers with ease",
   "main": "index.js",
-  "author": "Heliactyl-Project / Ghostload",
+  "author": "Feliactyl-Project / notcaliper",
   "contributors": [""],
   "dependencies": {
     "@keyv/sqlite": "^3.5.2",

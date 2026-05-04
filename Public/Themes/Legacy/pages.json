@@ -81,8 +81,8 @@
    "variables":{
       "faviconlink":"https://cdn.discordapp.com/attachments/881207010417315861/949595064554913812/Copy_of_H_35.png",
       "home":{
-         "name":"Heliactyl",
-         "icon":"E",
+         "name":"Feliactyl",
+         "icon":"F",
          "admin":"admin",
          "buttontext":{
             "loggedin":{
@@ -97,7 +97,7 @@
    "addons":{
             "ads":{
                "enabled": true,
-               "name":"Heliactyl",
+               "name":"Feliactyl",
                "_commet":"adprovidercode will not work just paste the ad script directly into the ads.ejs",
                "adprovidercode":"none"
             },

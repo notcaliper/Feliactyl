@@ -4,7 +4,7 @@
 <%- include('../Components/Header.ejs') %>
 <%- include('../Components/Styles.ejs') %>
 
-<body style="font-family: DM Sans; sans-serif;">
+<body style="font-family: 'DM Sans', sans-serif;">
 	<div class="wrapper">
       <%- include('../Routers/Navigation.ejs') %>
 		<div class="main">
@@ -24,11 +24,11 @@
                 <span class="text-white">View account info</span>
               </a>
 							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance"></span></a>
+								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance" data-coins="<%= coins %>"></span></a>
 								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
             <script>
               let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(<%= coins %> * 100) / 100
+              balance.textContent = Math.floor(parseFloat(balance.dataset.coins) * 100) / 100
             </script>
 							</div>
 						</li>
@@ -49,20 +49,20 @@
 							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
 								<div style="background-color: #3a3a40; color: white;" class="card-header">
 
-									<h5 class="card-title mb-0">Heliactyl Version</h5>
+									<h5 class="card-title mb-0">Feliactyl Version</h5>
 								</div>
 								<div class="card-body py-3">
                                     <p id="version"><span>Fetching...</span></p>
                                     <script>
-                                        fetch("https://heliactyl.com/api/v1/version")
+                                        fetch("https://api.github.com/repos/notcaliper/feliactyl/releases/latest")
                                             .then(res => Promise.resolve(res.json()).then(ver => {
-                                                let currentver = "<%= settings.version.replace(/"/g, `\\\\"`) %>";
+                                                let currentver = <%- JSON.stringify(settings.version) %>;
 												if (ver.prerelease == currentver) {
-														document.getElementById("version").innerHTML = `<span>You are running a <span class="text-warning">PreRelease</span> of Heliactyl, Version <code style="color: #17a2b8">v${currentver}</code>. Thank you for running and Testing Heliactyl's PreRelease version! </span>`;
+														document.getElementById("version").innerHTML = `<span>You are running a <span class="text-warning">PreRelease</span> of Feliactyl, Version <code style="color: #17a2b8">v${currentver}</code>. Thank you for running and Testing Feliactyl's PreRelease version! </span>`;
 												} else if (ver.version == currentver) {
-                                                    document.getElementById("version").innerHTML = `<span>You are running Heliactyl version <code style="color: #17a2b8" >v${currentver}</code>. Thank you for keeping your Heliactyl instance updated!</span>`;
+                                                    document.getElementById("version").innerHTML = `<span>You are running Feliactyl version <code style="color: #17a2b8" >v${currentver}</code>. Thank you for keeping your Feliactyl instance updated!</span>`;
                                                 } else {
-                                                    document.getElementById("version").innerHTML = `<span>Uh oh! Heliactyl is <span class="text-danger">not up to date</span>! The latest version is <code style="color: #17a2b8;" >v${ver.version}</code> and you are currently running version <code style="color: #17a2b8" >v<%= settings.version %></code>.<br> We highly suggest updating to make sure you have all the latest security patches & features.<br> <a href="https://github.com/Heliactyl-Project/Heliactyl" class="text-info">Click here<a> to download the latest version.</span>`;
+                                                    document.getElementById("version").innerHTML = `<span>Uh oh! Feliactyl is <span class="text-danger">not up to date</span>! The latest version is <code style="color: #17a2b8;" >v${ver.version}</code> and you are currently running version <code style="color: #17a2b8" >v${currentver}</code>.<br> We highly suggest updating to make sure you have all the latest security patches & features.<br> <a href="https://github.com/notcaliper/feliactyl" class="text-info">Click here<a> to download the latest version.</span>`;
                                                 };
                                             }));
                                     </script>
@@ -198,7 +198,7 @@
 					<div class="row text-muted">
 						<div class="col-4 text-start">
 							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/Heliactyl-Project/Heliactyl">Heliactyl</a>
+								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
 							</p>
 						</div>
 						<div class="col-8 text-end">

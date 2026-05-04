@@ -129,6 +129,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Heliactyl Specific files 
+# Feliactyl Specific files 
 database.sqlite
 settings.json

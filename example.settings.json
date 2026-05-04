@@ -1,8 +1,8 @@
 {
-  "version": "13.3.0",
-  "name": "Heliactyl",
+  "version": "1.0.0",
+  "name": "Feliactyl",
   "icon": "https://media.discordapp.net/attachments/1000768414220038204/1157719211678904420/Heliactylv13.png",
-  "defaulttheme": "Heliactyl",
+  "defaulttheme": "Feliactyl",
   "pterodactyl": {
     "domain": "Pterodactyl URL",
     "key": "Pterodactyl Client/Admin API Key with all permissions"
@@ -19,7 +19,7 @@
   },
   "stripe": {
     "enabled": true,
-    "note": "The key is the stripe API key and the coins is the amount per £1. If the stripe API key is invalid and stripe purchases are enabled, Heliactyl will crash when attempting to do transactions.",
+    "note": "The key is the stripe API key and the coins is the amount per £1. If the stripe API key is invalid and stripe purchases are enabled, Feliactyl will crash when attempting to do transactions.",
     "key": "100000000000000",
     "coins": 100
   },
@@ -103,7 +103,7 @@
         "/api/userinfo": 1
       },
       "antivpn": {
-        "note": "EXPERIMENTAL! This may or may not work, For antivpn to work, generate an apikey on https://proxycheck.io/. If you put no key, Heliactyl will disable antivpn.",
+        "note": "EXPERIMENTAL! This may or may not work, For antivpn to work, generate an apikey on https://proxycheck.io/. If you put no key, Feliactyl will disable antivpn.",
         "status": false,
         "APIKey": "Proxycheck APIKey",
         "whitelistedIPs": [
@@ -131,7 +131,7 @@
       "locations": {
         "1": {
           "name": "Default Location",
-          "note": "Heliactyl now uses banners instead of a dropdown, you can use canva.com to create a banner to use. We also have a list of free location banners in the Heliactyl discord.",
+          "note": "Feliactyl now uses banners instead of a dropdown, you can use canva.com to create a banner to use. We also have a list of free location banners in the Feliactyl discord.",
           "banner": "/assets/default/img/banners/default.png",
           "package": null
         }

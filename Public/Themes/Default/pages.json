@@ -74,7 +74,7 @@
    "variables": {
       "faviconlink": "https://media.discordapp.net/attachments/1000768414220038204/1157719211678904420/Heliactylv13.png",
       "home": {
-         "note": "Name & Icon have been moved to settings.json in Heliactyl 12.5.0",
+         "note": "Name & Icon are configured in settings.json",
          "admin": "admin",
          "buttontext": {
             "loggedin": {
@@ -90,7 +90,7 @@
       "Example": {
          "enabled": true,
          "name": "Demo Addon",
-         "madeby": "Ghostload"
+         "madeby": "notcaliper"
       }
    }
 }
