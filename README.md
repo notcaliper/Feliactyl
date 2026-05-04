@@ -2,24 +2,43 @@
 
 <hr>
 
-# Feliactyl v1.0
+# Feliactyl v2.0
 
-Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl) 13.3, maintained by [notcaliper](https://github.com/notcaliper). Rebranded and re-versioned starting at **v1.0**.
+Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl) 13.3, maintained by [notcaliper](https://github.com/notcaliper). Rebranded and re-versioned starting at **v1.0**, now on **v2.0** with major new features.
 
-All features:
-- Resource Management (Use it to create servers, etc)
-- Coins (AFK Page earning, Linkvertise earning, Gift them away)
-- Renewal (Require coins for renewal)
-- Coupons (Gives resources & coins to a user)
-- Servers (create, view, edit servers)
-- Payments (Buy Coins via Stripe)
-- Login Queue (prevent hitting the rate-limits)
-- User System (auth, regen password, etc)
-- Store (buy resources with coins)
-- Dashboard (view resources)
-- Join for Rewards (join discord servers for coins)
-- Admin (set/add/remove coins & resources, create/revoke coupons)
-- API (for bots & other things)
+### All Features
+
+**Core**
+- Resource Management (create servers, manage limits)
+- Coins (AFK Page earning, Linkvertise earning, gift coins)
+- Renewal (require coins for server renewal)
+- Coupons (grant resources & coins to users)
+- Servers (create, view, edit, delete servers)
+- Payments (buy coins via Stripe)
+- Login Queue (prevent Pterodactyl API rate-limits)
+- User System (OAuth2 login, regen password, credentials page)
+- Dashboard (view resources, server list)
+- Join for Rewards (join Discord servers for coins)
+- API (for bots & external integrations)
+
+**Store & Plans**
+- Store (buy extra RAM, Disk, CPU, server slots with coins)
+- Plan Upgrades (purchase plan upgrades directly from the store)
+- Plan Discounts (admin-configured % discounts with optional expiry)
+
+**Admin Panel**
+- All Users page (`/admin/users`) — view every user with Discord ID, coins, plan, and total resources
+- Plans page (`/admin/plans`) — create/delete plans with cost and discount management
+- Settings Editor — configure all settings from the UI
+- J4R management — add/remove Join for Rewards servers
+- Set/add coins, resources, and plans for any user by Discord ID
+
+**UI & UX**
+- Modern dark sidebar navigation with Admin section links
+- Resource chips show 25% / 50% / 75% / 100% of available resources on server creation
+- Error/success banners across all pages
+- Adblocker detection on AFK earn page
+- New password shown on credentials page after regen
 
 # Warning
 
@@ -124,7 +143,7 @@ Installing [pm2](https://github.com/Unitech/pm2):
 
 Starting the Dashboard in Background:
 - Change directory to your Feliactyl folder Using `cd` command, Example: `cd /var/www/feliactyl` 
-- To run Feliactyl, use `pm2 start index.js --name "feliactyl"`
+- To run Feliactyl, use `pm2 start start.js --name "feliactyl"`
 - To view logs, run `pm2 logs Feliactyl`
 
 Making the dashboard runs on startup:
