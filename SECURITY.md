@@ -2,35 +2,70 @@
 
 ## Supported Versions
 
-This section outlines which versions of the project are currently supported with security updates.
+| Version | Supported | Notes |
+|:--------|:----------|:------|
+| 2.x (`v2-features`) | ✅ Active | Current release — receives all security updates |
+| 1.0.x | ⚠️ Limited | Critical fixes only — upgrade to v2 recommended |
+| < 1.0 (Heliactyl) | ❌ Unsupported | No longer maintained here |
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-
-- **1.0.x:** Current supported release of Feliactyl, receives security updates and new features.
-
-Feliactyl is a fork of Heliactyl 13.3 — legacy Heliactyl versions are not supported here.
+---
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please help us maintain the security of the project by reporting it responsibly.
+**Please do NOT open a public GitHub issue for security vulnerabilities.**
 
-**To report a vulnerability, please follow these steps:**
+Report vulnerabilities privately via one of the following:
 
-1. **Email:** Email to [akshaymanbhaw27@gmail.com](mailto:akshaymanbhaw27@gmail.com) with the subject line "Security Vulnerability Report - [Feliactyl]." Include as many details as possible about the vulnerability, including steps to reproduce, potential impact, and any mitigations if known.
+- 📧 **Email:** [akshaymanbhaw27@gmail.com](mailto:akshaymanbhaw27@gmail.com)  
+  Subject: `Security Vulnerability — Feliactyl [brief description]`
+- 🔒 **GitHub Private Advisory:** [Report here](https://github.com/notcaliper/Feliactyl/security/advisories/new)
 
-2. **Response Time:** You can expect an initial response within 72 hours, acknowledging the receipt of your report.
+### What to include
 
-3. **Investigation:** We will investigate the reported vulnerability and assess its severity.
+Please provide as much detail as possible:
 
-4. **Fix and Disclosure:** If the vulnerability is accepted and confirmed, we will work on a fix. Once the fix is ready, we will coordinate with you on a responsible disclosure timeline.
+- **Description** of the vulnerability
+- **Steps to reproduce** (proof of concept if available)
+- **Potential impact** (data exposure, auth bypass, RCE, etc.)
+- **Affected version(s)**
+- **Suggested fix** (optional but appreciated)
 
-5. **Publication:** We will publish security advisories and release notes to inform the community about the vulnerability, its impact, and the fixes implemented.
+---
 
-Please note that we greatly appreciate your responsible disclosure and request that you do not publicly disclose the vulnerability until we have had a chance to address it.
+## Response Timeline
 
-Thank you for helping us keep this project safe and secure.
+| Stage | Timeframe |
+|:------|:----------|
+| Initial acknowledgement | Within **48 hours** |
+| Severity assessment | Within **5 days** |
+| Fix development | Depends on complexity |
+| Coordinated disclosure | Agreed with reporter |
 
-[Feliactyl]
-[https://github.com/notcaliper/feliactyl]
+---
+
+## Severity Guidelines
+
+| Severity | Examples |
+|:---------|:---------|
+| 🔴 Critical | RCE, auth bypass, full data exposure |
+| 🟠 High | Privilege escalation, sensitive data leak |
+| 🟡 Medium | CSRF, reflected XSS, partial info disclosure |
+| 🟢 Low | Minor info leak, non-exploitable misconfiguration |
+
+---
+
+## Responsible Disclosure
+
+We kindly ask that you:
+
+- Give us reasonable time to fix the issue before public disclosure
+- Not exploit the vulnerability beyond what is needed to demonstrate it
+- Not access or modify other users' data during testing
+
+We will credit you in the security advisory unless you wish to remain anonymous.
+
+---
+
+*Thank you for helping keep Feliactyl and its users safe. 💜*
+
+**Project:** [github.com/notcaliper/Feliactyl](https://github.com/notcaliper/Feliactyl)
