@@ -1,161 +1,264 @@
-![Feliactyl](https://media.discordapp.net/attachments/1000768414220038204/1157727962569900192/Heliactyl-preview.png)
+<div align="center">
 
-<hr>
+<br>
 
-# Feliactyl v2.0
+<img src="https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/assets/default/img/logo.svg" width="120" alt="Feliactyl Logo" />
 
-Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl) 13.3, maintained by [notcaliper](https://github.com/notcaliper). Rebranded and re-versioned starting at **v1.0**, now on **v2.0** with major new features.
+<br>
 
-### All Features
+# ✦ Feliactyl
 
-**Core**
-- Resource Management (create servers, manage limits)
-- Coins (AFK Page earning, Linkvertise earning, gift coins)
-- Renewal (require coins for server renewal)
-- Coupons (grant resources & coins to users)
-- Servers (create, view, edit, delete servers)
-- Payments (buy coins via Stripe)
-- Login Queue (prevent Pterodactyl API rate-limits)
-- User System (OAuth2 login, regen password, credentials page)
-- Dashboard (view resources, server list)
-- Join for Rewards (join Discord servers for coins)
-- API (for bots & external integrations)
+### A modern, feature-rich Pterodactyl client panel
 
-**Store & Plans**
-- Store (buy extra RAM, Disk, CPU, server slots with coins)
-- Plan Upgrades (purchase plan upgrades directly from the store)
-- Plan Discounts (admin-configured % discounts with optional expiry)
+<br>
 
-**Admin Panel**
-- All Users page (`/admin/users`) — view every user with Discord ID, coins, plan, and total resources
-- Plans page (`/admin/plans`) — create/delete plans with cost and discount management
-- Settings Editor — configure all settings from the UI
-- J4R management — add/remove Join for Rewards servers
-- Set/add coins, resources, and plans for any user by Discord ID
+[![Version](https://img.shields.io/badge/✦%20version-2.0-7c3aed?style=for-the-badge)](https://github.com/notcaliper/Feliactyl/releases)
+[![Node](https://img.shields.io/badge/node.js-%E2%89%A520-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
+[![License](https://img.shields.io/github/license/notcaliper/Feliactyl?style=for-the-badge&color=ec4899)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/notcaliper/Feliactyl?style=for-the-badge&color=f59e0b&logo=github)](https://github.com/notcaliper/Feliactyl/stargazers)
+[![Issues](https://img.shields.io/github/issues/notcaliper/Feliactyl?style=for-the-badge&color=ef4444)](https://github.com/notcaliper/Feliactyl/issues)
 
-**UI & UX**
-- Modern dark sidebar navigation with Admin section links
-- Resource chips show 25% / 50% / 75% / 100% of available resources on server creation
-- Error/success banners across all pages
-- Adblocker detection on AFK earn page
-- New password shown on credentials page after regen
+<br>
 
-# Warning
+[🚀 Quick Install](#-quick-install) &nbsp;·&nbsp; [✨ Features](#-features) &nbsp;·&nbsp; [📖 Manual Install](#-manual-installation) &nbsp;·&nbsp; [⚙️ Configuration](#%EF%B8%8F-configuration) &nbsp;·&nbsp; [🔄 Updating](#-updating)
 
-We cannot force you to keep the "Powered by Feliactyl" in the footer, but please consider keeping it. It helps getting more visibility to the project and so getting better. We won't provide technical support for installations without the notice in the footer. We may file a DMCA takedown if the website using our Software shares false information or proclaims to be the Software Developers.
+<br>
 
-We kindly ask you to keep the footer :)
+</div>
 
-<hr>
+---
 
-# Install Guide
+> Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl) 13.3, maintained by [**notcaliper**](https://github.com/notcaliper).  
+> Completely redesigned with a modern dark UI, plan store, discount system, advanced admin tools, and much more — starting fresh at **v2.0**.
 
-**Caution:** Ensure that Pterodactyl is already configured on a domain or else Feliactyl may not function properly.
+---
 
-Access your VPS through SSH and run these Commands:
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🖥️ Core
+- 🗄️ **Resource Management** — create & manage servers
+- 🪙 **Coins** — AFK earning, Linkvertise, gifting
+- 🔄 **Server Renewal** — coin-gated renewals
+- 🎟️ **Coupons** — grant coins & resources
+- 🌐 **Server Control** — create, edit, delete
+- 💳 **Payments** — buy coins via Stripe
+- 🔐 **OAuth2 Login** — Discord authentication
+- 🔑 **Credentials** — regen password in-panel
+- 🎁 **Join for Rewards** — earn coins via Discord
+- 📡 **API** — for bots & integrations
+
+</td>
+<td width="50%" valign="top">
+
+### 🛒 Store & Plans
+- 💾 **Resource Store** — buy RAM, Disk, CPU, slots
+- 📦 **Plan Upgrades** — purchase plans with coins
+- 🏷️ **Discounts** — admin % discounts with expiry
+
+### 🛡️ Admin Panel
+- 👥 **All Users** — Discord ID, coins, plan, resources
+- 📋 **Plans Manager** — create/delete with cost control
+- ⚙️ **Settings Editor** — full config from the UI
+- 🎮 **J4R Manager** — manage reward servers
+- 🔧 **User Tools** — set coins, plans, resources
+
+### 🎨 UI & UX
+- 🌙 **Dark Sidebar** — modern navigation
+- 📊 **Smart Chips** — 25/50/75/100% resource presets
+- 🚨 **Banners** — error/success feedback
+- 🛡️ **Adblocker Detection** — on AFK earn page
+
+</td>
+</tr>
+</table>
+
+---
+
+## ⚠️ Notice
+
+> We cannot force you to keep the **"Powered by Feliactyl"** footer credit, but we kindly ask you to.  
+> It helps the project grow and get better. We won't provide support for installations that remove it.  
+> We may file a DMCA takedown if our software is misrepresented.
+
+---
+
+## 🚀 Quick Install
+
+> **Prerequisites:** Ubuntu 20.04+ VPS · Pterodactyl panel on a domain · Domain pointed at your VPS
+
+Run this **single command** as root on your VPS:
 
 ```bash
-1. sudo apt update -y && sudo apt upgrade -y
-2. sudo apt install nginx
-3. cd /var/www
-4. # Download and unzip the latest Feliactyl release from GitHub into the current folder
-5. curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   # Customize the settings.json file, specifically updating the panel domain, API key, and Discord authentication settings.
-6. node . # Start Feliactyl. Take a look at "Running in background and on startup" if you want Feliactyl to run in the background
-          # Ctrl + C to stop Feliactyl
-7. sudo apt install certbot
-8. sudo ufw allow 80
-9. sudo ufw allow 443
-10. sudo certbot certonly -d <Your Feliactyl Domain>
-11. nano /etc/nginx/sites-enabled/feliactyl.conf
-12. # Copy the Ngnix config from # Nginx Proxy Config and replace <domain> with your domain and <port> with the Port Feliactyl is running on 
-    # (You can find the port in the settings.json)
-13. sudo systemctl restart nginx
-14. # Attempt to access your Feliactyl domain
+bash <(curl -s https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/install.sh)
+```
 
+The installer will:
+- ✅ Install Node.js 20, PM2, and your chosen web server (**Nginx / Apache2 / Caddy**)
+- ✅ Clone Feliactyl and install dependencies
+- ✅ Prompt for your Pterodactyl & Discord OAuth2 credentials
+- ✅ Generate SSL certificate and configure reverse proxy
+- ✅ Start Feliactyl with PM2 and enable on-boot autostart
 
-# Nginx Proxy Config
+---
+
+## 📖 Manual Installation
+
+<details>
+<summary><b>Click to expand manual install steps</b></summary>
+
+<br>
+
+### Step 1 — System Dependencies
+
+```bash
+sudo apt update -y && sudo apt upgrade -y
+sudo apt install -y nginx certbot python3-certbot-nginx git
+
+# Install Node.js 20.x
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+### Step 2 — Download Feliactyl
+
+```bash
+cd /var/www
+git clone -b v2-features https://github.com/notcaliper/Feliactyl.git feliactyl
+cd feliactyl
+npm install
+```
+
+### Step 3 — Configure Settings
+
+```bash
+cp example.settings.json settings.json
+nano settings.json
+```
+
+| Field | Description |
+|:---|:---|
+| `pterodactyl.domain` | Panel URL e.g. `https://panel.example.com` |
+| `pterodactyl.key` | Application API key — Admin → API → Create |
+| `api.client.oauth2.id` | Discord OAuth2 client ID |
+| `api.client.oauth2.secret` | Discord OAuth2 client secret |
+| `api.client.oauth2.link` | Your Feliactyl domain |
+| `api.client.oauth2.callbackpath` | Callback path (default `/callback`) |
+| `website.port` | Port to run on (default `8000`) |
+
+### Step 4 — Test Run
+
+```bash
+npm start
+```
+
+Visit `http://your-server-ip:8000` to confirm, then stop with `Ctrl+C`.
+
+### Step 5 — SSL & Nginx
+
+```bash
+sudo ufw allow 80 && sudo ufw allow 443
+sudo certbot certonly --nginx -d your.domain.com
+```
+
+```nginx
+# /etc/nginx/sites-enabled/feliactyl.conf
 server {
     listen 80;
     server_name <domain>;
     return 301 https://$server_name$request_uri;
 }
-
 server {
     listen 443 ssl http2;
-
-    location /afkwspath {
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_pass "http://localhost:<port>/afkwspath";
-    }
-    
     server_name <domain>;
-    ssl_certificate /etc/letsencrypt/live/<domain>/fullchain.pem;
+    ssl_certificate     /etc/letsencrypt/live/<domain>/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/<domain>/privkey.pem;
-    ssl_session_cache shared:SSL:10m;
-    ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers  HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    location /afkwspath {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://localhost:<port>/afkwspath;
+    }
     location / {
-      proxy_pass http://localhost:<port>/;
-      proxy_buffering off;
-      proxy_set_header X-Real-IP $remote_addr;
-  }
+        proxy_pass http://localhost:<port>/;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
 }
 ```
 
-<hr>
+```bash
+sudo nginx -t && sudo systemctl restart nginx
+```
 
-# Additional Configuration
+### Step 6 — Run with PM2
 
-#### **Changing the EGG IDs**:
- Pterodactyl often changes the IDs of the EGGs so you might need to change the IDs in the settings.json to match the Pterodactyl ones
- You can find the eggs for Minecraft by using `YourPanelDomain.net/admin/nests/view/1`. Replace YourPanelDomain.net with the actual Domain of your Pterodactyl Installation
+```bash
+npm install -g pm2
+pm2 start start.js --name "feliactyl"
+pm2 save && pm2 startup
+```
 
-How to other eggs (Minecraft Bedrock):
-1. [Download the eggs from Parkervcp's GitHub Repository](https://github.com/parkervcp/eggs)
-2. Add the Pocketmine & Vanilla Bedrock eggs to your panel
-3. Get the egg ID of both of them and set it as the ID in settings.json
+</details>
 
-# Updating 
+---
 
-Migrating from Heliactyl v13.x to Feliactyl v1:
-1. Store important info (API keys, Discord auth settings, etc.) somewhere safe
-2. Download `database.sqlite` (contains user and server data) 
-3. Delete the old Heliactyl directory contents
-4. Upload the latest Feliactyl v1 release and unzip it
-5. Restore `database.sqlite` and reconfigure `settings.json`
+## ⚙️ Configuration
 
-Updating to a newer Feliactyl v1 release:
-1. Keep `settings.json` and `database.sqlite`, delete everything else
-2. Back up both files somewhere safe first
-3. Upload the latest Feliactyl v1 release and unzip it
-4. Restore `settings.json` and `database.sqlite`
-5. Start Feliactyl again
+### Changing Egg IDs
 
-# Running in background and on startup
-Installing [pm2](https://github.com/Unitech/pm2):
-- Run `npm install pm2 -g` on the vps
+Pterodactyl egg IDs vary per installation:
+- **Minecraft Java:** `https://your-panel.com/admin/nests/view/1`
+- **Other eggs:** Import from [parkervcp/eggs](https://github.com/parkervcp/eggs), then grab the ID from the panel
 
-Starting the Dashboard in Background:
-- Change directory to your Feliactyl folder Using `cd` command, Example: `cd /var/www/feliactyl` 
-- To run Feliactyl, use `pm2 start start.js --name "feliactyl"`
-- To view logs, run `pm2 logs Feliactyl`
+Update under `api.client.eggs` in `settings.json`.
 
-Making the dashboard runs on startup:
-- Make sure your dashboard is running in the background with the help of [pm2](https://github.com/Unitech/pm2)
-- You can check if Feliactyl is running in background with `pm2 list`
-- Once you confirmed that Feliactyl is running in background, you can create a startup script by running `pm2 startup` and `pm2 save`
-- Note: Supported init systems are `systemd`, `upstart`, `launchd`, `rc.d`
-- To stop your Feliactyl from running in the background, use `pm2 unstartup`
+---
 
-To stop a currently running Feliactyl instance, use `pm2 stop feliactyl`
+## 🔄 Updating
 
-# Legacy Deprecation Notice
+**From Heliactyl v13.x → Feliactyl v2**
 
-Legacy Heliactyl versions (pre-13.3) are not supported by this fork. Please use Feliactyl v1 or later.
+```bash
+# 1. Back up your data
+cp settings.json settings.json.bak
+cp database.sqlite database.sqlite.bak
+
+# 2. Pull latest and reinstall
+git pull
+npm install
+pm2 restart feliactyl
+```
+
+**Between Feliactyl v2 releases**
+
+```bash
+git pull && npm install && pm2 restart feliactyl
+```
+
+---
+
+## 📦 PM2 Reference
+
+| Command | Description |
+|:---|:---|
+| `pm2 logs feliactyl` | View live logs |
+| `pm2 restart feliactyl` | Restart the panel |
+| `pm2 stop feliactyl` | Stop the panel |
+| `pm2 list` | Show all running processes |
+
+---
+
+<div align="center">
+
+Made with 💜 by [notcaliper](https://github.com/notcaliper) · Forked from [Heliactyl](https://github.com/Heliactyl-Project/Heliactyl)
+
+*Legacy Heliactyl versions (pre-13.3) and Feliactyl v1 are unsupported. Please use v2.*
+
+</div>
 
