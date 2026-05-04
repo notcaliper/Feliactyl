@@ -19,13 +19,18 @@
   },
   "stripe": {
     "enabled": true,
-    "note": "The key is the stripe API key and the coins is the amount per £1. If the stripe API key is invalid and stripe purchases are enabled, Feliactyl will crash when attempting to do transactions.",
+    "note": "The key is the stripe API key and the coins is the amount per $1. If the stripe API key is invalid and stripe purchases are enabled, Feliactyl will crash when attempting to do transactions.",
     "key": "100000000000000",
     "coins": 100
   },
   "linkvertise": {
+    "enabled": true,
     "userid": "10000",
-    "coins": 5
+    "coins": 5,
+    "dailyLimit": 10,
+    "cooldown": 60,
+    "minTimeToComplete": 10,
+    "timeToExpire": 600
   },
   "database": "sqlite://database.sqlite",
   "api": {

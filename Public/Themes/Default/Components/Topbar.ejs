@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand navbar-light navbar-bg">
+  <a class="sidebar-toggle js-sidebar-toggle"><i class="hamburger align-self-center"></i></a>
+  <div class="navbar-collapse collapse">
+    <ul class="navbar-nav navbar-align" style="align-items:center;gap:12px;">
+      <li style="font-size:13px;color:#a899cc;">
+        <span id="topbar-coins" data-coins="<%= coins %>"></span>
+        <script>const tbc=document.getElementById('topbar-coins');if(tbc){const v=parseFloat(tbc.dataset.coins)||0;tbc.textContent='🪙 '+(Math.floor(v*100)/100)+' coins';}</script>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" style="display:flex;align-items:center;gap:8px;color:#c8c4d8;font-size:13px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;">
+            <%= (userinfo && userinfo.username) ? userinfo.username.charAt(0).toUpperCase() : '?' %>
+          </div>
+          <%= (userinfo && userinfo.username) ? userinfo.username : 'Account' %>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end">
+          <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
+            <div style="font-size:13px;color:white;font-weight:600;"><%= (userinfo && userinfo.username) ? userinfo.username : '' %></div>
+            <% if (typeof packagename !== 'undefined') { %>
+              <div style="font-size:11px;color:#6b7280;">Plan: <span class="badge-purple"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></span></div>
+            <% } %>
+          </div>
+          <a class="dropdown-item" href="/logout">Sign out</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>

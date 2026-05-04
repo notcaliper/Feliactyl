@@ -1,365 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <%- include('../../Components/Header.ejs') %>
 <%- include('../../Components/Styles.ejs') %>
 
-<body style="font-family: DM Sans; sans-serif;">
-	<div class="wrapper">
-      <%- include('../../Routers/Navigation.ejs') %>
-		<div class="main">
-			<nav style="background-color: #353539; color: white;" class="navbar navbar-expand navbar-light navbar-bg">
-				<a class="sidebar-toggle js-sidebar-toggle">
-          <i class="hamburger align-self-center"></i>
-        </a>
+<body>
+  <div class="wrapper">
+    <%- include('../../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../../Components/Topbar.ejs') %>
 
-				<div class="navbar-collapse collapse">
-					<ul class="navbar-nav navbar-align">
-						<li class="nav-item dropdown">
-							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
-                <i style="color: white;" class="align-middle text-white" data-feather="copy"></i>
-              </a>
+      <main class="content">
 
-							<a class="nav-link dropdown-toggle d-none d-sm-inline-block text-white" href="#" data-bs-toggle="dropdown">
-                <span class="text-white">View account info</span>
-              </a>
-							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance"></span></a>
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
-            <script>
-              let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(<%= coins %> * 100) / 100
-            </script>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</nav>
+        <% if (req.query.err && req.query.err !== 'none') { %>
+        <% const _storeErrors = { 'NOTENOUGHCOINS':'Not enough coins.','ALREADYATMAX':'Already at maximum resources.','DISABLED':'Store is currently disabled.' }; %>
+        <div class="alert-banner alert-banner--red mb-4"><%= _storeErrors[req.query.err] || ('Error: ' + req.query.err) %></div>
+        <% } else if (req.query.err === 'none') { %>
+        <div class="alert-banner alert-banner--green mb-4">Purchase successful!</div>
+        <% } %>
 
-			<main style="background-color: #212122;" class="content">
-				<div class="container-fluid p-0">
-            <div class="row">
-              <div class="col-md-6 grid-margin stretch-card">
-                <div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card">
-                  <div class="card-body">
-                    <form class="forms-sample" action="/buycpu">
-                      <div class="form-group">
-                        <label style="color: #6c757d;" style="font-weight: bold;">CPU:</label><BR>
-                        <select style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" name="amount" class="form-control">
-                          <option value=1><%= settings.api.client.coins.store.cpu.per %>% CPU - <%= settings.api.client.coins.store.cpu.cost %> coins</option>
-                          <option value=2><%= settings.api.client.coins.store.cpu.per * 2 %>% CPU - <%= settings.api.client.coins.store.cpu.cost * 2 %> coins</option>
-                        </select>
-                      </div><br>
-                      <button class="btn btn-info" type="submit">Purchase</button>
-                    </form>
-                  </div>
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title">Store</div>
+          <div class="page-subtitle">Spend your coins to upgrade server resources 🛒</div>
+        </div>
+
+        <!-- Balance banner -->
+        <div class="store-balance-bar">
+          <div class="store-balance-left">
+            <div class="store-balance-icon">
+              <svg width="16" height="16" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span class="store-balance-label">Your balance</span>
+            <span class="store-balance-val">🪙 <%= Math.floor(coins * 100) / 100 %> coins</span>
+          </div>
+          <span class="store-balance-plan badge-purple"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %> plan</span>
+        </div>
+
+        <!-- Store grid -->
+        <div class="row g-4">
+
+          <!-- RAM -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="store-card store-card--purple">
+              <div class="store-card-top">
+                <div class="store-card-icon store-card-icon--purple">
+                  <svg width="18" height="18" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div>
+                  <div class="store-card-title">RAM</div>
+                  <div class="store-card-sub">Memory boost</div>
                 </div>
               </div>
-              <div class="col-md-6 grid-margin stretch-card">
-                <div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card">
-                  <div class="card-body">
-                    <form class="forms-sample" action="/buyram">
-                      <div class="form-group">
-                        <label style="color: #6c757d;" style="font-weight: bold;">RAM:</label><BR>
-                        <select style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" name="amount" class="form-control">
-                          <option value=1><%= settings.api.client.coins.store.ram.per %>MB RAM - <%= settings.api.client.coins.store.ram.cost %> coins</option>
-                          <option value=2><%= settings.api.client.coins.store.ram.per * 2 %>MB RAM - <%= settings.api.client.coins.store.ram.cost * 2 %> coins</option>
-                          <option value=3><%= settings.api.client.coins.store.ram.per * 3 %>MB RAM - <%= settings.api.client.coins.store.ram.cost * 3 %> coins</option>
-                          <option value=4><%= settings.api.client.coins.store.ram.per * 4 %>MB RAM - <%= settings.api.client.coins.store.ram.cost * 4 %> coins</option>
-                        </select>
-                      </div><br>
-                      <button class="btn btn-info" type="submit">Purchase</button>
-                    </form>
-                  </div>
-                </div>
+              <div class="store-card-price">
+                <span class="store-price-val"><%= settings.api.client.coins.store.ram.cost %></span>
+                <span class="store-price-unit">🪙 / <%= settings.api.client.coins.store.ram.per %> MB</span>
               </div>
-              <div class="col-md-6 grid-margin stretch-card">
-                <div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card">
-                  <div class="card-body">
-                    <form class="forms-sample" action="/buydisk">
-                      <div class="form-group">
-                        <label style="color: #6c757d;" style="font-weight: bold;">Disk:</label><BR>
-                        <select style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" name="amount" class="form-control">
-                          <option value=1><%= settings.api.client.coins.store.disk.per %>MB Disk - <%= settings.api.client.coins.store.disk.cost %> coins</option>
-                          <option value=2><%= settings.api.client.coins.store.disk.per * 2 %>MB Disk - <%= settings.api.client.coins.store.disk.cost * 2 %> coins</option>
-                          <option value=3><%= settings.api.client.coins.store.disk.per * 3 %>MB Disk - <%= settings.api.client.coins.store.disk.cost * 3 %> coins</option>
-                          <option value=4><%= settings.api.client.coins.store.disk.per * 4 %>MB Disk - <%= settings.api.client.coins.store.disk.cost * 4 %> coins</option>
-                          <option value=5><%= settings.api.client.coins.store.disk.per * 5 %>MB Disk - <%= settings.api.client.coins.store.disk.cost * 5 %> coins</option>
-                        </select>
-                      </div><br>
-                      <button class="btn btn-info" type="submit">Purchase</button>
-                    </form>
-                  </div>
+              <form action="/buyram" method="POST">
+                <div class="store-select-wrap">
+                  <select name="amount" class="form-select store-select">
+                    <option value="1"><%= settings.api.client.coins.store.ram.per %> MB — <%= settings.api.client.coins.store.ram.cost %> coins</option>
+                    <option value="2"><%= settings.api.client.coins.store.ram.per * 2 %> MB — <%= settings.api.client.coins.store.ram.cost * 2 %> coins</option>
+                    <option value="3"><%= settings.api.client.coins.store.ram.per * 3 %> MB — <%= settings.api.client.coins.store.ram.cost * 3 %> coins</option>
+                    <option value="4"><%= settings.api.client.coins.store.ram.per * 4 %> MB — <%= settings.api.client.coins.store.ram.cost * 4 %> coins</option>
+                  </select>
                 </div>
-              </div>
-              <div class="col-md-6 grid-margin stretch-card">
-                <div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card">
-                  <div class="card-body">
-                    <form class="forms-sample" action="/buyservers">
-                      <div class="form-group">
-                        <label style="color: #6c757d;" style="font-weight: bold;">Servers:</label><BR>
-                        <select style="width: 40%; padding: 15px; background-color: #4A4A52; border-color: #17a2b8; color: white;" name="amount" class="form-control">
-                          <option value=1><%= settings.api.client.coins.store.servers.per %> Server - <%= settings.api.client.coins.store.servers.cost %> coins</option>
-                          <option value=2><%= settings.api.client.coins.store.servers.per * 2 %> Servers - <%= settings.api.client.coins.store.servers.cost * 2 %> coins</option>
-                          <option value=3><%= settings.api.client.coins.store.servers.per * 3 %> Servers - <%= settings.api.client.coins.store.servers.cost * 3 %> coins</option>
-                          <option value=4><%= settings.api.client.coins.store.servers.per * 4 %> Servers - <%= settings.api.client.coins.store.servers.cost * 4 %> coins</option>
-                        </select>
-                      </div><br>
-                      <button class="btn btn-info" type="submit">Purchase</button>
-                    </form>
-                  </div>
-                </div>
-              </div>
+                <button type="submit" class="btn store-btn store-btn--purple">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Purchase
+                </button>
+              </form>
             </div>
           </div>
-			</main>
 
-			<footer style="background-color: #37373B;" class="footer">
-				<div class="container-fluid">
-					<div class="row text-muted">
-						<div class="col-4 text-start">
-							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
-							</p>
-						</div>
-						<div class="col-8 text-end">
-							<ul class="list-inline">
-								<li class="list-inline-item">
-									<p><code style="color: #17a2b8;"">v<%= settings.version.replace(/"/g, `\\\\"`) %></code> - <span id="loadtime"></span></p>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</footer>
-		</div>
-	</div>
+          <!-- Disk -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="store-card store-card--blue">
+              <div class="store-card-top">
+                <div class="store-card-icon store-card-icon--blue">
+                  <svg width="18" height="18" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+                </div>
+                <div>
+                  <div class="store-card-title">Disk</div>
+                  <div class="store-card-sub">Storage space</div>
+                </div>
+              </div>
+              <div class="store-card-price">
+                <span class="store-price-val"><%= settings.api.client.coins.store.disk.cost %></span>
+                <span class="store-price-unit">🪙 / <%= settings.api.client.coins.store.disk.per %> MB</span>
+              </div>
+              <form action="/buydisk" method="POST">
+                <div class="store-select-wrap">
+                  <select name="amount" class="form-select store-select">
+                    <option value="1"><%= settings.api.client.coins.store.disk.per %> MB — <%= settings.api.client.coins.store.disk.cost %> coins</option>
+                    <option value="2"><%= settings.api.client.coins.store.disk.per * 2 %> MB — <%= settings.api.client.coins.store.disk.cost * 2 %> coins</option>
+                    <option value="3"><%= settings.api.client.coins.store.disk.per * 3 %> MB — <%= settings.api.client.coins.store.disk.cost * 3 %> coins</option>
+                    <option value="4"><%= settings.api.client.coins.store.disk.per * 4 %> MB — <%= settings.api.client.coins.store.disk.cost * 4 %> coins</option>
+                    <option value="5"><%= settings.api.client.coins.store.disk.per * 5 %> MB — <%= settings.api.client.coins.store.disk.cost * 5 %> coins</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn store-btn store-btn--blue">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Purchase
+                </button>
+              </form>
+            </div>
+          </div>
 
-	<%- include('../../Scripts/Scripts.ejs') %>
+          <!-- CPU -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="store-card store-card--green">
+              <div class="store-card-top">
+                <div class="store-card-icon store-card-icon--green">
+                  <svg width="18" height="18" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div>
+                  <div class="store-card-title">CPU</div>
+                  <div class="store-card-sub">Processing power</div>
+                </div>
+              </div>
+              <div class="store-card-price">
+                <span class="store-price-val"><%= settings.api.client.coins.store.cpu.cost %></span>
+                <span class="store-price-unit">🪙 / <%= settings.api.client.coins.store.cpu.per %>%</span>
+              </div>
+              <form action="/buycpu" method="POST">
+                <div class="store-select-wrap">
+                  <select name="amount" class="form-select store-select">
+                    <option value="1"><%= settings.api.client.coins.store.cpu.per %>% — <%= settings.api.client.coins.store.cpu.cost %> coins</option>
+                    <option value="2"><%= settings.api.client.coins.store.cpu.per * 2 %>% — <%= settings.api.client.coins.store.cpu.cost * 2 %> coins</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn store-btn store-btn--green">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Purchase
+                </button>
+              </form>
+            </div>
+          </div>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var ctx = document.getElementById("chartjs-dashboard-line").getContext("2d");
-			var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-			gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-			gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-			// Line chart
-			new Chart(document.getElementById("chartjs-dashboard-line"), {
-				type: "line",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "Sales ($)",
-						fill: true,
-						backgroundColor: gradient,
-						borderColor: window.theme.primary,
-						data: [
-							2115,
-							1562,
-							1584,
-							1892,
-							1587,
-							1923,
-							2566,
-							2448,
-							2805,
-							3438,
-							2917,
-							3327
-						]
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					tooltips: {
-						intersect: false
-					},
-					hover: {
-						intersect: true
-					},
-					plugins: {
-						filler: {
-							propagate: false
-						}
-					},
-					scales: {
-						xAxes: [{
-							reverse: true,
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}],
-						yAxes: [{
-							ticks: {
-								stepSize: 1000
-							},
-							display: true,
-							borderDash: [3, 3],
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Pie chart
-			new Chart(document.getElementById("chartjs-dashboard-pie"), {
-				type: "pie",
-				data: {
-					labels: ["Chrome", "Firefox", "IE"],
-					datasets: [{
-						data: [4306, 3801, 1689],
-						backgroundColor: [
-							window.theme.primary,
-							window.theme.warning,
-							window.theme.danger
-						],
-						borderWidth: 5
-					}]
-				},
-				options: {
-					responsive: !window.MSInputMethodContext,
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					cutoutPercentage: 75
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Bar chart
-			new Chart(document.getElementById("chartjs-dashboard-bar"), {
-				type: "bar",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "This year",
-						backgroundColor: window.theme.primary,
-						borderColor: window.theme.primary,
-						hoverBackgroundColor: window.theme.primary,
-						hoverBorderColor: window.theme.primary,
-						data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-						barPercentage: .75,
-						categoryPercentage: .5
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					scales: {
-						yAxes: [{
-							gridLines: {
-								display: false
-							},
-							stacked: false,
-							ticks: {
-								stepSize: 20
-							}
-						}],
-						xAxes: [{
-							stacked: false,
-							gridLines: {
-								color: "transparent"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var markers = [{
-					coords: [31.230391, 121.473701],
-					name: "Shanghai"
-				},
-				{
-					coords: [28.704060, 77.102493],
-					name: "Delhi"
-				},
-				{
-					coords: [6.524379, 3.379206],
-					name: "Lagos"
-				},
-				{
-					coords: [35.689487, 139.691711],
-					name: "Tokyo"
-				},
-				{
-					coords: [23.129110, 113.264381],
-					name: "Guangzhou"
-				},
-				{
-					coords: [40.7127837, -74.0059413],
-					name: "New York"
-				},
-				{
-					coords: [34.052235, -118.243683],
-					name: "Los Angeles"
-				},
-				{
-					coords: [41.878113, -87.629799],
-					name: "Chicago"
-				},
-				{
-					coords: [51.507351, -0.127758],
-					name: "London"
-				},
-				{
-					coords: [40.416775, -3.703790],
-					name: "Madrid "
-				}
-			];
-			var map = new jsVectorMap({
-				map: "world",
-				selector: "#world_map",
-				zoomButtons: true,
-				markers: markers,
-				markerStyle: {
-					initial: {
-						r: 9,
-						strokeWidth: 7,
-						stokeOpacity: .4,
-						fill: window.theme.primary
-					},
-					hover: {
-						fill: window.theme.primary,
-						stroke: window.theme.primary
-					}
-				},
-				zoomOnScroll: false
-			});
-			window.addEventListener("resize", () => {
-				map.updateSize();
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-			var defaultDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate();
-			document.getElementById("datetimepicker-dashboard").flatpickr({
-				inline: true,
-				prevArrow: "<span title=\"Previous month\">&laquo;</span>",
-				nextArrow: "<span title=\"Next month\">&raquo;</span>",
-				defaultDate: defaultDate
-			});
-		});
-	</script>
-    <%- include('../../Components/LoadingBar.ejs') %>
+          <!-- Servers -->
+          <div class="col-12 col-md-6 col-xl-3">
+            <div class="store-card store-card--amber">
+              <div class="store-card-top">
+                <div class="store-card-icon store-card-icon--amber">
+                  <svg width="18" height="18" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                </div>
+                <div>
+                  <div class="store-card-title">Servers</div>
+                  <div class="store-card-sub">Server slots</div>
+                </div>
+              </div>
+              <div class="store-card-price">
+                <span class="store-price-val"><%= settings.api.client.coins.store.servers.cost %></span>
+                <span class="store-price-unit">🪙 / <%= settings.api.client.coins.store.servers.per %> slot</span>
+              </div>
+              <form action="/buyservers" method="POST">
+                <div class="store-select-wrap">
+                  <select name="amount" class="form-select store-select">
+                    <option value="1"><%= settings.api.client.coins.store.servers.per %> slot — <%= settings.api.client.coins.store.servers.cost %> coins</option>
+                    <option value="2"><%= settings.api.client.coins.store.servers.per * 2 %> slots — <%= settings.api.client.coins.store.servers.cost * 2 %> coins</option>
+                    <option value="3"><%= settings.api.client.coins.store.servers.per * 3 %> slots — <%= settings.api.client.coins.store.servers.cost * 3 %> coins</option>
+                    <option value="4"><%= settings.api.client.coins.store.servers.per * 4 %> slots — <%= settings.api.client.coins.store.servers.cost * 4 %> coins</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn store-btn store-btn--amber">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Purchase
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Plans section -->
+        <div class="page-header" style="margin-top:32px;">
+          <div class="page-title" style="font-size:18px;">Upgrade Plan</div>
+          <div class="page-subtitle">Switch to a better plan using your coins</div>
+        </div>
+
+        <% const _planErrors = { 'NOTENOUGHCOINS': 'Not enough coins.', 'ALREADYONPLAN': 'You are already on this plan.', 'INVALIDPLAN': 'Invalid plan.', 'MISSINGPLAN': 'No plan selected.' }; %>
+        <% if (_planErrors[req.query.err]) { %>
+        <div class="alert-banner alert-banner--red mb-4"><%= _planErrors[req.query.err] %></div>
+        <% } %>
+
+        <div class="row g-4">
+          <% const _planKeys = Object.keys(settings.api.client.packages.list); %>
+          <% for (let _pi = 0; _pi < _planKeys.length; _pi++) { %>
+          <% const _pname = _planKeys[_pi]; %>
+          <% const _plan = settings.api.client.packages.list[_pname]; %>
+          <% const _isCurrent = (packagename === _pname); %>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="plan-card <%= _isCurrent ? 'plan-card--active' : '' %>">
+              <div class="plan-card-header">
+                <div class="plan-name"><%= _pname.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()) %></div>
+                <% if (_isCurrent) { %><span class="plan-badge-current">Current</span><% } %>
+              </div>
+              <div class="plan-specs">
+                <div class="plan-spec"><span class="plan-spec-label">RAM</span><span class="plan-spec-val"><%= _plan.ram %> MB</span></div>
+                <div class="plan-spec"><span class="plan-spec-label">Disk</span><span class="plan-spec-val"><%= _plan.disk %> MB</span></div>
+                <div class="plan-spec"><span class="plan-spec-label">CPU</span><span class="plan-spec-val"><%= _plan.cpu %>%</span></div>
+                <div class="plan-spec"><span class="plan-spec-label">Servers</span><span class="plan-spec-val"><%= _plan.servers %></span></div>
+              </div>
+              <% const _disc = settings.api.client.packages.discounts && settings.api.client.packages.discounts[_pname]; %>
+              <% const _discActive = _disc && (!_disc.expiresAt || _disc.expiresAt > Date.now()); %>
+              <% const _baseCost = _plan.cost || 0; %>
+              <% const _saleCost = _discActive ? Math.round(_baseCost * (1 - _disc.pct / 100)) : _baseCost; %>
+              <div class="plan-cost">
+                <% if (_discActive) { %>
+                  <span style="text-decoration:line-through;color:#6b7280;font-size:14px;font-weight:400;">🪙 <%= _baseCost.toLocaleString() %></span>
+                  <span style="margin-left:6px;">🪙 <%= _saleCost.toLocaleString() %></span>
+                  <span style="font-size:11px;background:rgba(217,119,6,0.2);color:#fcd34d;border-radius:5px;padding:2px 7px;margin-left:6px;font-weight:700;vertical-align:middle;">-<%= _disc.pct %>%</span>
+                <% } else { %>
+                  🪙 <%= _baseCost.toLocaleString() %> coins
+                <% } %>
+              </div>
+              <form action="/buyplan" method="POST">
+                <input type="hidden" name="plan" value="<%= _pname %>">
+                <button type="submit" class="btn plan-btn" <%= _isCurrent ? 'disabled' : '' %>>
+                  <%= _isCurrent ? 'Current Plan' : (_saleCost === 0 ? 'Switch (Free)' : 'Purchase Plan') %>
+                </button>
+              </form>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../../Components/LoadingBar.ejs') %>
+
+  <style>
+    /* ── Balance bar ── */
+    .store-balance-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(124,58,237,0.07);
+      border: 1px solid rgba(124,58,237,0.18);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 28px;
+    }
+    .store-balance-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .store-balance-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: rgba(245,158,11,0.15);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .store-balance-label { font-size: 12px; color: #7c6faa; }
+    .store-balance-val   { font-size: 14px; font-weight: 700; color: #fcd34d; }
+    .store-balance-plan  { font-size: 11px; }
+
+    /* ── Store card ── */
+    .store-card {
+      background: var(--surface);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(139,92,246,0.14);
+      transition: transform 0.2s, box-shadow 0.2s;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .store-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    .store-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      border-radius: 16px 16px 0 0;
+    }
+    .store-card--purple::before { background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .store-card--blue::before   { background: linear-gradient(90deg,#2563eb,#60a5fa); }
+    .store-card--green::before  { background: linear-gradient(90deg,#059669,#6ee7b7); }
+    .store-card--amber::before  { background: linear-gradient(90deg,#d97706,#fcd34d); }
+
+    /* hover border accent */
+    .store-card--purple:hover { border-color: rgba(124,58,237,0.4); box-shadow: 0 12px 40px rgba(124,58,237,0.15); }
+    .store-card--blue:hover   { border-color: rgba(37,99,235,0.4);  box-shadow: 0 12px 40px rgba(37,99,235,0.15); }
+    .store-card--green:hover  { border-color: rgba(16,185,129,0.4); box-shadow: 0 12px 40px rgba(16,185,129,0.15); }
+    .store-card--amber:hover  { border-color: rgba(217,119,6,0.4);  box-shadow: 0 12px 40px rgba(217,119,6,0.15); }
+
+    .store-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid rgba(139,92,246,0.08);
+    }
+    .store-card-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .store-card-icon--purple { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.22); }
+    .store-card-icon--blue   { background: rgba(37,99,235,0.15);  border: 1px solid rgba(37,99,235,0.22); }
+    .store-card-icon--green  { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.22); }
+    .store-card-icon--amber  { background: rgba(217,119,6,0.15);  border: 1px solid rgba(217,119,6,0.22); }
+
+    .store-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+    .store-card-sub   { font-size: 11px; color: #6b5f8a; margin-top: 2px; }
+
+    .store-card-price {
+      padding: 18px 20px 10px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .store-price-val  { font-size: 28px; font-weight: 900; color: #e2e8f0; letter-spacing: -1px; line-height: 1; }
+    .store-price-unit { font-size: 12px; color: #6b5f8a; }
+
+    .store-select-wrap { padding: 0 20px 12px; }
+    .store-select {
+      background: var(--surface2) !important;
+      border: 1px solid rgba(139,92,246,0.2) !important;
+      border-radius: 10px !important;
+      color: white !important;
+      font-size: 13px !important;
+      padding: 10px 12px !important;
+      width: 100% !important;
+    }
+    .store-select:focus {
+      border-color: #7c3aed !important;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15) !important;
+      outline: none !important;
+    }
+
+    .store-btn {
+      margin: 0 20px 20px;
+      width: calc(100% - 40px);
+      font-size: 13px !important;
+      padding: 10px !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none !important;
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      transition: all 0.15s !important;
+      margin-top: auto;
+    }
+    .store-btn--purple { background: linear-gradient(135deg,#7c3aed,#a78bfa) !important; color: white !important; box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important; }
+    .store-btn--blue   { background: linear-gradient(135deg,#2563eb,#60a5fa) !important; color: white !important; box-shadow: 0 2px 12px rgba(37,99,235,0.3) !important; }
+    .store-btn--green  { background: linear-gradient(135deg,#059669,#34d399) !important; color: white !important; box-shadow: 0 2px 12px rgba(16,185,129,0.3) !important; }
+    .store-btn--amber  { background: linear-gradient(135deg,#d97706,#fcd34d) !important; color: #1a1000 !important; box-shadow: 0 2px 12px rgba(217,119,6,0.3) !important; }
+    .store-btn:hover   { transform: translateY(-1px) !important; filter: brightness(1.1) !important; }
+
+    /* ── Plan cards ── */
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid rgba(139,92,246,0.14);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      height: 100%;
+    }
+    .plan-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.35); }
+    .plan-card--active { border-color: rgba(124,58,237,0.5); box-shadow: 0 0 0 2px rgba(124,58,237,0.2); }
+    .plan-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(139,92,246,0.08);
+      background: rgba(124,58,237,0.05);
+    }
+    .plan-name { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+    .plan-badge-current { font-size: 10px; background: rgba(124,58,237,0.25); color: #c4b5fd; border-radius: 999px; padding: 2px 10px; font-weight: 700; border: 1px solid rgba(124,58,237,0.3); }
+    .plan-specs { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .plan-spec { display: flex; justify-content: space-between; align-items: center; }
+    .plan-spec-label { font-size: 12px; color: #6b7280; }
+    .plan-spec-val { font-size: 13px; font-weight: 600; color: #c4b5fd; }
+    .plan-cost { padding: 0 20px 14px; font-size: 20px; font-weight: 800; color: #fcd34d; letter-spacing: -0.5px; }
+    .plan-btn {
+      margin: 0 20px 20px;
+      width: calc(100% - 40px);
+      font-size: 13px !important; font-weight: 600 !important;
+      padding: 10px !important;
+      background: linear-gradient(135deg,#7c3aed,#a78bfa) !important;
+      color: white !important;
+      border: none !important; border-radius: 10px !important;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.3) !important;
+      transition: all 0.15s !important;
+    }
+    .plan-btn:hover:not(:disabled) { transform: translateY(-1px) !important; filter: brightness(1.1) !important; }
+    .plan-btn:disabled { background: rgba(139,92,246,0.15) !important; color: #6b5f8a !important; box-shadow: none !important; cursor: not-allowed !important; }
+  </style>
 
 </body>
-
 </html>

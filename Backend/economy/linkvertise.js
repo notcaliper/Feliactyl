@@ -5,6 +5,18 @@ module.exports.load = async function (app, db) {
     const lvcodes = {}
     const cooldowns = {}
 
+    function lvsettings() {
+        const s = JSON.parse(require('fs').readFileSync('./settings.json'));
+        return {
+            userid: s.linkvertise.userid || '10000',
+            coins: s.linkvertise.coins || 5,
+            dailyLimit: s.linkvertise.dailyLimit || 10,
+            cooldown: s.linkvertise.cooldown || 60,
+            minTimeToComplete: s.linkvertise.minTimeToComplete || 10,
+            timeToExpire: s.linkvertise.timeToExpire || 600
+        };
+    }
+
     app.get(`/lv/gen`, async (req, res) => {
         if (!req.session.pterodactyl) return res.redirect("/login");
 
@@ -15,12 +27,13 @@ module.exports.load = async function (app, db) {
         }
 
         const dailyTotal = await db.get(`dailylinkvertise-${req.session.userinfo.id}`)
-        if (dailyTotal && dailyTotal >= settings.linkvertise.dailyLimit) {
+        const lv = lvsettings();
+        if (dailyTotal && dailyTotal >= lv.dailyLimit) {
             return res.redirect(`/lv?err=REACHEDDAILYLIMIT`)
         }
 
         const code = makeid(12)
-        const lvurl = linkvertise(settings.linkvertise.userid + `redeem/${code}`)
+        const lvurl = linkvertise(lv.userid + `redeem/${code}`)
 
         lvcodes[req.session.userinfo.id] = {
             code: code,
@@ -50,26 +63,27 @@ module.exports.load = async function (app, db) {
         delete lvcodes[req.session.userinfo.id]
 
         // Checking at least the minimum allowed time passed between generation and completion
-        if (((Date.now() - usercode.generated) / 1000) < settings.linkvertise.minTimeToComplete) {
+        const lv = lvsettings();
+        if (((Date.now() - usercode.generated) / 1000) < lv.minTimeToComplete) {
             return res.send('A linkvertise bypasser has been detected. <a href="../dashboard">Click here</a> to return to the dashboard.')
         }
 
-        cooldowns[req.session.userinfo.id] = Date.now() + (settings.linkvertise.cooldown * 1000)
+        cooldowns[req.session.userinfo.id] = Date.now() + (lv.cooldown * 1000)
 
         // Adding to daily total
         const dailyTotal = await db.get(`dailylinkvertise-${req.session.userinfo.id}`)
-        if (dailyTotal && dailyTotal >= settings.linkvertise.dailyLimit) {
+        if (dailyTotal && dailyTotal >= lv.dailyLimit) {
             return res.redirect(`/lv?err=REACHEDDAILYLIMIT`)
         }
         if (dailyTotal) await db.set(`dailylinkvertise-${req.session.userinfo.id}`, dailyTotal + 1)
         else await db.set(`dailylinkvertise-${req.session.userinfo.id}`, 1)
-        if (dailyTotal + 1 >= settings.linkvertise.dailyLimit) {
+        if (dailyTotal + 1 >= lv.dailyLimit) {
             await db.set(`lvlimitdate-${req.session.userinfo.id}`, Date.now(), 43200000)
         }
 
         // Adding coins
-        const coins = await db.get(`coins-${req.session.userinfo.id}`)
-        await db.set(`coins-${req.session.userinfo.id}`, coins + settings.linkvertise.coins)
+        const coins = await db.get(`coins-${req.session.userinfo.id}`) || 0
+        await db.set(`coins-${req.session.userinfo.id}`, coins + lv.coins)
 
         res.redirect(`/lv?success=true`)
     })
@@ -97,7 +111,7 @@ module.exports.load = async function (app, db) {
     // Removing codes that have expired and cooldowns that are no longer applicable
     setInterval(() => {
         for (const code of Object.values(lvcodes)) {
-            if (((Date.now() - code.generated) / 1000) > settings.linkvertise.timeToExpire) {
+            if (((Date.now() - code.generated) / 1000) > lvsettings().timeToExpire) {
                 delete lvcodes[code.user]
             }
         }

@@ -266,6 +266,8 @@ module.exports.load = async function (app, db) {
               userids.push(accountinfo.attributes.id);
               await db.set("users", userids);
               await db.set("users-" + userinfo.id, accountinfo.attributes.id);
+              let discordids = await db.get("discordids") || [];
+              if (!discordids.includes(userinfo.id)) { discordids.push(userinfo.id); await db.set("discordids", discordids); }
               req.session.newaccount = true;
               req.session.password = genpassword;
             } else {
@@ -299,6 +301,8 @@ module.exports.load = async function (app, db) {
                   userids.push(userid);
                   await db.set("users", userids);
                   await db.set("users-" + userinfo.id, userid);
+                  let discordids2 = await db.get("discordids") || [];
+                  if (!discordids2.includes(userinfo.id)) { discordids2.push(userinfo.id); await db.set("discordids", discordids2); }
                   req.session.pterodactyl = user[0].attributes;
                 } else {
                   return res.send("We have detected an account with your Discord email on it but the user id has already been claimed on another Discord account.");
@@ -325,6 +329,10 @@ module.exports.load = async function (app, db) {
         req.session.pterodactyl = cacheaccountinfo.attributes;
 
         req.session.userinfo = userinfo;
+        await db.set("ptero-" + (await db.get("users-" + userinfo.id)), userinfo.id);
+        await db.set("userinfo-" + userinfo.id, { id: userinfo.id, username: userinfo.username, email: userinfo.email });
+        let discordids3 = await db.get("discordids") || [];
+        if (!discordids3.includes(userinfo.id)) { discordids3.push(userinfo.id); await db.set("discordids", discordids3); }
         let theme = indexjs.get(req);
         if (customredirect) return res.redirect(customredirect);
         return res.redirect(theme.settings.redirect.callback ? theme.settings.redirect.callback : "/");

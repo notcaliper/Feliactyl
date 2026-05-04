@@ -55,7 +55,7 @@ module.exports.load = async function (app, db) {
           }
 
           let packagename = await db.get("package-" + req.session.userinfo.id);
-          let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default];
+          let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default] || newsettings.api.client.packages.list[newsettings.api.client.packages.default] || { ram: 0, disk: 0, cpu: 0, servers: 0 };
 
           let extra =
             await db.get("extra-" + req.session.userinfo.id) ||
@@ -257,7 +257,7 @@ module.exports.load = async function (app, db) {
         let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
 
         let packagename = await db.get("package-" + req.session.userinfo.id);
-        let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default];
+        let package = newsettings.api.client.packages.list[packagename ? packagename : newsettings.api.client.packages.default] || newsettings.api.client.packages.list[newsettings.api.client.packages.default] || { ram: 0, disk: 0, cpu: 0, servers: 0 };
 
         let pterorelationshipsserverdata = req.session.pterodactyl.relationships.servers.data.filter(name => name.attributes.id.toString() !== req.body.id);
 

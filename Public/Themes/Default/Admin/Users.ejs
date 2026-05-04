@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../Components/Header.ejs') %>
+<%- include('../Components/Styles.ejs') %>
+<body>
+  <div class="wrapper">
+    <%- include('../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../Components/Topbar.ejs') %>
+
+      <main class="content">
+
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="page-title">All Users</div>
+            <div class="page-subtitle">View all registered users, their coins, plans and resources</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="/admin" class="btn adm-btn adm-btn--muted">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Admin Panel
+            </a>
+          </div>
+        </div>
+
+        <!-- Search + refresh bar -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <input id="userSearch" class="form-control adm-input" placeholder="Search username, email or Discord ID..." style="max-width:340px;" oninput="filterUsers()">
+          <button class="btn adm-btn adm-btn--blue" onclick="loadUsers()" id="refreshBtn">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
+            Refresh
+          </button>
+          <span id="userCount" style="font-size:12px;color:#6b7280;"></span>
+        </div>
+
+        <!-- Table card -->
+        <div class="adm-card adm-card--blue" style="overflow:hidden;">
+          <div id="userLoading" style="text-align:center;padding:48px;color:#6b7280;font-size:13px;">
+            <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:0.3;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Click <strong>Refresh</strong> to load users
+          </div>
+          <div id="userTableWrap" style="display:none;overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(139,92,246,0.14);">
+                  <th style="padding:12px 18px;text-align:left;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">User</th>
+                  <th style="padding:12px 18px;text-align:left;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Email</th>
+                  <th style="padding:12px 18px;text-align:left;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Discord ID</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Coins</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Plan</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">RAM</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Disk</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">CPU</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Servers</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">&copy; <%= settings.name %> &middot; <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> &middot; <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../Components/LoadingBar.ejs') %>
+
+  <script>
+    let allUsersData = [];
+
+    async function loadUsers() {
+      const loading = document.getElementById('userLoading');
+      const wrap    = document.getElementById('userTableWrap');
+      const btn     = document.getElementById('refreshBtn');
+      const count   = document.getElementById('userCount');
+      loading.style.display = 'block';
+      loading.innerHTML = '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:0.4;animation:spin 1s linear infinite;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>Loading users...';
+      wrap.style.display = 'none';
+      btn.disabled = true;
+      try {
+        const res  = await fetch('/admin/usersdata');
+        const data = await res.json();
+        if (data.error) { loading.innerHTML = '<span style="color:#fca5a5;">Error: ' + data.error + '</span>'; btn.disabled=false; return; }
+        allUsersData = data.users;
+        count.textContent = allUsersData.length + ' users';
+        renderUsers(allUsersData);
+      } catch(e) {
+        loading.innerHTML = '<span style="color:#fca5a5;">Failed: ' + e.message + '</span>';
+      }
+      btn.disabled = false;
+    }
+
+    function renderUsers(users) {
+      const loading = document.getElementById('userLoading');
+      const wrap    = document.getElementById('userTableWrap');
+      const tbody   = document.getElementById('userTableBody');
+      tbody.innerHTML = '';
+      if (!users.length) {
+        loading.style.display = 'block';
+        loading.innerHTML = '<span style="color:#6b7280;">No users match your search.</span>';
+        wrap.style.display = 'none';
+        return;
+      }
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.style.cssText = 'border-bottom:1px solid rgba(139,92,246,0.07);transition:background 0.15s;cursor:default;';
+        tr.onmouseenter = () => tr.style.background = 'rgba(139,92,246,0.05)';
+        tr.onmouseleave = () => tr.style.background = '';
+        const cell = (html, center) => `<td style="padding:11px 18px;${center?'text-align:center;':''}color:#e2e8f0;white-space:nowrap;">${html}</td>`;
+        tr.innerHTML =
+          cell(`<div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:30px;height:30px;border-radius:8px;background:rgba(124,58,237,0.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#a78bfa;flex-shrink:0;">${u.username.charAt(0).toUpperCase()}</div>
+            <div>
+              <div style="font-weight:600;font-size:13px;">${u.username}</div>
+              ${u.admin ? '<span style="font-size:10px;background:rgba(220,38,38,0.15);color:#fca5a5;border-radius:4px;padding:1px 6px;">admin</span>' : ''}
+            </div>
+          </div>`) +
+          cell(`<span style="color:#9ca3af;font-size:12px;">${u.email}</span>`) +
+          cell(u.discordId ? `<div>${u.discordUsername ? `<span style="font-size:12px;color:#c4b5fd;font-weight:600;">${u.discordUsername}</span><br>` : ''}<code style="font-size:10px;color:#6b7280;background:rgba(124,58,237,0.08);padding:1px 6px;border-radius:4px;">${u.discordId}</code></div>` : `<span style="color:#374151;font-size:12px;">Not linked</span>`) +
+          cell(`<span style="font-weight:700;color:#fbbf24;">🪙 ${u.coins.toLocaleString()}</span>`, true) +
+          cell(`<span style="font-size:11px;background:rgba(124,58,237,0.12);color:#c4b5fd;border-radius:5px;padding:3px 10px;font-weight:600;">${u.plan}</span>`, true) +
+          cell(`<span style="color:#6ee7b7;">${u.extra.ram.toLocaleString()} MB</span>`, true) +
+          cell(`<span style="color:#93c5fd;">${u.extra.disk.toLocaleString()} MB</span>`, true) +
+          cell(`<span style="color:#fcd34d;">${u.extra.cpu}%</span>`, true) +
+          cell(`<span style="color:#e2e8f0;">${u.extra.servers ?? 0}</span>`, true);
+        tbody.appendChild(tr);
+      });
+      loading.style.display = 'none';
+      wrap.style.display    = 'block';
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('userSearch').value.toLowerCase();
+      const filtered = allUsersData.filter(u =>
+        u.username.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.discordId && u.discordId.includes(q))
+      );
+      document.getElementById('userCount').textContent = filtered.length + ' / ' + allUsersData.length + ' users';
+      renderUsers(filtered);
+    }
+
+    // Auto-load on page open
+    loadUsers();
+  </script>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .adm-card { background:var(--surface);border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(139,92,246,0.14); }
+    .adm-card::before { content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0; }
+    .adm-card--blue::before { background:linear-gradient(90deg,#2563eb,#60a5fa); }
+    .adm-input { background:var(--surface2)!important;border:1px solid rgba(139,92,246,0.18)!important;border-radius:9px!important;color:#e2e8f0!important;font-size:13px!important;padding:9px 12px!important; }
+    .adm-input:focus { border-color:#7c3aed!important;box-shadow:0 0 0 3px rgba(124,58,237,0.15)!important;outline:none!important; }
+    .adm-input::placeholder { color:#4b4669!important; }
+    .adm-btn { font-size:13px!important;font-weight:600!important;padding:9px 18px!important;border:none!important;border-radius:9px!important;display:inline-flex;align-items:center;transition:all 0.15s!important; }
+    .adm-btn:hover { transform:translateY(-1px)!important;filter:brightness(1.1)!important; }
+    .adm-btn--muted { background:rgba(139,92,246,0.12)!important;color:#a78bfa!important;border:1px solid rgba(139,92,246,0.22)!important; }
+    .adm-btn--blue  { background:linear-gradient(135deg,#2563eb,#60a5fa)!important;color:white!important;box-shadow:0 2px 10px rgba(37,99,235,0.3)!important; }
+    .adm-btn:disabled { opacity:0.6!important;cursor:not-allowed!important;transform:none!important; }
+  </style>
+
+</body>
+</html>

@@ -5,7 +5,7 @@ if (document.location.protocol === "https:") {
   scheme += "s";
 }
 
-let connection = new WebSocket(scheme + "://" + document.location.hostname + "/" + arciopath, token);
+let connection = new WebSocket(scheme + "://" + document.location.host + "/" + arciopath, token);
 
 connection.onopen = function(evt) {
   setInterval(() => {

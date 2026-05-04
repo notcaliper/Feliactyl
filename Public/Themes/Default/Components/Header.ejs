@@ -2,23 +2,20 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="preconnect" href="https://fonts.gstatic.com">
-	<link rel="shortcut icon" href="<%= settings.icon %>" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="shortcut icon" href="../assets/default/img/favicon.svg" />
+	<link rel="icon" type="image/svg+xml" href="../assets/default/img/favicon.svg" />
 	<title><%= settings.name %></title>
 	<link href="../assets/default/css/main.css" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <!- LoadingBar Component Link ->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.js"></script>
 </head>
- <script type="text/javascript">  
-   // Feliactyl Load Time Checker
-     var before_loadtime = new Date().getTime();  
-     window.onload = Pageloadtime;  
-     function Pageloadtime() {  
-         var aftr_loadtime = new Date().getTime();  
-         // Time calculating in seconds  
-         pgloadtime = (aftr_loadtime - before_loadtime) / 1000  
-  
-         document.getElementById("loadtime").innerHTML = pgloadtime + "s";  
-     }  
-</script>  
+<script type="text/javascript">
+  var before_loadtime = new Date().getTime();
+  window.addEventListener('load', function() {
+    var pgloadtime = (new Date().getTime() - before_loadtime) / 1000;
+    var el = document.getElementById('loadtime');
+    if (el) el.innerHTML = pgloadtime + 's';
+  });
+</script>

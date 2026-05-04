@@ -6,26 +6,26 @@
   "author": "Feliactyl-Project / notcaliper",
   "contributors": [""],
   "dependencies": {
-    "@keyv/sqlite": "^3.5.2",
-    "chalk": "^4.1.0",
-    "cron": "^1.8.2",
-    "discord.js": "^12.5.3",
-    "ejs": "^3.1.7",
-    "express": "^4.17.1",
-    "express-session": "^1.17.2",
-    "express-ws": "^4.0.0",
+    "@keyv/sqlite": "^3.6.7",
+    "chalk": "^4.1.2",
+    "cron": "^3.1.6",
+    "discord.js": "^14.14.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "express-ws": "^5.0.2",
     "fast-glob": "^3.3.2",
     "gradient-string": "^2.0.2",
-    "javascript-obfuscator": "^4.1.0",
-    "keyv": "^4.0.4",
+    "keyv": "^4.5.4",
     "node-cache": "^5.1.2",
-    "node-fetch": "^2.6.6",
-    "nodemon": "^3.0.1",
-    "stripe": "^13.8.0",
+    "node-fetch": "^2.7.0",
+    "nodemon": "^3.0.2",
+    "stripe": "^14.5.0",
     "warn": "^1.0.1"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node start.js",
+    "dev": "nodemon index.js"
   },
   "devDependencies": {
     "tailwindcss": "^3.1.6"

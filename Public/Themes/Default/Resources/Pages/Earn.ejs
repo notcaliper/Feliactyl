@@ -1,333 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <%- include('../../Components/Header.ejs') %>
 <%- include('../../Components/Styles.ejs') %>
 
-<body style="font-family: DM Sans; sans-serif;">
-	<div class="wrapper">
-      <%- include('../../Routers/Navigation.ejs') %>
-		<div class="main">
-			<nav style="background-color: #353539; color: white;" class="navbar navbar-expand navbar-light navbar-bg">
-				<a class="sidebar-toggle js-sidebar-toggle">
-          <i class="hamburger align-self-center"></i>
-        </a>
+<body>
+  <div class="wrapper">
+    <%- include('../../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../../Components/Topbar.ejs') %>
 
-				<div class="navbar-collapse collapse">
-					<ul class="navbar-nav navbar-align">
-						<li class="nav-item dropdown">
-							<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
-                <i style="color: white;" class="align-middle text-white" data-feather="copy"></i>
-              </a>
+      <main class="content">
 
-							<a class="nav-link dropdown-toggle d-none d-sm-inline-block text-white" href="#" data-bs-toggle="dropdown">
-                <span class="text-white">View account info</span>
-              </a>
-							<div style="background-color: #45454B;" class="dropdown-menu dropdown-menu-end">
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Coin Balance: <span id="balance"></span></a>
-								<a style="background-color: #45454B; color: white;" class="dropdown-item" >Plan: <%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></a>
-            <script>
-              let balance = document.getElementById("balance")
-              balance.textContent = Math.floor(<%= coins %> * 100) / 100
-            </script>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</nav>
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title">AFK Earn</div>
+          <div class="page-subtitle">Stay on this page and earn coins automatically ⏳</div>
+        </div>
 
-			<main style="background-color: #212122;" class="content">
-				<div class="container-fluid p-0">
-    <%
-      let ram = 0;
-      let disk = 0;
-      let cpu = 0;
-      let servers = pterodactyl.relationships.servers.data.length;
-      for (let i = 0, len = pterodactyl.relationships.servers.data.length; i < len; i++) {
-          ram = ram + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.memory == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.memory : 0);
-          disk = disk + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.disk == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.disk : 0);
-          cpu = cpu + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.cpu == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.cpu : 0);
-      }
-    %>
-            <% if (req.session.newaccount || req.session.password) { %>
-            <div style="background-image: linear-gradient(to right, #3b7ddd, #33B0CB); color: white; padding: 11px; border-radius: 3px;" class="alert">
-                <% if (req.session.newaccount) { %>
-                    A new account has been created for you on the Pterodactyl Panel.<br>
-                <% } %>
-                <% if (req.session.password) { %>
-                    Your new password is <code style="color: white;"><%= req.session.password %></code>
-                <% } else { %>
-                    Please check your email to set your password.
-                <% } %>
-            </div><br>
+        <% if (req.session.newaccount || req.session.password) { %>
+          <div class="alert-info-custom mb-4">
+            <% if (req.session.newaccount) { %>A new Pterodactyl account has been created for you.<br><% } %>
+            <% if (req.session.password) { %>Your password is <code><%= req.session.password %></code><% } else { %>Check your email to set your password.<% } %>
+          </div>
         <% } %>
-						<div class="col-xl-12 col-xxl-7">
-							<div style="background-color: #3a3a40; color: white; border: 3px solid #44444D;" class="card flex-fill w-100">
-								<div style="background-color: #3a3a40; color: white;" class="card-header">
 
-									<h5 class="card-title mb-0">AFK Page</h5>
-								</div>
-								<div class="card-body py-3">
-				<h1>You are now earning, well done!</h1>
-				<br>
-                <p>Every <% if (settings.api.arcio["afk page"].every !== 1) { %><%= settings.api.arcio["afk page"].every %> seconds<% } else { %>second<% } %>, you will get <%= settings.api.arcio["afk page"].coins == 1 ? "a" : settings.api.arcio["afk page"].coins %> coin<%= settings.api.arcio["afk page"].coins == 1 ? "" : "s" %></p>
-                <p>To view your current coin balance, click "View account info" on the navigation bar</p>
-				<span id="arciotimer">30</span> seconds until you recive a Coin
-                  <script>
-                <%- arcioafktext %>
-            </script>
-								</div>
-							</div>
-						</div>
-					</div>
-			</main>
 
-			<footer style="background-color: #37373B;" class="footer">
-				<div class="container-fluid">
-					<div class="row text-muted">
-						<div class="col-4 text-start">
-							<p class="mb-0">
-								<a class="text-muted" target="_blank">© <%= settings.name %> | Powered by <a style="color: white" href="https://github.com/notcaliper/feliactyl">Feliactyl</a>
-							</p>
-						</div>
-						<div class="col-8 text-end">
-							<ul class="list-inline">
-								<li class="list-inline-item">
-									<p><code style="color: #17a2b8;"">v<%= settings.version.replace(/"/g, `\\\\"`) %></code> - <span id="loadtime"></span></p>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</footer>
-		</div>
-	</div>
+        <div class="row g-4">
 
-	<%- include('../../Scripts/Scripts.ejs') %>
+          <!-- Countdown card -->
+          <div class="col-12 col-lg-5">
+            <div class="afk-card">
+              <div class="afk-card-header">
+                <div class="afk-card-icon">
+                  <svg width="18" height="18" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="afk-card-title">Earning Active</div>
+                  <div class="afk-card-sub">Keep this tab open</div>
+                </div>
+                <div class="afk-live-dot" id="afk-live-status"></div>
+              </div>
 
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var ctx = document.getElementById("chartjs-dashboard-line").getContext("2d");
-			var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-			gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-			gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-			// Line chart
-			new Chart(document.getElementById("chartjs-dashboard-line"), {
-				type: "line",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "Sales ($)",
-						fill: true,
-						backgroundColor: gradient,
-						borderColor: window.theme.primary,
-						data: [
-							2115,
-							1562,
-							1584,
-							1892,
-							1587,
-							1923,
-							2566,
-							2448,
-							2805,
-							3438,
-							2917,
-							3327
-						]
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					tooltips: {
-						intersect: false
-					},
-					hover: {
-						intersect: true
-					},
-					plugins: {
-						filler: {
-							propagate: false
-						}
-					},
-					scales: {
-						xAxes: [{
-							reverse: true,
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}],
-						yAxes: [{
-							ticks: {
-								stepSize: 1000
-							},
-							display: true,
-							borderDash: [3, 3],
-							gridLines: {
-								color: "rgba(0,0,0,0.0)"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Pie chart
-			new Chart(document.getElementById("chartjs-dashboard-pie"), {
-				type: "pie",
-				data: {
-					labels: ["Chrome", "Firefox", "IE"],
-					datasets: [{
-						data: [4306, 3801, 1689],
-						backgroundColor: [
-							window.theme.primary,
-							window.theme.warning,
-							window.theme.danger
-						],
-						borderWidth: 5
-					}]
-				},
-				options: {
-					responsive: !window.MSInputMethodContext,
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					cutoutPercentage: 75
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			// Bar chart
-			new Chart(document.getElementById("chartjs-dashboard-bar"), {
-				type: "bar",
-				data: {
-					labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-					datasets: [{
-						label: "This year",
-						backgroundColor: window.theme.primary,
-						borderColor: window.theme.primary,
-						hoverBackgroundColor: window.theme.primary,
-						hoverBorderColor: window.theme.primary,
-						data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-						barPercentage: .75,
-						categoryPercentage: .5
-					}]
-				},
-				options: {
-					maintainAspectRatio: false,
-					legend: {
-						display: false
-					},
-					scales: {
-						yAxes: [{
-							gridLines: {
-								display: false
-							},
-							stacked: false,
-							ticks: {
-								stepSize: 20
-							}
-						}],
-						xAxes: [{
-							stacked: false,
-							gridLines: {
-								color: "transparent"
-							}
-						}]
-					}
-				}
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var markers = [{
-					coords: [31.230391, 121.473701],
-					name: "Shanghai"
-				},
-				{
-					coords: [28.704060, 77.102493],
-					name: "Delhi"
-				},
-				{
-					coords: [6.524379, 3.379206],
-					name: "Lagos"
-				},
-				{
-					coords: [35.689487, 139.691711],
-					name: "Tokyo"
-				},
-				{
-					coords: [23.129110, 113.264381],
-					name: "Guangzhou"
-				},
-				{
-					coords: [40.7127837, -74.0059413],
-					name: "New York"
-				},
-				{
-					coords: [34.052235, -118.243683],
-					name: "Los Angeles"
-				},
-				{
-					coords: [41.878113, -87.629799],
-					name: "Chicago"
-				},
-				{
-					coords: [51.507351, -0.127758],
-					name: "London"
-				},
-				{
-					coords: [40.416775, -3.703790],
-					name: "Madrid "
-				}
-			];
-			var map = new jsVectorMap({
-				map: "world",
-				selector: "#world_map",
-				zoomButtons: true,
-				markers: markers,
-				markerStyle: {
-					initial: {
-						r: 9,
-						strokeWidth: 7,
-						stokeOpacity: .4,
-						fill: window.theme.primary
-					},
-					hover: {
-						fill: window.theme.primary,
-						stroke: window.theme.primary
-					}
-				},
-				zoomOnScroll: false
-			});
-			window.addEventListener("resize", () => {
-				map.updateSize();
-			});
-		});
-	</script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-			var defaultDate = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate();
-			document.getElementById("datetimepicker-dashboard").flatpickr({
-				inline: true,
-				prevArrow: "<span title=\"Previous month\">&laquo;</span>",
-				nextArrow: "<span title=\"Next month\">&raquo;</span>",
-				defaultDate: defaultDate
-			});
-		});
-	</script>
-    <%- include('../../Components/LoadingBar.ejs') %>
+              <!-- Ring countdown -->
+              <div class="afk-ring-wrap">
+                <svg class="afk-ring" viewBox="0 0 120 120">
+                  <circle class="afk-ring-track" cx="60" cy="60" r="50"/>
+                  <circle class="afk-ring-fill" id="afkRingFill" cx="60" cy="60" r="50"
+                    stroke-dasharray="314"
+                    stroke-dashoffset="0"/>
+                </svg>
+                <div class="afk-ring-inner">
+                  <span class="afk-ring-num" id="arciotimer"><%= settings.api.arcio["afk page"].every %></span>
+                  <span class="afk-ring-label">seconds</span>
+                </div>
+              </div>
+
+              <div class="afk-reward-line">
+                <span class="afk-reward-pill">
+                  🪙 +<%= settings.api.arcio["afk page"].coins %> coin<%= settings.api.arcio["afk page"].coins == 1 ? "" : "s" %> every <%= settings.api.arcio["afk page"].every %>s
+                </span>
+              </div>
+              <div style="text-align:center;font-size:12px;color:#4b7a68;margin-top:6px;">Earned this session: <span id="arciogainedcoins">0</span> coins</div>
+            </div>
+          </div>
+
+          <!-- Stats + info -->
+          <div class="col-12 col-lg-7">
+            <div class="row g-3 mb-3">
+
+              <div class="col-6">
+                <div class="sc sc--green">
+                  <div class="sc-top">
+                    <div class="sc-icon sc-icon--green">
+                      <svg width="16" height="16" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <span class="sc-badge sc-badge--green">per cycle</span>
+                  </div>
+                  <div class="sc-value"><%= settings.api.arcio["afk page"].coins %><span class="sc-unit"> coins</span></div>
+                  <div class="sc-label">Reward Rate</div>
+                  <div class="sc-bar-track"><div class="sc-bar sc-bar--green" style="width:100%"></div></div>
+                  <div class="sc-sub">every <%= settings.api.arcio["afk page"].every %> seconds</div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="sc sc--purple">
+                  <div class="sc-top">
+                    <div class="sc-icon sc-icon--purple">
+                      <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <span class="sc-badge sc-badge--purple">balance</span>
+                  </div>
+                  <div class="sc-value" id="afkBalDisplay"><%= Math.floor(coins * 100) / 100 %><span class="sc-unit"> 🪙</span></div>
+                  <div class="sc-label">Your Coins</div>
+                  <div class="sc-bar-track"><div class="sc-bar sc-bar--purple" style="width:60%"></div></div>
+                  <div class="sc-sub"><%= packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default' %> plan</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Tips card -->
+            <div class="afk-tips-card">
+              <div class="afk-tips-title">Tips to maximise earnings</div>
+              <ul class="afk-tips-list">
+                <li><div class="gift-info-dot gift-info-dot--green"></div><span>Keep this tab <strong>visible and active</strong> — some browsers throttle hidden tabs</span></li>
+                <li><div class="gift-info-dot gift-info-dot--purple"></div><span>Disable <strong>sleep / screen lock</strong> on your device while earning</span></li>
+                <li><div class="gift-info-dot gift-info-dot--blue"></div><span>Spend coins in the <strong>Store</strong> to upgrade your plan and get more resources</span></li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Adblocker blocking overlay -->
+  <div id="adblock-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(10,8,20,0.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+    <div style="max-width:420px;width:90%;background:#1a1630;border:1px solid rgba(220,38,38,0.3);border-radius:20px;padding:40px 32px;text-align:center;box-shadow:0 0 60px rgba(220,38,38,0.15);">
+      <div style="width:64px;height:64px;border-radius:16px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <svg width="28" height="28" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <div style="font-size:20px;font-weight:700;color:white;margin-bottom:10px;">Adblocker Detected</div>
+      <div style="font-size:13px;color:#9ca3af;line-height:1.6;margin-bottom:28px;">Please <strong style="color:#fca5a5;">disable your adblocker</strong> for this page to earn coins. Adblockers interfere with the earning system.</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:20px;">After disabling, click the button below to continue.</div>
+      <button onclick="window.location.reload()" style="background:linear-gradient(135deg,#dc2626,#f87171);color:white;border:none;border-radius:10px;padding:12px 28px;font-size:13px;font-weight:600;cursor:pointer;width:100%;">
+        I've disabled it — Reload
+      </button>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../../Components/LoadingBar.ejs') %>
+
+  <!-- AFK earning logic (untouched) -->
+  <script><%- arcioafktext %></script>
+
+  <!-- Adblocker detection -->
+  <script>
+    (function() {
+      function showAdblockWarning() {
+        const overlay = document.getElementById('adblock-overlay');
+        if (overlay) overlay.style.display = 'flex';
+      }
+
+      // Bait element: adblockers remove or hide elements with ad class names
+      const bait = document.createElement('div');
+      bait.setAttribute('class', 'ad_unit adsbox adsbygoogle');
+      bait.style.cssText = 'width:1px;height:1px;position:absolute;left:-9999px;top:0;';
+      document.body.appendChild(bait);
+      setTimeout(function() {
+        const removed = !document.body.contains(bait);
+        const hidden = !removed && window.getComputedStyle(bait).display === 'none';
+        if (!removed) document.body.removeChild(bait);
+        if (removed || hidden) showAdblockWarning();
+      }, 300);
+    })();
+  </script>
+
+  <!-- Page visibility keep-alive: play silent audio to prevent tab throttling -->
+  <script>
+    (function() {
+      const dot = document.getElementById('afk-live-status');
+
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+          if (dot) dot.style.background = '#f59e0b';
+        } else {
+          if (dot) dot.style.background = '#10b981';
+        }
+      });
+
+      // NoSleep: request a wake lock if supported
+      if ('wakeLock' in navigator) {
+        let wakeLock = null;
+        async function requestWakeLock() {
+          try {
+            wakeLock = await navigator.wakeLock.request('screen');
+          } catch(e) {}
+        }
+        requestWakeLock();
+        document.addEventListener('visibilitychange', function() {
+          if (document.visibilityState === 'visible') requestWakeLock();
+        });
+      }
+    })();
+  </script>
+
+  <!-- Ring animation -->
+  <script>
+    (function() {
+      const total = <%= settings.api.arcio["afk page"].every %>;
+      const fill  = document.getElementById('afkRingFill');
+      const circumference = 314;
+
+      function updateRing() {
+        const current = parseInt(document.getElementById('arciotimer').textContent, 10) || 0;
+        const pct = current / total;
+        fill.style.strokeDashoffset = circumference * (1 - pct);
+      }
+
+      updateRing();
+      const obs = new MutationObserver(() => {
+        updateRing();
+        const gained = parseInt(document.getElementById('arciogainedcoins').textContent, 10) || 0;
+        const base = <%= Math.floor(coins * 100) / 100 %>;
+        const balEl = document.getElementById('afkBalDisplay');
+        if (balEl) balEl.childNodes[0].textContent = (base + gained).toFixed(0);
+      });
+      obs.observe(document.getElementById('arciotimer'), { childList: true, characterData: true, subtree: true });
+    })();
+  </script>
+
+  <style>
+    /* ── AFK card ── */
+    .afk-card {
+      background: var(--surface);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+    .afk-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, #059669, #6ee7b7, #34d399);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .afk-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid rgba(16,185,129,0.1);
+    }
+    .afk-card-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      border-radius: 10px;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .afk-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+    .afk-card-sub   { font-size: 11px; color: #4b7a68; margin-top: 2px; }
+
+    .afk-live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      margin-left: auto;
+      box-shadow: 0 0 8px #10b981;
+      animation: livePulse 1.4s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px #10b981; }
+      50%       { opacity: 0.5; box-shadow: 0 0 14px #10b981; }
+    }
+
+    /* ring */
+    .afk-ring-wrap {
+      position: relative;
+      width: 160px; height: 160px;
+      margin: 28px auto 20px;
+    }
+    .afk-ring {
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+    }
+    .afk-ring-track {
+      fill: none;
+      stroke: rgba(16,185,129,0.1);
+      stroke-width: 8;
+    }
+    .afk-ring-fill {
+      fill: none;
+      stroke: url(#afkGrad);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+    .afk-ring-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .afk-ring-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: #e2e8f0;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .afk-ring-label {
+      font-size: 11px;
+      color: #4b7a68;
+      margin-top: 4px;
+    }
+
+    .afk-reward-line {
+      text-align: center;
+      padding-bottom: 22px;
+    }
+    .afk-reward-pill {
+      display: inline-block;
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.22);
+      border-radius: 999px;
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6ee7b7;
+    }
+
+    /* tips */
+    .afk-tips-card {
+      background: rgba(124,58,237,0.06);
+      border: 1px solid rgba(124,58,237,0.14);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .afk-tips-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: #7c6faa;
+      margin-bottom: 14px;
+    }
+    .afk-tips-list {
+      list-style: none;
+      padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .afk-tips-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 12px; color: #9d8ec7; line-height: 1.55;
+    }
+    .afk-tips-list li strong { color: #c4b5fd; font-weight: 600; }
+
+    /* reuse gift dots */
+    .gift-info-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px; }
+    .gift-info-dot--green  { background:#10b981; }
+    .gift-info-dot--purple { background:#7c3aed; }
+    .gift-info-dot--blue   { background:#3b82f6; }
+
+    /* SVG gradient for ring */
+  </style>
+
+  <!-- gradient def for ring stroke -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="afkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#059669"/>
+        <stop offset="100%" stop-color="#6ee7b7"/>
+      </linearGradient>
+    </defs>
+  </svg>
 
 </body>
-
 </html>

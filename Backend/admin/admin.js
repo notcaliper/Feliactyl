@@ -12,7 +12,7 @@ const ejs = require("ejs");
 const log = require('../../functions/log.js')
 
 module.exports.load = async function (app, db) {
-    app.post("/setcoins", async (req, res) => {
+    app.get("/setcoins", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -36,7 +36,6 @@ module.exports.load = async function (app, db) {
         let coins = req.query.coins;
 
         if (!id) return res.redirect(failredirect + "?err=MISSINGID");
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         if (!coins) return res.redirect(failredirect + "?err=MISSINGCOINS");
 
@@ -57,7 +56,7 @@ module.exports.load = async function (app, db) {
         res.redirect(successredirect + "?err=none");
     });
 
-    app.post("/addcoins", async (req, res) => {
+    app.get("/addcoins", async (req, res) => {
         let theme = indexjs.get(req);
 
         if (!req.session.pterodactyl) return four0four(req, res, theme);
@@ -81,7 +80,6 @@ module.exports.load = async function (app, db) {
         let coins = req.query.coins;
 
         if (!id) return res.redirect(failredirect + "?err=MISSINGID");
-        if (!(await db.get("users-" + req.query.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         if (!coins) return res.redirect(failredirect + "?err=MISSINGCOINS");
 
@@ -126,70 +124,50 @@ module.exports.load = async function (app, db) {
 
         if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
 
-        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
-
         let successredirect = theme.settings.redirect.setresources || "/";
 
-        if (req.body.ram || req.body.disk || req.body.cpu || req.body.servers) {
-            let ramstring = req.body.ram;
-            let diskstring = req.body.disk;
-            let cpustring = req.body.cpu;
-            let serversstring = req.body.servers;
+        let ramstring = req.body.ram;
+        let diskstring = req.body.disk;
+        let cpustring = req.body.cpu;
+        let serversstring = req.body.servers;
+
+        if (ramstring !== '' || diskstring !== '' || cpustring !== '' || serversstring !== '') {
             let id = req.body.id;
 
-            let currentextra = await db.get("extra-" + req.body.id);
-            let extra;
+            let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
+            let packagename = await db.get("package-" + id) || newsettings.api.client.packages.default;
+            let basePlan = newsettings.api.client.packages.list[packagename] || { ram: 0, disk: 0, cpu: 0, servers: 0 };
 
-            if (typeof currentextra == "object") {
-                extra = currentextra;
-            } else {
-                extra = {
-                    ram: 0,
-                    disk: 0,
-                    cpu: 0,
-                    servers: 0
-                }
-            }
+            let currentextra = await db.get("extra-" + id) || { ram: 0, disk: 0, cpu: 0, servers: 0 };
+            let extra = { ...currentextra };
 
-            if (ramstring) {
+            if (ramstring !== '') {
                 let ram = parseFloat(ramstring);
-                if (ram < 0 || ram > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=RAMSIZE`);
-                }
-                extra.ram = ram;
+                if (isNaN(ram) || ram < 0 || ram > 999999999999999) return res.redirect(`${failredirect}?err=RAMSIZE`);
+                extra.ram = ram - basePlan.ram;
             }
 
-            if (diskstring) {
+            if (diskstring !== '') {
                 let disk = parseFloat(diskstring);
-                if (disk < 0 || disk > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=DISKSIZE`);
-                }
-                extra.disk = disk;
+                if (isNaN(disk) || disk < 0 || disk > 999999999999999) return res.redirect(`${failredirect}?err=DISKSIZE`);
+                extra.disk = disk - basePlan.disk;
             }
 
-            if (cpustring) {
+            if (cpustring !== '') {
                 let cpu = parseFloat(cpustring);
-                if (cpu < 0 || cpu > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=CPUSIZE`);
-                }
-                extra.cpu = cpu;
+                if (isNaN(cpu) || cpu < 0 || cpu > 999999999999999) return res.redirect(`${failredirect}?err=CPUSIZE`);
+                extra.cpu = cpu - basePlan.cpu;
             }
 
-            if (serversstring) {
+            if (serversstring !== '') {
                 let servers = parseFloat(serversstring);
-                if (servers < 0 || servers > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=SERVERSIZE`);
-                }
-                extra.servers = servers;
+                if (isNaN(servers) || servers < 0 || servers > 999999999999999) return res.redirect(`${failredirect}?err=SERVERSIZE`);
+                extra.servers = servers - basePlan.servers;
             }
 
-            if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-                await db.delete("extra-" + req.query.id);
-            } else {
-                await db.set("extra-" + req.query.id, extra);
-            }
+            await db.set("extra-" + id, extra);
 
-            adminjs.suspend(req.query.id);
+            adminjs.suspend(req.body.id);
 
             log(`set resources`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the resources of the user with the ID \`${id}\` to:\`\`\`servers: ${serversstring || 'unchanged'}\nCPU: ${cpustring || 'unchanged'}%\nMemory: ${ramstring || 'unchanged'} MB\nDisk: ${diskstring || 'unchanged'} MB\`\`\``)
             return res.redirect(successredirect + "?err=none");
@@ -220,15 +198,15 @@ module.exports.load = async function (app, db) {
 
         if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
 
-        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
-
         let successredirect = theme.settings.redirect.setresources ? theme.settings.redirect.setresources : "/";
 
-        if (req.body.ram || req.body.disk || req.body.cpu || req.body.servers) {
-            let ramstring = req.body.ram;
-            let diskstring = req.body.disk;
-            let cpustring = req.body.cpu;
-            let serversstring = req.body.servers;
+        let ramstring2 = req.body.ram;
+        let diskstring2 = req.body.disk;
+        let cpustring2 = req.body.cpu;
+        let serversstring2 = req.body.servers;
+
+        if (ramstring2 !== '' || diskstring2 !== '' || cpustring2 !== '' || serversstring2 !== '') {
+            let ramstring = ramstring2, diskstring = diskstring2, cpustring = cpustring2, serversstring = serversstring2;
 
             let currentextra = await db.get("extra-" + req.body.id);
             let extra;
@@ -244,35 +222,27 @@ module.exports.load = async function (app, db) {
                 }
             }
 
-            if (ramstring) {
+            if (ramstring !== '') {
                 let ram = parseFloat(ramstring);
-                if (ram < 0 || ram > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=RAMSIZE`);
-                }
+                if (isNaN(ram) || ram < 0 || ram > 999999999999999) return res.redirect(`${failredirect}?err=RAMSIZE`);
                 extra.ram = extra.ram + ram;
             }
 
-            if (diskstring) {
+            if (diskstring !== '') {
                 let disk = parseFloat(diskstring);
-                if (disk < 0 || disk > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=DISKSIZE`);
-                }
+                if (isNaN(disk) || disk < 0 || disk > 999999999999999) return res.redirect(`${failredirect}?err=DISKSIZE`);
                 extra.disk = extra.disk + disk;
             }
 
-            if (cpustring) {
+            if (cpustring !== '') {
                 let cpu = parseFloat(cpustring);
-                if (cpu < 0 || cpu > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=CPUSIZE`);
-                }
+                if (isNaN(cpu) || cpu < 0 || cpu > 999999999999999) return res.redirect(`${failredirect}?err=CPUSIZE`);
                 extra.cpu = extra.cpu + cpu;
             }
 
-            if (serversstring) {
+            if (serversstring !== '') {
                 let servers = parseFloat(serversstring);
-                if (servers < 0 || servers > 999999999999999) {
-                    return res.redirect(`${failredirect}?err=SERVERSIZE`);
-                }
+                if (isNaN(servers) || servers < 0 || servers > 999999999999999) return res.redirect(`${failredirect}?err=SERVERSIZE`);
                 extra.servers = extra.servers + servers;
             }
 
@@ -311,8 +281,6 @@ module.exports.load = async function (app, db) {
         let failredirect = theme.settings.redirect.failedsetplan || "/";
 
         if (!req.body.id) return res.redirect(`${failredirect}?err=MISSINGID`);
-
-        if (!(await db.get("users-" + req.body.id))) return res.redirect(`${failredirect}?err=INVALIDID`);
 
         let successredirect = theme.settings.redirect.setplan || "/";
 
