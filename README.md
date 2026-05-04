@@ -1,22 +1,13 @@
 <div align="center">
 
-<br>
-
-<img src="https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/assets/default/img/logo.svg" width="120" alt="Feliactyl Logo" />
+<img src="https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/assets/default/img/banner.svg" alt="Feliactyl Banner" />
 
 <br>
 
-# ✦ Feliactyl
-
-### A modern, feature-rich Pterodactyl client panel
-
-<br>
-
-[![Version](https://img.shields.io/badge/✦%20version-2.0-7c3aed?style=for-the-badge)](https://github.com/notcaliper/Feliactyl/releases)
 [![Node](https://img.shields.io/badge/node.js-%E2%89%A520-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/github/license/notcaliper/Feliactyl?style=for-the-badge&color=ec4899)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/notcaliper/Feliactyl?style=for-the-badge&color=f59e0b&logo=github)](https://github.com/notcaliper/Feliactyl/stargazers)
-[![Issues](https://img.shields.io/github/issues/notcaliper/Feliactyl?style=for-the-badge&color=ef4444)](https://github.com/notcaliper/Feliactyl/issues)
+[![Discord](https://img.shields.io/discord/1366389502525849794?style=for-the-badge&logo=discord&color=5865F2&label=Discord)](https://discord.gg/N7C2nbYpQf)
 
 <br>
 
@@ -101,7 +92,24 @@ The installer will:
 - ✅ Clone Feliactyl and install dependencies
 - ✅ Prompt for your Pterodactyl & Discord OAuth2 credentials
 - ✅ Generate SSL certificate and configure reverse proxy
-- ✅ Start Feliactyl with PM2 and enable on-boot autostart
+- ✅ **Start Feliactyl with scalable architecture** (web servers + background workers)
+- ✅ Enable on-boot autostart with PM2
+
+### Post-Install: Scale Your Installation
+
+```bash
+# Check health status
+curl https://your-domain.com/health
+
+# Scale web servers for more users
+pm2 scale feliactyl-web 4
+
+# Scale workers for faster economy processing
+pm2 scale feliactyl-worker 3
+
+# Monitor all processes
+pm2 monit
+```
 
 ---
 
@@ -200,8 +208,59 @@ sudo nginx -t && sudo systemctl restart nginx
 
 ```bash
 npm install -g pm2
+
+# Development mode (single process)
+pm2 start start.js --name "feliactyl-dev"
+
+# Production mode (recommended - uses ecosystem.config.js)
+pm2 start ecosystem.config.js --env production
+
+# Save PM2 config and enable startup
+pm2 save
+pm2 startup
+```
+
+### Running Modes
+
+**Development Mode** (single process):
+```bash
+npm start
+# or
 pm2 start start.js --name "feliactyl"
-pm2 save && pm2 startup
+```
+- Simple, easy to debug
+- No background workers
+- Good for development
+
+**Production Mode** (microservices architecture):
+```bash
+pm2 start ecosystem.config.js --env production
+```
+- Multiple web instances for load balancing
+- Separate worker processes for economy operations
+- Automatic restart on failure
+- Health monitoring built-in
+
+### Scaling
+
+```bash
+# Scale web servers (handle more concurrent users)
+pm2 scale feliactyl-web 4
+
+# Scale workers (process more economy transactions)
+pm2 scale feliactyl-worker 4
+
+# Check status
+curl http://localhost:8000/health
+```
+
+### Environment Variables
+
+Create `.env` file before starting:
+```bash
+# Required secrets
+cp .env.example .env
+nano .env
 ```
 
 </details>
@@ -243,14 +302,31 @@ git pull && npm install && pm2 restart feliactyl
 
 ---
 
-## 📦 PM2 Reference
+## 📦 PM2 Reference (New Architecture)
+
+Feliactyl v2 uses a **microservices architecture** with separate web and worker processes:
 
 | Command | Description |
 |:---|:---|
-| `pm2 logs feliactyl` | View live logs |
-| `pm2 restart feliactyl` | Restart the panel |
-| `pm2 stop feliactyl` | Stop the panel |
+| `pm2 start ecosystem.config.js` | Start web + workers |
+| `pm2 start ecosystem.config.js --env production` | Start in production mode |
+| `pm2 logs feliactyl-web` | View web server logs |
+| `pm2 logs feliactyl-worker` | View worker logs |
+| `pm2 scale feliactyl-web 4` | Scale to 4 web instances |
+| `pm2 scale feliactyl-worker 3` | Scale to 3 worker processes |
+| `pm2 reload feliactyl-web` | Zero-downtime reload |
+| `pm2 monit` | Real-time monitoring |
+| `pm2 stop all` | Stop all processes |
 | `pm2 list` | Show all running processes |
+
+### Health Monitoring
+
+| Endpoint | Purpose |
+|:---|:---|
+| `GET /health` | Full system health status |
+| `GET /health/ready` | Ready for traffic? (503 if not) |
+| `GET /health/live` | Process alive? |
+| `GET /health/workers` | Worker statistics |
 
 ---
 
