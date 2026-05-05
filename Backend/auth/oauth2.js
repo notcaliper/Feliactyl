@@ -18,7 +18,8 @@ const log = require('../../functions/log.js')
 
 const fs = require("fs");
 const { renderFile } = require('ejs')
-const vpnCheck = require("../../functions/vpnCheck.js");
+const { runFirewallCheck, getClientIP } = require('../../functions/firewall.js');
+const { processReferral } = require('../../functions/referrals.js');
 
 module.exports.load = async function (app, db) {
   app.get("/login", async (req, res) => {
@@ -65,11 +66,23 @@ module.exports.load = async function (app, db) {
 
     const newsettings = require('../../settings.json');
 
-    let ip = (newsettings.api.client.oauth2.ip["trust x-forwarded-for"] == true ? (req.headers['x-forwarded-for'] || req.connection.remoteAddress) : req.connection.remoteAddress);
-    ip = (ip ? ip : "::1").replace(/::1/g, "::ffff:127.0.0.1").replace(/^.*:/, '');
-    if (newsettings.antivpn.status && ip !== '127.0.0.1' && !newsettings.antivpn.whitelistedIPs.includes(ip)) {
-      const vpn = await vpnCheck(newsettings.antivpn.APIKey, db, ip, res)
-      if (vpn) return
+    const ip = getClientIP(req);
+    
+    // Run full firewall check (AntiVPN, AntiAlt, AbuseIPDB, geo-block, blacklist)
+    const fwResult = await runFirewallCheck(db, req, null);
+    if (fwResult.blocked) {
+      return res.status(403).send(`
+      <html>
+      <head><title>Access Denied</title></head>
+      <body style="font-family:sans-serif;background:#1a1a2e;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;">
+          <div style="text-align:center;padding:2rem;background:#16213e;border-radius:12px;max-width:400px;">
+              <div style="font-size:3rem;margin-bottom:1rem;">🛡️</div>
+              <h1>Access Denied</h1>
+              <p style="color:#a0a0a0;margin-top:1rem;">${fwResult.reason}</p>
+          </div>
+      </body>
+      </html>
+      `);
     }
 
     let json = await fetch(
@@ -117,7 +130,7 @@ module.exports.load = async function (app, db) {
       let guildsinfo = await guildsjson.json();
       if (userinfo.verified == true) {
 
-        if (newsettings.api.client.oauth2.ip.block.includes(ip)) return res.send("You could not sign in, because your IP has been blocked from signing in.")
+        if ((newsettings.api.client.oauth2.ip.block || []).includes(ip)) return res.send("You could not sign in, because your IP has been blocked from signing in.")
 
         if ((newsettings.api.client.oauth2.ip["duplicate check"] == true) && ip !== '127.0.0.1') {
           const ipuser = await db.get(`ipuser-${ip}`)
@@ -325,14 +338,44 @@ module.exports.load = async function (app, db) {
           }
         );
         if (await cacheaccount.statusText == "Not Found") return res.send("An error has occured while attempting to get your user information.");
-        let cacheaccountinfo = JSON.parse(await cacheaccount.text());
+        let cacheaccountinfo;
+        try {
+          cacheaccountinfo = JSON.parse(await cacheaccount.text());
+        } catch(e) {
+          return res.send("An error has occured while attempting to get your user information.");
+        }
+        if (!cacheaccountinfo.attributes) return res.send("An error has occured while attempting to get your user information.");
         req.session.pterodactyl = cacheaccountinfo.attributes;
 
-        req.session.userinfo = userinfo;
+        // Store user info temporarily for 2FA check
         await db.set("ptero-" + (await db.get("users-" + userinfo.id)), userinfo.id);
-        await db.set("userinfo-" + userinfo.id, { id: userinfo.id, username: userinfo.username, email: userinfo.email });
+        await db.set("userinfo-" + userinfo.id, userinfo);
+        await db.set("username-" + userinfo.id, `${userinfo.username}#${userinfo.discriminator}`);
         let discordids3 = await db.get("discordids") || [];
         if (!discordids3.includes(userinfo.id)) { discordids3.push(userinfo.id); await db.set("discordids", discordids3); }
+        
+        // Check if 2FA is enabled
+        const twofaEnabled = await db.get(`2fa-enabled-${userinfo.id}`);
+        
+        if (twofaEnabled) {
+            // Store pending 2FA and redirect to verification page
+            req.session.pending2faUser = userinfo.id;
+            req.session.pterodactyl = cacheaccountinfo.attributes; // Store temporarily for display
+            
+            let theme = indexjs.get(req);
+            let redirect = theme.settings.redirect.twofa || "/2fa";
+            return res.redirect(redirect);
+        }
+        
+        // Complete login
+        req.session.userinfo = userinfo;
+        
+        // Process referral if this is a new user and ref code in session
+        if (req.session.referralCode && req.session.newaccount) {
+            await processReferral(db, userinfo.id, req.session.referralCode);
+            delete req.session.referralCode;
+        }
+        
         let theme = indexjs.get(req);
         if (customredirect) return res.redirect(customredirect);
         return res.redirect(theme.settings.redirect.callback ? theme.settings.redirect.callback : "/");

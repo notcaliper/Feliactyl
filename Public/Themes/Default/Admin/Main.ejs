@@ -10,23 +10,31 @@
 
       <main class="content">
 
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="adm-page-header">
           <div>
             <div class="page-title">Admin Panel</div>
             <div class="page-subtitle">Manage users, coins, resources and coupons</div>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="/admin/users" class="btn adm-btn adm-btn--muted">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="adm-tab-nav">
+            <a href="/admin" class="adm-tab adm-tab--active">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Overview
+            </a>
+            <a href="/admin/users" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               Users
             </a>
-            <a href="/admin/plans" class="btn adm-btn adm-btn--muted">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <a href="/admin/plans" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
               Plans
             </a>
-            <a href="/admin/settings" class="btn adm-btn adm-btn--muted">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            <a href="/admin/settings" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
               Settings
+            </a>
+            <a href="/admin/logs" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Logs
             </a>
           </div>
         </div>
@@ -49,26 +57,37 @@
         </div>
         <% } %>
 
-        <!-- Version bar -->
-        <div class="adm-version-bar mb-4">
-          <div class="adm-version-icon">
-            <svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <!-- Version / status bar -->
+        <% const _cur = settings.version; const _latest = latestVersion; const _upToDate = _latest && _latest === _cur; const _updateAvail = _latest && _latest !== _cur; %>
+        <div class="adm-status-bar mb-4">
+          <div class="adm-status-left">
+            <div class="adm-status-dot <%= !_latest ? 'adm-status-dot--gray' : (_upToDate ? 'adm-status-dot--green' : 'adm-status-dot--amber') %>"></div>
+            <span class="adm-status-text">
+              <% if (!_latest) { %>
+                Running <code>v<%= _cur %></code>
+              <% } else if (_upToDate) { %>
+                Up to date &mdash; <code>v<%= _cur %></code>
+              <% } else { %>
+                Update available: <code>v<%= _cur %></code> &rarr; <code>v<%= _latest %></code> &nbsp;<a href="https://github.com/notcaliper/feliactyl" target="_blank" style="color:#a78bfa;font-weight:600;">Update &rarr;</a>
+              <% } %>
+            </span>
           </div>
-          <span id="version" style="font-size:13px;color:#9ca3af;">Checking for updates...</span>
-          <script>
-            (async()=>{
-                const cur=<%- JSON.stringify(settings.version) %>;
-                const el=document.getElementById("version");
-                try{
-                  const r=await fetch("https://api.github.com/repos/notcaliper/feliactyl/releases/latest");
-                  const ver=await r.json();
-                  if(!ver||!ver.tag_name){el.innerHTML=`<span class="badge-green" style="margin-right:8px;">&#10003; Running</span><code>v${cur}</code>`;return;}
-                  const latest=ver.tag_name.replace('v','');
-                  if(latest===cur){el.innerHTML=`<span class="badge-green" style="margin-right:8px;">&#10003; Up to date</span>Running <code>v${cur}</code>`;}
-                  else{el.innerHTML=`<span class="badge-red" style="margin-right:8px;">&#9888; Update available</span>On <code>v${cur}</code> &mdash; latest <code>v${latest}</code> &nbsp;<a href="https://github.com/notcaliper/feliactyl" target="_blank" style="color:#a78bfa;">Update &rarr;</a>`;}
-                }catch(e){el.innerHTML=`<span style="color:#6b7280">Offline &mdash;</span> Running <code>v${cur}</code>`;}
-              })();
-          </script>
+          <div class="adm-status-meta">
+            <span class="adm-status-chip">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <%= settings.api.client.packages ? Object.keys(settings.api.client.packages.list).length : 0 %> plans
+            </span>
+            <span class="adm-status-chip">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <%= settings.api.client.j4r && settings.api.client.j4r.ads ? settings.api.client.j4r.ads.length : 0 %> J4R servers
+            </span>
+          </div>
+        </div>
+
+        <!-- Section label -->
+        <div class="adm-section-group-label">
+          <svg width="13" height="13" fill="none" stroke="#4b5563" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          User Management
         </div>
 
         <!-- Admin action grid -->
@@ -195,6 +214,14 @@
             </div>
           </div>
 
+          <!-- section label -->
+          <div class="col-12" style="padding-bottom:0;margin-bottom:-8px;">
+            <div class="adm-section-group-label">
+              <svg width="13" height="13" fill="none" stroke="#4b5563" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              Coupons
+            </div>
+          </div>
+
           <!-- Coupons -->
           <div class="col-md-6">
             <div class="adm-card adm-card--teal">
@@ -244,6 +271,14 @@
                   </button>
                 </form>
               </div>
+            </div>
+          </div>
+
+          <!-- section label -->
+          <div class="col-12" style="padding-bottom:0;margin-bottom:-8px;">
+            <div class="adm-section-group-label">
+              <svg width="13" height="13" fill="none" stroke="#4b5563" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Join for Rewards
             </div>
           </div>
 
@@ -314,8 +349,33 @@
       </footer>
 
   <style>
-    .adm-version-bar { display:flex;align-items:center;gap:10px;background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.16);border-radius:12px;padding:11px 16px; }
-    .adm-version-icon { width:28px;height:28px;flex-shrink:0;border-radius:8px;background:rgba(124,58,237,0.14);display:flex;align-items:center;justify-content:center; }
+    /* ── Page header & tabs ── */
+    .adm-page-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px; }
+    .adm-tab-nav { display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.14);border-radius:12px;padding:4px; }
+    .adm-tab {
+      display:inline-flex;align-items:center;gap:6px;
+      padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;
+      color:#6b7280;text-decoration:none;transition:all .15s;
+    }
+    .adm-tab:hover { color:#c4b5fd;background:rgba(124,58,237,.08);text-decoration:none; }
+    .adm-tab--active { background:rgba(124,58,237,.18);color:#c4b5fd;border:1px solid rgba(124,58,237,.25); }
+
+    /* ── Status bar ── */
+    .adm-status-bar { display:flex;align-items:center;gap:12px;background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.14);border-radius:12px;padding:11px 16px;flex-wrap:wrap; }
+    .adm-status-left { display:flex;align-items:center;gap:10px;flex:1;min-width:0; }
+    .adm-status-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#4b5563;animation:pulse 2s infinite; }
+    .adm-status-dot--green { background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.5); }
+    .adm-status-dot--amber { background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,.5); }
+    .adm-status-dot--gray  { background:#4b5563; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .adm-status-text { font-size:13px;color:#9ca3af; }
+    .adm-status-text code { background:rgba(139,92,246,.15);padding:1px 5px;border-radius:4px;font-size:12px;color:#c4b5fd; }
+    .adm-status-meta { display:flex;gap:8px;flex-shrink:0; }
+    .adm-status-chip { display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(139,92,246,.08);color:#7c6faa;border:1px solid rgba(139,92,246,.14); }
+
+    /* ── Section group label ── */
+    .adm-section-group-label { display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#374151;margin-bottom:12px; }
+
     .adm-alert { display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:10px;font-size:13px; }
     .adm-alert--green { background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7; }
     .adm-alert--green strong { color:#a7f3d0; }

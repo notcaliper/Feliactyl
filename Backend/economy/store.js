@@ -3,7 +3,8 @@ const adminjs = require("../admin/admin.js");
 const settings = require("../../settings.json");
 const fs = require("fs");
 const ejs = require("ejs");
-const log = require('../../functions/log.js')
+const log = require('../../functions/log.js');
+const { purchaseResourceAtomically, purchasePlanAtomically, withIdempotency, generateTransactionId } = require('../../functions/atomic.js');
 
 module.exports.load = async function (app, db) {
   let maxram = null;
@@ -12,258 +13,199 @@ module.exports.load = async function (app, db) {
   let maxdisk = null;
   app.post("/buyram", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
-    if (newsettings) {
-      let amount = req.body.amount;
-
-      if (!amount) return res.send("missing amount");
-
-      amount = parseFloat(amount);
-
-      if (isNaN(amount)) return res.send("amount is not a number");
-
-      if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
-
-      let theme = indexjs.get(req);
-      let failedcallback = theme.settings.redirect.failedpurchaseram ? theme.settings.redirect.failedpurchaseram : "/";
-
-      let usercoins = await db.get("coins-" + req.session.userinfo.id);
-      usercoins = usercoins ? usercoins : 0;
-
-      let ramcap = await db.get("ram-" + req.session.userinfo.id);
-      ramcap = ramcap ? ramcap : 0;
-
-      if (ramcap + amount > settings.storelimits.ram) return res.redirect(failedcallback + "?err=MAXRAMEXCEETED");
-
-      let per = newsettings.api.client.coins.store.ram.per * amount;
-      let cost = newsettings.api.client.coins.store.ram.cost * amount;
-
-      if (usercoins < cost) return res.redirect(failedcallback + "?err=CANNOTAFFORD");
-
-      let newusercoins = usercoins - cost;
-      let newram = ramcap + amount;
-      if (newram > settings.storelimits.ram) return res.send("You reached max ram limit!");
-      if (newusercoins == 0) {
-        await db.delete("coins-" + req.session.userinfo.id);
-        await db.set("ram-" + req.session.userinfo.id, newram);
-      } else {
-        await db.set("coins-" + req.session.userinfo.id, newusercoins);
-        await db.set("ram-" + req.session.userinfo.id, newram);
-      }
-
-      let extra = await db.get("extra-" + req.session.userinfo.id);
-      extra = extra ? extra : {
-        ram: 0,
-        disk: 0,
-        cpu: 0,
-        servers: 0
-      };
-
-      extra.ram = extra.ram + per;
-
-      if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-        await db.delete("extra-" + req.session.userinfo.id);
-      } else {
-        await db.set("extra-" + req.session.userinfo.id, extra);
-      }
-
-      adminjs.suspend(req.session.userinfo.id);
-
-      log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}\MB ram from the store for \`${cost}\` coins.`)
-
-      res.redirect((theme.settings.redirect.purchaseram ? theme.settings.redirect.purchaseram : "/") + "?err=none");
+    if (!newsettings) return;
+    
+    let amount = req.body.amount;
+    if (!amount) return res.send("missing amount");
+    
+    amount = parseFloat(amount);
+    if (isNaN(amount)) return res.send("amount is not a number");
+    if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
+    
+    let theme = indexjs.get(req);
+    let failedcallback = theme.settings.redirect.failedpurchaseram ? theme.settings.redirect.failedpurchaseram : "/";
+    
+    // Check store limits first (before atomic operation)
+    let ramcap = await db.get("ram-" + req.session.userinfo.id) || 0;
+    if (ramcap + amount > settings.storelimits.ram) {
+        return res.redirect(failedcallback + "?err=MAXRAMEXCEETED");
     }
+    
+    let per = newsettings.api.client.coins.store.ram.per * amount;
+    let cost = newsettings.api.client.coins.store.ram.cost * amount;
+    
+    // Generate transaction ID for idempotency
+    const txId = req.body.transactionId || generateTransactionId();
+    
+    // Execute atomic purchase
+    const result = await withIdempotency(db, txId, async () => {
+        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+            coinCost: cost,
+            resourceType: 'ram',
+            amount: amount,
+            resourceValue: per
+        });
+    });
+    
+    if (result.cached) {
+        // Duplicate request - already processed
+        return res.redirect((theme.settings.redirect.purchaseram || "/") + "?err=none");
+    }
+    
+    if (!result.result.success) {
+        return res.redirect(failedcallback + "?err=CANNOTAFFORD");
+    }
+    
+    // Apply suspension check
+    adminjs.suspend(req.session.userinfo.id);
+    
+    log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}MB ram from the store for \`${cost}\` coins.`);
+    
+    res.redirect((theme.settings.redirect.purchaseram || "/") + "?err=none");
   });
 
   app.post("/buydisk", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
-    if (newsettings) {
-      let amount = req.body.amount;
-
-      if (!amount) return res.send("missing amount");
-
-      amount = parseFloat(amount);
-
-      if (isNaN(amount)) return res.send("amount is not a number");
-
-      if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
-
-      let theme = indexjs.get(req);
-      let failedcallback = theme.settings.redirect.failedpurchasedisk ? theme.settings.redirect.failedpurchasedisk : "/";
-
-      let usercoins = await db.get("coins-" + req.session.userinfo.id);
-      usercoins = usercoins ? usercoins : 0;
-
-      let diskcap = await db.get("disk-" + req.session.userinfo.id);
-      diskcap = diskcap ? diskcap : 0;
-
-      if (diskcap + amount > settings.storelimits.disk) return res.redirect(failedcallback + "?err=MAXDISKEXCEETED");
-
-      let per = newsettings.api.client.coins.store.disk.per * amount;
-      let cost = newsettings.api.client.coins.store.disk.cost * amount;
-
-      if (usercoins < cost) return res.redirect(failedcallback + "?err=CANNOTAFFORD");
-
-      let newusercoins = usercoins - cost;
-      let newdisk = diskcap + amount;
-      if (newdisk > settings.storelimits.disk) return res.send("You reached max disk limit!");
-      if (newusercoins == 0) {
-        await db.delete("coins-" + req.session.userinfo.id);
-        await db.set("disk-" + req.session.userinfo.id, newdisk);
-      } else {
-        await db.set("coins-" + req.session.userinfo.id, newusercoins);
-        await db.set("disk-" + req.session.userinfo.id, newdisk);
-      }
-
-      let extra = await db.get("extra-" + req.session.userinfo.id);
-      extra = extra ? extra : {
-        ram: 0,
-        disk: 0,
-        cpu: 0,
-        servers: 0
-      };
-
-      extra.disk = extra.disk + per;
-
-      if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-        await db.delete("extra-" + req.session.userinfo.id);
-      } else {
-        await db.set("extra-" + req.session.userinfo.id, extra);
-      }
-
-      adminjs.suspend(req.session.userinfo.id);
-
-      log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}MB disk from the store for \`${cost}\` coins.`)
-
-      res.redirect((theme.settings.redirect.purchasedisk ? theme.settings.redirect.purchasedisk : "/") + "?err=none");
+    if (!newsettings) return;
+    
+    let amount = req.body.amount;
+    if (!amount) return res.send("missing amount");
+    
+    amount = parseFloat(amount);
+    if (isNaN(amount)) return res.send("amount is not a number");
+    if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
+    
+    let theme = indexjs.get(req);
+    let failedcallback = theme.settings.redirect.failedpurchasedisk ? theme.settings.redirect.failedpurchasedisk : "/";
+    
+    let diskcap = await db.get("disk-" + req.session.userinfo.id) || 0;
+    if (diskcap + amount > settings.storelimits.disk) {
+        return res.redirect(failedcallback + "?err=MAXDISKEXCEETED");
     }
+    
+    let per = newsettings.api.client.coins.store.disk.per * amount;
+    let cost = newsettings.api.client.coins.store.disk.cost * amount;
+    
+    const txId = req.body.transactionId || generateTransactionId();
+    
+    const result = await withIdempotency(db, txId, async () => {
+        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+            coinCost: cost,
+            resourceType: 'disk',
+            amount: amount,
+            resourceValue: per
+        });
+    });
+    
+    if (result.cached) {
+        return res.redirect((theme.settings.redirect.purchasedisk || "/") + "?err=none");
+    }
+    
+    if (!result.result.success) {
+        return res.redirect(failedcallback + "?err=CANNOTAFFORD");
+    }
+    
+    adminjs.suspend(req.session.userinfo.id);
+    
+    log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}MB disk from the store for \`${cost}\` coins.`);
+    
+    res.redirect((theme.settings.redirect.purchasedisk || "/") + "?err=none");
   });
 
   app.post("/buycpu", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
-    if (newsettings) {
-      let amount = req.body.amount;
-
-      if (!amount) return res.send("missing amount");
-
-      amount = parseFloat(amount);
-
-      if (isNaN(amount)) return res.send("amount is not a number");
-
-      if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
-
-      let theme = indexjs.get(req);
-      let failedcallback = theme.settings.redirect.failedpurchasecpu ? theme.settings.redirect.failedpurchasecpu : "/";
-
-      let usercoins = await db.get("coins-" + req.session.userinfo.id);
-      usercoins = usercoins ? usercoins : 0;
-
-      let cpucap = await db.get("cpu-" + req.session.userinfo.id);
-      cpucap = cpucap ? cpucap : 0;
-
-      if (cpucap + amount > settings.storelimits.cpu) return res.redirect(failedcallback + "?err=MAXCPUEXCEETED");
-
-      let per = newsettings.api.client.coins.store.cpu.per * amount;
-      let cost = newsettings.api.client.coins.store.cpu.cost * amount;
-
-      if (usercoins < cost) return res.redirect(failedcallback + "?err=CANNOTAFFORD");
-
-      let newusercoins = usercoins - cost;
-      let newcpu = cpucap + amount;
-      if (newcpu > settings.storelimits.cpu) return res.send("Reached max CPU limit!");
-      if (newusercoins == 0) {
-        await db.delete("coins-" + req.session.userinfo.id);
-        await db.set("cpu-" + req.session.userinfo.id, newcpu);
-      } else {
-        await db.set("coins-" + req.session.userinfo.id, newusercoins);
-        await db.set("cpu-" + req.session.userinfo.id, newcpu);
-      }
-
-      let extra = await db.get("extra-" + req.session.userinfo.id);
-      extra = extra ? extra : {
-        ram: 0,
-        disk: 0,
-        cpu: 0,
-        servers: 0
-      };
-
-      extra.cpu = extra.cpu + per;
-
-      if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-        await db.delete("extra-" + req.session.userinfo.id);
-      } else {
-        await db.set("extra-" + req.session.userinfo.id, extra);
-      }
-
-      adminjs.suspend(req.session.userinfo.id);
-
-      log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}% CPU from the store for \`${cost}\` coins.`)
-
-      res.redirect((theme.settings.redirect.purchasecpu ? theme.settings.redirect.purchasecpu : "/") + "?err=none");
+    if (!newsettings) return;
+    
+    let amount = req.body.amount;
+    if (!amount) return res.send("missing amount");
+    
+    amount = parseFloat(amount);
+    if (isNaN(amount)) return res.send("amount is not a number");
+    if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
+    
+    let theme = indexjs.get(req);
+    let failedcallback = theme.settings.redirect.failedpurchasecpu ? theme.settings.redirect.failedpurchasecpu : "/";
+    
+    let cpucap = await db.get("cpu-" + req.session.userinfo.id) || 0;
+    if (cpucap + amount > settings.storelimits.cpu) {
+        return res.redirect(failedcallback + "?err=MAXCPUEXCEETED");
     }
+    
+    let per = newsettings.api.client.coins.store.cpu.per * amount;
+    let cost = newsettings.api.client.coins.store.cpu.cost * amount;
+    
+    const txId = req.body.transactionId || generateTransactionId();
+    
+    const result = await withIdempotency(db, txId, async () => {
+        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+            coinCost: cost,
+            resourceType: 'cpu',
+            amount: amount,
+            resourceValue: per
+        });
+    });
+    
+    if (result.cached) {
+        return res.redirect((theme.settings.redirect.purchasecpu || "/") + "?err=none");
+    }
+    
+    if (!result.result.success) {
+        return res.redirect(failedcallback + "?err=CANNOTAFFORD");
+    }
+    
+    adminjs.suspend(req.session.userinfo.id);
+    
+    log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per}% CPU from the store for \`${cost}\` coins.`);
+    
+    res.redirect((theme.settings.redirect.purchasecpu || "/") + "?err=none");
   });
 
   app.post("/buyservers", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
-    if (newsettings) {
-      let amount = req.body.amount;
-
-      if (!amount) return res.send("missing amount");
-
-      amount = parseFloat(amount);
-
-      if (isNaN(amount)) return res.send("amount is not a number");
-
-      if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
-
-      let theme = indexjs.get(req);
-      let failedcallback = theme.settings.redirect.failedpurchaseservers ? theme.settings.redirect.failedpurchaseservers : "/";
-
-      let usercoins = await db.get("coins-" + req.session.userinfo.id);
-      usercoins = usercoins ? usercoins : 0;
-
-      let serverscap = await db.get("servers-" + req.session.userinfo.id);
-      serverscap = serverscap ? serverscap : 0;
-
-      if (serverscap + amount > settings.storelimits.servers) return res.redirect(failedcallback + "?err=MAXSERVERSEXCEETED");
-
-      let per = newsettings.api.client.coins.store.servers.per * amount;
-      let cost = newsettings.api.client.coins.store.servers.cost * amount;
-
-      if (usercoins < cost) return res.redirect(failedcallback + "?err=CANNOTAFFORD");
-
-      let newusercoins = usercoins - cost;
-      let newservers = serverscap + amount;
-      if (newservers > settings.storelimits.servers) return res.send("Reached max server limit!");
-      if (newusercoins == 0) {
-        await db.delete("coins-" + req.session.userinfo.id);
-        await db.set("servers-" + req.session.userinfo.id, newservers);
-      } else {
-        await db.set("coins-" + req.session.userinfo.id, newusercoins);
-        await db.set("servers-" + req.session.userinfo.id, newservers);
-      }
-
-      let extra = await db.get("extra-" + req.session.userinfo.id);
-      extra = extra ? extra : {
-        ram: 0,
-        disk: 0,
-        cpu: 0,
-        servers: 0
-      };
-
-      extra.servers = extra.servers + per;
-
-      if (extra.ram == 0 && extra.disk == 0 && extra.cpu == 0 && extra.servers == 0) {
-        await db.delete("extra-" + req.session.userinfo.id);
-      } else {
-        await db.set("extra-" + req.session.userinfo.id, extra);
-      }
-
-      adminjs.suspend(req.session.userinfo.id);
-
-      log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per} Slots from the store for \`${cost}\` coins.`)
-
-      res.redirect((theme.settings.redirect.purchaseservers ? theme.settings.redirect.purchaseservers : "/") + "?err=none");
+    if (!newsettings) return;
+    
+    let amount = req.body.amount;
+    if (!amount) return res.send("missing amount");
+    
+    amount = parseFloat(amount);
+    if (isNaN(amount)) return res.send("amount is not a number");
+    if (amount < 1 || amount > 10) return res.send("amount must be 1-10");
+    
+    let theme = indexjs.get(req);
+    let failedcallback = theme.settings.redirect.failedpurchaseservers ? theme.settings.redirect.failedpurchaseservers : "/";
+    
+    let serverscap = await db.get("servers-" + req.session.userinfo.id) || 0;
+    if (serverscap + amount > settings.storelimits.servers) {
+        return res.redirect(failedcallback + "?err=MAXSERVERSEXCEETED");
     }
+    
+    let per = newsettings.api.client.coins.store.servers.per * amount;
+    let cost = newsettings.api.client.coins.store.servers.cost * amount;
+    
+    const txId = req.body.transactionId || generateTransactionId();
+    
+    const result = await withIdempotency(db, txId, async () => {
+        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+            coinCost: cost,
+            resourceType: 'servers',
+            amount: amount,
+            resourceValue: per
+        });
+    });
+    
+    if (result.cached) {
+        return res.redirect((theme.settings.redirect.purchaseservers || "/") + "?err=none");
+    }
+    
+    if (!result.result.success) {
+        return res.redirect(failedcallback + "?err=CANNOTAFFORD");
+    }
+    
+    adminjs.suspend(req.session.userinfo.id);
+    
+    log(`Resources Purchased`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} bought ${per} Slots from the store for \`${cost}\` coins.`);
+    
+    res.redirect((theme.settings.redirect.purchaseservers || "/") + "?err=none");
   });
 
   app.post("/buyplan", async (req, res) => {
@@ -271,34 +213,38 @@ module.exports.load = async function (app, db) {
     if (!req.session.userinfo || !req.session.pterodactyl) return res.redirect("/login");
     let theme = indexjs.get(req);
     let failredirect = "/store?err=";
-
+    
     const planName = req.body.plan;
     if (!planName) return res.redirect(failredirect + "MISSINGPLAN");
-
+    
     const planList = newsettings.api.client.packages.list;
     if (!planList[planName]) return res.redirect(failredirect + "INVALIDPLAN");
-
+    
     const currentPlan = await db.get("package-" + req.session.userinfo.id) || newsettings.api.client.packages.default;
     if (currentPlan === planName) return res.redirect(failredirect + "ALREADYONPLAN");
-
+    
     let planCost = planList[planName].cost || 0;
     const discounts = newsettings.api.client.packages.discounts || {};
     const disc = discounts[planName];
     if (disc) {
-      const expired = disc.expiresAt && disc.expiresAt < Date.now();
-      if (!expired) planCost = Math.round(planCost * (1 - disc.pct / 100));
+        const expired = disc.expiresAt && disc.expiresAt < Date.now();
+        if (!expired) planCost = Math.round(planCost * (1 - disc.pct / 100));
     }
-    let usercoins = await db.get("coins-" + req.session.userinfo.id) || 0;
-
-    if (usercoins < planCost) return res.redirect(failredirect + "NOTENOUGHCOINS");
-
-    await db.set("coins-" + req.session.userinfo.id, usercoins - planCost);
-    if (planName === newsettings.api.client.packages.default) {
-      await db.delete("package-" + req.session.userinfo.id);
-    } else {
-      await db.set("package-" + req.session.userinfo.id, planName);
+    
+    const txId = req.body.transactionId || generateTransactionId();
+    
+    const result = await withIdempotency(db, txId, async () => {
+        return await purchasePlanAtomically(db, req.session.userinfo.id, planName, planCost);
+    });
+    
+    if (result.cached) {
+        return res.redirect("/store?err=none");
     }
-
+    
+    if (!result.result.success) {
+        return res.redirect(failredirect + "NOTENOUGHCOINS");
+    }
+    
     adminjs.suspend(req.session.userinfo.id);
     log("plan purchase", `${req.session.userinfo.username} upgraded to plan \`${planName}\` for \`${planCost}\` coins.`);
     res.redirect("/store?err=none");

@@ -1,27 +1,37 @@
 {
   "name": "feliactyl",
-  "version": "1.0.0",
+  "version": "2.2.0",
   "description": "Manage your Pterodactyl Users and their Servers with ease",
   "main": "index.js",
   "author": "Feliactyl-Project / notcaliper",
-  "contributors": [""],
+  "homepage": "https://github.com/notcaliper/Feliactyl",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/notcaliper/Feliactyl.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "@keyv/sqlite": "^3.6.7",
     "chalk": "^4.1.2",
     "cron": "^3.1.6",
-    "discord.js": "^14.14.1",
+    "dotenv": "^16.6.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
     "express-session": "^1.17.3",
     "express-ws": "^5.0.2",
     "fast-glob": "^3.3.2",
     "gradient-string": "^2.0.2",
+    "helmet": "^7.2.0",
     "keyv": "^4.5.4",
     "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
     "nodemon": "^3.0.2",
+    "speakeasy": "^2.0.0",
+    "qrcode": "^1.5.3",
     "stripe": "^14.5.0",
-    "warn": "^1.0.1"
+    "warn": "^1.0.1",
+    "xss": "^1.0.15"
   },
   "scripts": {
     "start": "node start.js",

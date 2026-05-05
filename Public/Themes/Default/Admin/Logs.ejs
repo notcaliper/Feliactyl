@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../Components/Header.ejs') %>
+<%- include('../Components/Styles.ejs') %>
+<body>
+  <div class="wrapper">
+    <%- include('../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../Components/Topbar.ejs') %>
+
+      <main class="content">
+
+        <div class="adm-page-header">
+          <div>
+            <div class="page-title">Logs</div>
+            <div class="page-subtitle">Admin actions and firewall events</div>
+          </div>
+          <div class="adm-tab-nav">
+            <a href="/admin" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Overview
+            </a>
+            <a href="/admin/users" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </a>
+            <a href="/admin/plans" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Plans
+            </a>
+            <a href="/admin/settings" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Settings
+            </a>
+            <a href="/admin/logs" class="adm-tab adm-tab--active">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Logs
+            </a>
+          </div>
+        </div>
+
+        <!-- Tab switcher -->
+        <div class="logs-tabs">
+          <button class="logs-tab logs-tab--active" data-tab="action" onclick="switchTab('action')">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin Actions
+            <span class="logs-count" id="action-count">0</span>
+          </button>
+          <button class="logs-tab" data-tab="firewall" onclick="switchTab('firewall')">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Firewall Events
+            <span class="logs-count logs-count--amber" id="fw-count">0</span>
+          </button>
+          <button class="logs-refresh" onclick="loadLogs()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Action logs -->
+        <div id="tab-action" class="logs-panel">
+          <div class="logs-card">
+            <div class="logs-card-header">
+              <div class="logs-icon logs-icon--purple">
+                <svg width="15" height="15" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div style="flex:1;">
+                <div class="logs-card-title">Admin Action Log</div>
+                <div class="logs-card-desc">Actions performed by admins — coins, plans, resources, coupons</div>
+              </div>
+              <input id="action-search" class="logs-search" placeholder="Search actions..." oninput="filterLogs('action')">
+            </div>
+            <div class="logs-card-body" id="action-list">
+              <div class="logs-loading">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Firewall logs -->
+        <div id="tab-firewall" class="logs-panel" style="display:none;">
+          <div class="logs-card logs-card--amber">
+            <div class="logs-card-header">
+              <div class="logs-icon logs-icon--amber">
+                <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div style="flex:1;">
+                <div class="logs-card-title">Firewall Event Log</div>
+                <div class="logs-card-desc">VPN blocks, blacklisted IPs, alt detections, geo-blocks</div>
+              </div>
+              <input id="fw-search" class="logs-search" placeholder="Search events..." oninput="filterLogs('firewall')">
+            </div>
+            <div class="logs-card-body" id="fw-list">
+              <div class="logs-loading">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="footer">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-6">&copy; <%= settings.name %> &middot; <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
+            <div class="col-6 text-end"><code>v<%= settings.version %></code> &middot; <span id="loadtime"></span></div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/assets/default/js/app.js"></script>
+  <%- include('../Components/LoadingBar.ejs') %>
+
+  <style>
+    .adm-page-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px; }
+    .adm-tab-nav { display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.14);border-radius:12px;padding:4px; }
+    .adm-tab { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#6b7280;text-decoration:none;transition:all .15s; }
+    .adm-tab:hover { color:#c4b5fd;background:rgba(124,58,237,.08);text-decoration:none; }
+    .adm-tab--active { background:rgba(124,58,237,.18);color:#c4b5fd;border:1px solid rgba(124,58,237,.25); }
+
+    /* tab switcher */
+    .logs-tabs { display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap; }
+    .logs-tab {
+      display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+      border-radius:10px;font-size:12px;font-weight:600;color:#6b7280;
+      background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.12);
+      cursor:pointer;transition:all .15s;
+    }
+    .logs-tab:hover { color:#c4b5fd;border-color:rgba(124,58,237,.3); }
+    .logs-tab--active { background:rgba(124,58,237,.18);color:#c4b5fd;border-color:rgba(124,58,237,.3); }
+    .logs-count { background:rgba(124,58,237,.25);color:#c4b5fd;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:2px; }
+    .logs-count--amber { background:rgba(217,119,6,.2);color:#fcd34d; }
+    .logs-refresh {
+      margin-left:auto;display:inline-flex;align-items:center;gap:6px;
+      padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;
+      color:#9d8ec7;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18);
+      cursor:pointer;transition:all .15s;
+    }
+    .logs-refresh:hover { color:#c4b5fd;border-color:rgba(124,58,237,.35); }
+
+    /* card */
+    .logs-card { background:var(--surface);border:1px solid rgba(139,92,246,.14);border-radius:16px;overflow:hidden;position:relative; }
+    .logs-card::before { content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .logs-card--amber::before { background:linear-gradient(90deg,#d97706,#fcd34d); }
+    .logs-card-header { display:flex;align-items:center;gap:12px;padding:16px 20px 14px;border-bottom:1px solid rgba(139,92,246,.08); }
+    .logs-card-title { font-size:14px;font-weight:700;color:#e2e8f0; }
+    .logs-card-desc { font-size:12px;color:#6b7280;margin-top:2px; }
+    .logs-icon { width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center; }
+    .logs-icon--purple { background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.22); }
+    .logs-icon--amber { background:rgba(217,119,6,.15);border:1px solid rgba(217,119,6,.25); }
+    .logs-search {
+      background:var(--surface2)!important;border:1px solid rgba(139,92,246,.18)!important;
+      border-radius:8px!important;color:#e2e8f0!important;font-size:12px!important;
+      padding:7px 11px!important;width:200px;outline:none;transition:border-color .15s;
+    }
+    .logs-search:focus { border-color:#7c3aed!important; }
+    .logs-search::placeholder { color:#4b4669!important; }
+    .logs-card-body { padding:0; max-height:520px; overflow-y:auto; }
+
+    /* log row */
+    .log-row {
+      display:flex;align-items:flex-start;gap:12px;
+      padding:12px 20px;border-bottom:1px solid rgba(139,92,246,.06);
+      transition:background .12s;
+    }
+    .log-row:last-child { border-bottom:none; }
+    .log-row:hover { background:rgba(124,58,237,.04); }
+    .log-badge {
+      flex-shrink:0;font-size:10px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;padding:3px 8px;border-radius:6px;margin-top:1px;
+    }
+    .log-badge--purple { background:rgba(124,58,237,.2);color:#c4b5fd; }
+    .log-badge--green  { background:rgba(16,185,129,.15);color:#6ee7b7; }
+    .log-badge--amber  { background:rgba(217,119,6,.2);color:#fcd34d; }
+    .log-badge--red    { background:rgba(220,38,38,.15);color:#fca5a5; }
+    .log-badge--blue   { background:rgba(37,99,235,.15);color:#93c5fd; }
+    .log-badge--gray   { background:rgba(107,114,128,.15);color:#9ca3af; }
+    .log-msg { flex:1;font-size:12px;color:#c4b5fd;line-height:1.5;word-break:break-word; }
+    .log-time { flex-shrink:0;font-size:11px;color:#4b4669;white-space:nowrap;margin-top:2px; }
+    .logs-empty { text-align:center;padding:40px 0;color:#4b4669;font-size:13px; }
+    .logs-loading { text-align:center;padding:40px 0;color:#4b4669;font-size:13px; }
+  </style>
+
+  <script>
+    let _actionLogs = [], _fwLogs = [];
+
+    const ACTION_COLORS = {
+      'set coins': 'green', 'add coins': 'green',
+      'set plan': 'purple', 'set resources': 'blue', 'add resources': 'blue',
+      'create coupon': 'amber', 'revoke coupon': 'amber',
+      'remove account': 'red', 'view ip': 'gray',
+      'signup': 'green', 'login': 'gray'
+    };
+    const FW_COLORS = {
+      'BLACKLISTED_IP': 'red', 'BANNED_USER': 'red',
+      'VPN_DETECTED': 'amber', 'TOR_DETECTED': 'amber',
+      'ALT_DETECTED': 'amber', 'ABUSE_DETECTED': 'red',
+      'GEO_BLOCKED': 'blue'
+    };
+
+    function relTime(ts) {
+      const diff = Date.now() - ts;
+      if (diff < 60000)  return Math.floor(diff/1000) + 's ago';
+      if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+      if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+      return new Date(ts).toLocaleDateString();
+    }
+
+    function renderActionLogs(logs) {
+      const el = document.getElementById('action-list');
+      if (!logs.length) { el.innerHTML = '<div class="logs-empty">No action logs yet.</div>'; return; }
+      el.innerHTML = logs.map(l => {
+        const color = ACTION_COLORS[l.action] || 'gray';
+        return `<div class="log-row">
+          <span class="log-badge log-badge--${color}">${l.action}</span>
+          <span class="log-msg">${escHtml(l.message)}</span>
+          <span class="log-time">${relTime(l.timestamp)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function renderFwLogs(logs) {
+      const el = document.getElementById('fw-list');
+      if (!logs.length) { el.innerHTML = '<div class="logs-empty">No firewall events yet.</div>'; return; }
+      el.innerHTML = logs.map(l => {
+        const color = FW_COLORS[l.type] || 'gray';
+        const detail = l.details ? Object.entries(l.details).map(([k,v])=>`${k}: ${v}`).join(' | ') : '';
+        return `<div class="log-row">
+          <span class="log-badge log-badge--${color}">${l.type.replace(/_/g,' ')}</span>
+          <span class="log-msg"><span style="color:#9ca3af;font-size:11px;">${escHtml(l.ip||'')}${l.userId?' &bull; '+escHtml(l.userId):''}</span>${detail ? '<br><span style="color:#6b7280;font-size:11px;">'+escHtml(detail)+'</span>' : ''}</span>
+          <span class="log-time">${relTime(l.timestamp)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function filterLogs(type) {
+      if (type === 'action') {
+        const q = document.getElementById('action-search').value.toLowerCase();
+        renderActionLogs(_actionLogs.filter(l => l.action.includes(q) || l.message.toLowerCase().includes(q)));
+      } else {
+        const q = document.getElementById('fw-search').value.toLowerCase();
+        renderFwLogs(_fwLogs.filter(l => l.type.toLowerCase().includes(q) || (l.ip||'').includes(q) || (l.userId||'').includes(q)));
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.logs-panel').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.logs-tab').forEach(t => t.classList.remove('logs-tab--active'));
+      document.getElementById('tab-' + tab).style.display = 'block';
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('logs-tab--active');
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function loadLogs() {
+      document.getElementById('action-list').innerHTML = '<div class="logs-loading">Loading...</div>';
+      document.getElementById('fw-list').innerHTML     = '<div class="logs-loading">Loading...</div>';
+      try {
+        const res  = await fetch('/admin/logsdata');
+        const data = await res.json();
+        if (!data.success) return;
+        _actionLogs = data.actionLogs;
+        _fwLogs     = data.firewallLogs;
+        document.getElementById('action-count').textContent = _actionLogs.length;
+        document.getElementById('fw-count').textContent     = _fwLogs.length;
+        renderActionLogs(_actionLogs);
+        renderFwLogs(_fwLogs);
+      } catch(e) { console.error(e); }
+    }
+
+    loadLogs();
+  </script>
+
+</body>
+</html>

@@ -11,7 +11,7 @@
       "createserverdisabled": "/servers/new?err=disabled",
       "modifyserverdisabled": "/servers/modify?err=disabled",
       "deleteserverdisabled": "/delete?err=disabled",
-      "regenpassword": "/credentials",
+      "regenpassword": "/settings?tab=security",
       "setresources": "/admin",
       "failedsetresources": "/admin",
       "giftresources": "/gift",
@@ -40,6 +40,7 @@
    "pages": {
       "loggedout": "Authentication/LoggedOut.ejs",
       "auth": "Authentication/Provider.ejs",
+      "2fa": "Authentication/TwoFA.ejs",
       "dashboard": "Resources/Pages/Dashboard.ejs",
       "credentials": "Resources/Pages/Credentials.ejs",
       "servers/new": "Resources/ServerRouter/CreateServer.ejs",
@@ -55,13 +56,13 @@
       "info": "Endpoints/Data/Info.ejs",
       "admin": "Admin/Main.ejs",
       "admin/settings": "Admin/Settings.ejs",
-      "admin/plans": "Admin/Plans.ejs"
+      "admin/plans": "Admin/Plans.ejs",
+      "settings": "Resources/Pages/Settings.ejs"
    },
    "mustbeloggedin": [
       "/dashboard",
       "/servers/new",
       "/servers/edit",
-      "/credentials",
       "/earn",
       "/gift",
       "/store",
@@ -69,7 +70,8 @@
       "/admin",
       "/redeem",
       "/linkvertise",
-      "/j4r"
+      "/j4r",
+      "/settings"
    ],
    "mustbeadmin": [
       "/admin",

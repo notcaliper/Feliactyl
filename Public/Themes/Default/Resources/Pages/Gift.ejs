@@ -24,77 +24,112 @@
           <div class="page-subtitle">Send coins to another user by their Discord ID 🎁</div>
         </div>
 
-        <div class="row g-4">
+        <!-- Balance strip -->
+        <div class="gift-bal-strip">
+          <div class="gift-bal-left">
+            <div class="gift-bal-icon">
+              <svg width="16" height="16" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="gift-bal-label">Your Balance</div>
+              <div class="gift-bal-val">🪙 <span id="balanceDisplay"></span> coins</div>
+            </div>
+          </div>
+          <div class="gift-bal-right">
+            <a href="/earn" class="gift-earn-btn">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Earn More
+            </a>
+          </div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="gift-main-grid">
 
           <!-- Gift form card -->
-          <div class="col-12 col-lg-6">
-            <div class="gift-card">
-              <div class="gift-card-header">
-                <div class="gift-card-icon">
-                  <svg width="18" height="18" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24">
-                    <polyline points="20 12 20 22 4 22 4 12"/>
-                    <rect x="2" y="7" width="20" height="5"/>
-                    <path d="M12 22V7"/>
-                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="gift-card-title">Send a Gift</div>
-                  <div class="gift-card-sub">Enter the recipient's Discord ID and amount</div>
-                </div>
+          <div class="gift-card">
+            <div class="gift-card-header">
+              <div class="gift-card-icon">
+                <svg width="18" height="18" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="20 12 20 22 4 22 4 12"/>
+                  <rect x="2" y="7" width="20" height="5"/>
+                  <path d="M12 22V7"/>
+                  <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                  <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="gift-card-title">Send a Gift</div>
+                <div class="gift-card-sub">Enter the recipient's Discord ID and amount</div>
+              </div>
+            </div>
+
+            <div class="gift-fields">
+              <div class="gift-field">
+                <label for="InputID">Discord User ID</label>
+                <input type="number" class="gift-input" id="InputID" placeholder="000000000000000000" autocomplete="off">
+                <div class="gift-hint">18-digit Discord user ID (not username)</div>
               </div>
 
               <div class="gift-field">
-                <label for="InputID">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  Discord ID
-                </label>
-                <input type="number" class="form-control gift-input" id="InputID" placeholder="000000000000000000" autocomplete="off">
-                <div class="gift-hint">18-digit Discord user ID</div>
-              </div>
-
-              <div class="gift-field">
-                <label for="InputCoins">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                  Amount
-                </label>
+                <label for="InputCoins">Amount to Send</label>
                 <div class="gift-input-wrap">
                   <span class="gift-input-prefix">🪙</span>
-                  <input type="number" class="form-control gift-input gift-input-coins" id="InputCoins" placeholder="100" min="1" autocomplete="off">
+                  <input type="number" class="gift-input gift-input-coins" id="InputCoins" placeholder="e.g. 100" min="1" autocomplete="off" oninput="updatePreview()">
                 </div>
-                <div class="gift-hint">Your balance: <span class="gift-balance">🪙 <span id="balanceDisplay"></span></span></div>
+                <!-- Quick chips -->
+                <div class="gift-chips">
+                  <span class="gift-chip" onclick="setCoins(10)">10</span>
+                  <span class="gift-chip" onclick="setCoins(25)">25</span>
+                  <span class="gift-chip" onclick="setCoins(50)">50</span>
+                  <span class="gift-chip" onclick="setCoins(100)">100</span>
+                  <span class="gift-chip" onclick="setCoins(Math.floor(_bal*0.5))">50%</span>
+                  <span class="gift-chip" onclick="setCoins(_bal)">All</span>
+                </div>
               </div>
 
-              <button class="btn btn-primary gift-btn" onclick="submitGift()">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <!-- Preview -->
+              <div class="gift-preview" id="gift-preview" style="display:none;">
+                <svg width="13" height="13" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                Sending <strong id="preview-amount">0</strong> coins · <span id="preview-remaining">0</span> remaining
+              </div>
+
+              <button class="gift-submit-btn" onclick="submitGift()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 Send Gift
               </button>
             </div>
           </div>
 
-          <!-- Info card -->
-          <div class="col-12 col-lg-6">
-            <div class="gift-info-card">
-              <div class="gift-info-title">How gifting works</div>
-              <ul class="gift-info-list">
-                <li>
-                  <div class="gift-info-dot gift-info-dot--purple"></div>
-                  <span>Enter the recipient's <strong>Discord User ID</strong> (not username)</span>
-                </li>
-                <li>
-                  <div class="gift-info-dot gift-info-dot--blue"></div>
-                  <span>Choose how many <strong>coins</strong> you want to send</span>
-                </li>
-                <li>
-                  <div class="gift-info-dot gift-info-dot--green"></div>
-                  <span>Coins are <strong>transferred instantly</strong> and cannot be undone</span>
-                </li>
-                <li>
-                  <div class="gift-info-dot gift-info-dot--amber"></div>
-                  <span>You cannot gift more coins than your <strong>current balance</strong></span>
-                </li>
-              </ul>
+          <!-- Right: info -->
+          <div class="gift-info-card">
+            <div class="gift-info-title">How gifting works</div>
+            <ul class="gift-info-list">
+              <li>
+                <div class="gift-info-dot gift-info-dot--purple"></div>
+                <span>Enter the recipient's <strong>Discord User ID</strong> (not username)</span>
+              </li>
+              <li>
+                <div class="gift-info-dot gift-info-dot--blue"></div>
+                <span>Choose how many <strong>coins</strong> you want to send</span>
+              </li>
+              <li>
+                <div class="gift-info-dot gift-info-dot--green"></div>
+                <span>Coins are <strong>transferred instantly</strong> and cannot be undone</span>
+              </li>
+              <li>
+                <div class="gift-info-dot gift-info-dot--amber"></div>
+                <span>You cannot gift more than your <strong>current balance</strong></span>
+              </li>
+            </ul>
+
+            <div class="gift-find-id">
+              <div class="gift-find-id-title">How to find a Discord ID</div>
+              <ol class="gift-find-id-steps">
+                <li>Open Discord and go to <strong>Settings</strong></li>
+                <li>Enable <strong>Developer Mode</strong> under Advanced</li>
+                <li>Right-click any user and select <strong>Copy User ID</strong></li>
+              </ol>
             </div>
           </div>
 
@@ -105,8 +140,8 @@
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
-            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/Feliactyl" target="_blank" style="color:#a78bfa;">Feliactyl v<%= settings.version %></a></div>
+            <div class="col-6 text-end"><a href="https://discord.gg/N7C2nbYpQf" target="_blank" style="color:#5865f2;text-decoration:none;">Discord</a> · <span id="loadtime"></span></div>
           </div>
         </div>
       </footer>
@@ -119,6 +154,26 @@
   <script>
     const _bal = Math.floor(<%= coins %> * 100) / 100;
     document.getElementById('balanceDisplay').textContent = _bal;
+
+    function setCoins(v) {
+      const el = document.getElementById('InputCoins');
+      el.value = Math.max(1, Math.floor(v));
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const amt = parseInt(document.getElementById('InputCoins').value, 10) || 0;
+      const preview = document.getElementById('gift-preview');
+      if (amt > 0) {
+        document.getElementById('preview-amount').textContent = amt;
+        document.getElementById('preview-remaining').textContent = Math.max(0, _bal - amt) + ' coins';
+        preview.style.display = 'flex';
+        preview.style.borderColor = amt > _bal ? 'rgba(239,68,68,.3)' : 'rgba(16,185,129,.2)';
+        preview.style.color = amt > _bal ? '#fca5a5' : '#6ee7b7';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
 
     async function submitGift() {
       const id    = encodeURIComponent(document.getElementById('InputID').value.trim());
@@ -133,150 +188,134 @@
   </script>
 
   <style>
+    /* ── Balance strip ── */
+    .gift-bal-strip {
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:16px 22px; margin-bottom:20px;
+    }
+    .gift-bal-left  { display:flex; align-items:center; gap:14px; }
+    .gift-bal-icon  { width:36px; height:36px; border-radius:9px; background:rgba(245,158,11,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .gift-bal-label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.7px; font-weight:600; }
+    .gift-bal-val   { font-size:16px; font-weight:800; color:#fff; margin-top:2px; }
+    .gift-earn-btn  {
+      display:inline-flex; align-items:center; gap:7px; padding:8px 16px;
+      border-radius:9px; font-size:12px; font-weight:600;
+      background:rgba(16,185,129,.1); color:#6ee7b7;
+      border:1px solid rgba(16,185,129,.2); text-decoration:none; transition:all .15s;
+    }
+    .gift-earn-btn:hover { background:rgba(16,185,129,.2); color:#6ee7b7; text-decoration:none; }
+
+    /* ── Main grid ── */
+    .gift-main-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    @media(max-width:768px){ .gift-main-grid{ grid-template-columns:1fr; } }
+
     /* ── Gift card ── */
     .gift-card {
-      background: var(--surface);
-      border: 1px solid rgba(139,92,246,0.18);
-      border-radius: 16px;
-      padding: 0;
-      overflow: hidden;
-      position: relative;
+      background:var(--surface); border:1px solid rgba(139,92,246,.18);
+      border-radius:16px; overflow:hidden; position:relative;
     }
     .gift-card::before {
-      content: '';
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: linear-gradient(90deg, #7c3aed, #a78bfa, #ec4899);
-      border-radius: 16px 16px 0 0;
+      content:''; position:absolute; inset:0 0 auto 0; height:3px;
+      background:linear-gradient(90deg,#7c3aed,#a78bfa,#ec4899);
+      border-radius:16px 16px 0 0;
     }
-
     .gift-card-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 22px 24px 18px;
-      border-bottom: 1px solid rgba(139,92,246,0.1);
+      display:flex; align-items:center; gap:14px; padding:20px 22px 16px;
+      border-bottom:1px solid rgba(139,92,246,.1);
     }
     .gift-card-icon {
-      width: 42px; height: 42px; flex-shrink: 0;
-      border-radius: 11px;
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.25);
-      display: flex; align-items: center; justify-content: center;
+      width:40px; height:40px; flex-shrink:0; border-radius:11px;
+      background:rgba(124,58,237,.15); border:1px solid rgba(124,58,237,.25);
+      display:flex; align-items:center; justify-content:center;
     }
-    .gift-card-title {
-      font-size: 14px; font-weight: 700; color: #e2e8f0;
-    }
-    .gift-card-sub {
-      font-size: 12px; color: #6b5f8a; margin-top: 2px;
-    }
+    .gift-card-title { font-size:14px; font-weight:700; color:#e2e8f0; }
+    .gift-card-sub   { font-size:12px; color:#6b5f8a; margin-top:2px; }
 
     /* fields */
-    .gift-field {
-      padding: 18px 24px 0;
-    }
+    .gift-fields { padding:18px 22px 22px; display:flex; flex-direction:column; gap:16px; }
+    .gift-field { display:flex; flex-direction:column; gap:0; }
     .gift-field label {
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      color: #9d8ec7 !important;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 8px !important;
-      display: block;
+      font-size:11px; font-weight:600; color:#6b7280;
+      text-transform:uppercase; letter-spacing:.7px; margin-bottom:8px;
     }
     .gift-input {
-      background: var(--surface2) !important;
-      border: 1px solid rgba(139,92,246,0.2) !important;
-      border-radius: 10px !important;
-      color: white !important;
-      font-size: 14px !important;
-      padding: 11px 14px !important;
-      width: 100% !important;
-      transition: border-color 0.15s, box-shadow 0.15s !important;
+      width:100%; padding:11px 14px;
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; color:#e5e7eb; font-size:14px; outline:none;
+      transition:border-color .15s, background .15s; font-family:inherit;
     }
-    .gift-input:focus {
-      border-color: #7c3aed !important;
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.15) !important;
-      outline: none !important;
-    }
-    .gift-input-wrap {
-      position: relative;
-    }
-    .gift-input-prefix {
-      position: absolute;
-      left: 12px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 14px;
-      pointer-events: none;
-      z-index: 1;
-    }
-    .gift-input-coins {
-      padding-left: 34px !important;
-    }
-    .gift-hint {
-      font-size: 11px;
-      color: #4b4669;
-      margin-top: 6px;
-    }
-    .gift-balance {
-      color: #a78bfa;
-      font-weight: 600;
-    }
+    .gift-input:focus { border-color:rgba(124,58,237,.6); background:rgba(124,58,237,.06); }
+    .gift-hint { font-size:11px; color:#4b5563; margin-top:6px; }
+    .gift-input-wrap { position:relative; }
+    .gift-input-prefix { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; z-index:1; }
+    .gift-input-coins  { padding-left:34px; }
 
-    /* submit button */
-    .gift-btn {
-      margin: 20px 24px 24px;
-      width: calc(100% - 48px);
-      padding: 11px !important;
-      font-size: 13px !important;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* quick chips */
+    .gift-chips { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+    .gift-chip {
+      padding:4px 12px; border-radius:8px; font-size:12px; font-weight:600;
+      color:#a78bfa; cursor:pointer;
+      border:1px solid rgba(124,58,237,.2); background:rgba(124,58,237,.07);
+      transition:all .15s;
     }
+    .gift-chip:hover { border-color:rgba(124,58,237,.5); background:rgba(124,58,237,.15); color:#c4b5fd; }
+
+    /* preview */
+    .gift-preview {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:10px; font-size:12px; font-weight:500;
+      background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.2); color:#6ee7b7;
+      transition:border-color .2s, color .2s;
+    }
+    .gift-preview strong { font-weight:700; }
+
+    /* submit */
+    .gift-submit-btn {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; padding:12px 20px; border-radius:11px; font-size:14px; font-weight:700;
+      background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff;
+      border:none; cursor:pointer; font-family:inherit;
+      box-shadow:0 4px 16px rgba(124,58,237,.3); transition:all .15s;
+    }
+    .gift-submit-btn:hover { box-shadow:0 6px 24px rgba(124,58,237,.5); transform:translateY(-1px); }
 
     /* ── Info card ── */
     .gift-info-card {
-      background: rgba(124,58,237,0.06);
-      border: 1px solid rgba(124,58,237,0.16);
-      border-radius: 16px;
-      padding: 22px 24px;
-      height: 100%;
+      background:rgba(124,58,237,.06); border:1px solid rgba(124,58,237,.16);
+      border-radius:16px; padding:22px 24px; display:flex; flex-direction:column; gap:20px;
     }
     .gift-info-title {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: #7c6faa;
-      margin-bottom: 18px;
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.9px; color:#7c6faa;
     }
     .gift-info-list {
-      list-style: none;
-      padding: 0; margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      list-style:none; padding:0; margin:0;
+      display:flex; flex-direction:column; gap:13px;
     }
     .gift-info-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      font-size: 13px;
-      color: #9d8ec7;
-      line-height: 1.55;
+      display:flex; align-items:flex-start; gap:12px;
+      font-size:13px; color:#9d8ec7; line-height:1.55;
     }
-    .gift-info-list li strong { color: #c4b5fd; font-weight: 600; }
-    .gift-info-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 5px;
+    .gift-info-list li strong { color:#c4b5fd; font-weight:600; }
+    .gift-info-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .gift-info-dot--purple { background:#7c3aed; }
+    .gift-info-dot--blue   { background:#3b82f6; }
+    .gift-info-dot--green  { background:#10b981; }
+    .gift-info-dot--amber  { background:#f59e0b; }
+
+    /* find ID box */
+    .gift-find-id {
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+      border-radius:12px; padding:14px 16px;
     }
-    .gift-info-dot--purple { background: #7c3aed; }
-    .gift-info-dot--blue   { background: #3b82f6; }
-    .gift-info-dot--green  { background: #10b981; }
-    .gift-info-dot--amber  { background: #f59e0b; }
+    .gift-find-id-title { font-size:12px; font-weight:600; color:#6b7280; margin-bottom:10px; }
+    .gift-find-id-steps {
+      padding-left:18px; margin:0;
+      display:flex; flex-direction:column; gap:7px;
+      font-size:12px; color:#4b5563; line-height:1.5;
+    }
+    .gift-find-id-steps strong { color:#9ca3af; font-weight:600; }
   </style>
 
 </body>

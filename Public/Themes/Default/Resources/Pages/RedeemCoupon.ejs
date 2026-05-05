@@ -26,84 +26,102 @@
         <div class="alert-banner alert-banner--<%= _e[0] %> mb-4"><%= _e[1] %></div>
         <% } %>
 
-        <div class="row g-4">
-
-          <!-- Redeem form card -->
-          <div class="col-12 col-lg-5">
-            <div class="coupon-card">
-              <div class="coupon-card-header">
-                <div class="coupon-card-icon">
-                  <svg width="18" height="18" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                    <line x1="7" y1="7" x2="7.01" y2="7"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="coupon-card-title">Enter Coupon Code</div>
-                  <div class="coupon-card-sub">Codes are case-sensitive</div>
-                </div>
-              </div>
-
-              <form action="/coupon_redeem" method="POST">
-                <div class="coupon-field">
-                  <label for="couponCode">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    Coupon Code
-                  </label>
-                  <input
-                    type="text"
-                    class="form-control coupon-input"
-                    id="couponCode"
-                    name="code"
-                    placeholder="EXAMPLE100"
-                    autocomplete="off"
-                    autocapitalize="characters"
-                    spellcheck="false"
-                  >
-                  <div class="coupon-hint">Enter your code exactly as provided</div>
-                </div>
-
-                <button type="submit" class="btn coupon-btn">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><polyline points="20 6 9 17 4 12"/></svg>
-                  Redeem
-                </button>
-              </form>
+        <!-- Balance strip -->
+        <div class="coupon-bal-strip">
+          <div class="coupon-bal-left">
+            <div class="coupon-bal-icon">
+              <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="coupon-bal-label">Your Balance</div>
+              <div class="coupon-bal-val">🪙 <%= Math.floor(parseFloat(coins) * 100) / 100 %> coins</div>
             </div>
           </div>
+          <span class="coupon-bal-plan"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %> plan</span>
+        </div>
 
-          <!-- Info card -->
-          <div class="col-12 col-lg-7">
-            <div class="coupon-info-card">
-              <div class="coupon-info-title">How coupons work</div>
-              <ul class="coupon-info-list">
-                <li>
-                  <div class="coupon-dot coupon-dot--amber"></div>
-                  <span>Each coupon code can only be <strong>redeemed once</strong> per account</span>
-                </li>
-                <li>
-                  <div class="coupon-dot coupon-dot--purple"></div>
-                  <span>Codes may grant <strong>coins, resources, or plan upgrades</strong> depending on the coupon</span>
-                </li>
-                <li>
-                  <div class="coupon-dot coupon-dot--green"></div>
-                  <span>Rewards are applied to your account <strong>instantly</strong> upon redemption</span>
-                </li>
-                <li>
-                  <div class="coupon-dot coupon-dot--blue"></div>
-                  <span>Codes are <strong>case-sensitive</strong> — make sure to enter them exactly as given</span>
-                </li>
-              </ul>
+        <!-- Main grid -->
+        <div class="coupon-grid">
 
-              <!-- Balance pill -->
-              <div class="coupon-balance-row">
-                <div class="coupon-balance-icon">
-                  <svg width="14" height="14" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-                <span class="coupon-balance-label">Current balance</span>
-                <span class="coupon-balance-val">🪙 <%= Math.floor(parseFloat(coins) * 100) / 100 %> coins</span>
-                <span class="badge-purple coupon-plan-badge"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %></span>
+          <!-- Ticket form card -->
+          <div class="coupon-ticket">
+            <div class="coupon-ticket-top">
+              <div class="coupon-ticket-icon">
+                <svg width="22" height="22" fill="none" stroke="#fcd34d" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </div>
+              <div class="coupon-ticket-title">Enter Coupon Code</div>
+              <div class="coupon-ticket-sub">Codes are case-sensitive — enter exactly as given</div>
+            </div>
+
+            <!-- Dashed divider -->
+            <div class="coupon-divider">
+              <div class="coupon-divider-notch coupon-divider-notch--left"></div>
+              <div class="coupon-divider-line"></div>
+              <div class="coupon-divider-notch coupon-divider-notch--right"></div>
+            </div>
+
+            <form action="/coupon_redeem" method="POST" class="coupon-form">
+              <div class="coupon-input-group">
+                <svg class="coupon-input-icon" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <input
+                  type="text"
+                  class="coupon-input"
+                  id="couponCode"
+                  name="code"
+                  placeholder="EXAMPLE-CODE"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                >
+              </div>
+
+              <button type="submit" class="coupon-submit-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                Redeem Code
+              </button>
+            </form>
+          </div>
+
+          <!-- Info panel -->
+          <div class="coupon-info-card">
+            <div class="coupon-info-title">What you can receive</div>
+            <div class="coupon-reward-chips">
+              <div class="coupon-chip coupon-chip--amber">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Coins
+              </div>
+              <div class="coupon-chip coupon-chip--purple">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                RAM / Disk / CPU
+              </div>
+              <div class="coupon-chip coupon-chip--blue">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Plan Upgrade
+              </div>
+              <div class="coupon-chip coupon-chip--green">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                Server Slots
               </div>
             </div>
+
+            <div class="coupon-info-title" style="margin-top:20px;">How it works</div>
+            <ul class="coupon-info-list">
+              <li>
+                <div class="coupon-dot coupon-dot--amber"></div>
+                <span>Each code can only be <strong>redeemed once</strong> per account</span>
+              </li>
+              <li>
+                <div class="coupon-dot coupon-dot--purple"></div>
+                <span>Rewards are applied <strong>instantly</strong> upon redemption</span>
+              </li>
+              <li>
+                <div class="coupon-dot coupon-dot--blue"></div>
+                <span>Codes are <strong>case-sensitive</strong> — enter them exactly as given</span>
+              </li>
+            </ul>
           </div>
 
         </div>
@@ -113,8 +131,8 @@
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
-            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/Feliactyl" target="_blank" style="color:#a78bfa;">Feliactyl v<%= settings.version %></a></div>
+            <div class="col-6 text-end"><a href="https://discord.gg/N7C2nbYpQf" target="_blank" style="color:#5865f2;text-decoration:none;">Discord</a> · <span id="loadtime"></span></div>
           </div>
         </div>
       </footer>
@@ -125,159 +143,106 @@
   <%- include('../../Components/LoadingBar.ejs') %>
 
   <style>
-    /* ── Coupon card ── */
-    .coupon-card {
-      background: var(--surface);
-      border: 1px solid rgba(245,158,11,0.2);
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
+    /* ── Balance strip ── */
+    .coupon-bal-strip {
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:14px 20px; margin-bottom:20px;
     }
-    .coupon-card::before {
-      content: '';
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: linear-gradient(90deg, #d97706, #fcd34d, #f59e0b);
-      border-radius: 16px 16px 0 0;
-    }
+    .coupon-bal-left  { display:flex; align-items:center; gap:12px; }
+    .coupon-bal-icon  { width:34px; height:34px; border-radius:9px; background:rgba(245,158,11,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .coupon-bal-label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.7px; font-weight:600; }
+    .coupon-bal-val   { font-size:16px; font-weight:800; color:#fcd34d; margin-top:1px; }
+    .coupon-bal-plan  { font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; background:rgba(124,58,237,.12); color:#c4b5fd; border:1px solid rgba(124,58,237,.2); }
 
-    .coupon-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 22px 16px;
-      border-bottom: 1px solid rgba(245,158,11,0.1);
-    }
-    .coupon-card-icon {
-      width: 40px; height: 40px; flex-shrink: 0;
-      border-radius: 10px;
-      background: rgba(245,158,11,0.14);
-      border: 1px solid rgba(245,158,11,0.22);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .coupon-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
-    .coupon-card-sub   { font-size: 11px; color: #7a6030; margin-top: 2px; }
+    /* ── Main grid ── */
+    .coupon-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    @media(max-width:768px){ .coupon-grid{ grid-template-columns:1fr; } }
 
-    /* field */
-    .coupon-field {
-      padding: 18px 22px 0;
+    /* ── Ticket card ── */
+    .coupon-ticket {
+      background:var(--surface); border:1px solid rgba(245,158,11,.22);
+      border-radius:16px; overflow:hidden; position:relative;
     }
-    .coupon-field label {
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      color: #9d8ec7 !important;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 8px !important;
-      display: block;
+    .coupon-ticket::before {
+      content:''; position:absolute; inset:0 0 auto 0; height:3px;
+      background:linear-gradient(90deg,#d97706,#fcd34d,#f59e0b);
+      border-radius:16px 16px 0 0;
     }
+    .coupon-ticket-top { padding:24px 24px 20px; text-align:center; }
+    .coupon-ticket-icon {
+      width:52px; height:52px; border-radius:14px; margin:0 auto 14px;
+      background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.2);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .coupon-ticket-title { font-size:16px; font-weight:800; color:#e2e8f0; margin-bottom:6px; }
+    .coupon-ticket-sub   { font-size:12px; color:#6b5c30; }
+
+    /* dashed divider */
+    .coupon-divider { display:flex; align-items:center; margin:0 -1px; position:relative; }
+    .coupon-divider-notch {
+      width:20px; height:20px; border-radius:50%; flex-shrink:0;
+      background:var(--bg); border:1px solid rgba(245,158,11,.22);
+    }
+    .coupon-divider-notch--left  { margin-left:-10px; border-left-color:transparent; }
+    .coupon-divider-notch--right { margin-right:-10px; border-right-color:transparent; }
+    .coupon-divider-line { flex:1; border-top:2px dashed rgba(245,158,11,.18); }
+
+    /* form */
+    .coupon-form { padding:22px 24px 24px; display:flex; flex-direction:column; gap:14px; }
+    .coupon-input-group { position:relative; }
+    .coupon-input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); pointer-events:none; }
     .coupon-input {
-      background: var(--surface2) !important;
-      border: 1px solid rgba(245,158,11,0.22) !important;
-      border-radius: 10px !important;
-      color: #fcd34d !important;
-      font-size: 15px !important;
-      font-weight: 700 !important;
-      letter-spacing: 2px;
-      padding: 12px 14px !important;
-      width: 100% !important;
-      transition: border-color 0.15s, box-shadow 0.15s !important;
+      width:100%; padding:13px 14px 13px 40px;
+      background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.22);
+      border-radius:11px; color:#fcd34d; font-size:15px; font-weight:700;
+      letter-spacing:2px; outline:none; font-family:inherit;
+      transition:border-color .15s, background .15s;
     }
-    .coupon-input::placeholder { color: #4a3a1a !important; font-weight: 400 !important; letter-spacing: 1px; }
-    .coupon-input:focus {
-      border-color: #f59e0b !important;
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.15) !important;
-      outline: none !important;
+    .coupon-input::placeholder { color:rgba(245,158,11,.25); font-weight:400; letter-spacing:1px; }
+    .coupon-input:focus { border-color:#f59e0b; background:rgba(245,158,11,.1); box-shadow:0 0 0 3px rgba(245,158,11,.1); }
+    .coupon-submit-btn {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; padding:13px; border-radius:11px; font-size:14px; font-weight:800;
+      background:linear-gradient(135deg,#d97706,#fcd34d); color:#1a1000;
+      border:none; cursor:pointer; font-family:inherit;
+      box-shadow:0 4px 18px rgba(217,119,6,.35); transition:all .15s;
     }
-    .coupon-hint {
-      font-size: 11px;
-      color: #4b4669;
-      margin-top: 6px;
-    }
-
-    /* button */
-    .coupon-btn {
-      margin: 18px 22px 22px;
-      width: calc(100% - 44px);
-      padding: 11px !important;
-      font-size: 13px !important;
-      font-weight: 600 !important;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #d97706, #fcd34d) !important;
-      color: #1a1000 !important;
-      border: none !important;
-      border-radius: 10px !important;
-      box-shadow: 0 2px 14px rgba(217,119,6,0.3) !important;
-      transition: all 0.15s !important;
-    }
-    .coupon-btn:hover {
-      transform: translateY(-1px) !important;
-      filter: brightness(1.08) !important;
-    }
+    .coupon-submit-btn:hover { transform:translateY(-1px); box-shadow:0 6px 24px rgba(217,119,6,.5); }
 
     /* ── Info card ── */
     .coupon-info-card {
-      background: rgba(245,158,11,0.04);
-      border: 1px solid rgba(245,158,11,0.14);
-      border-radius: 16px;
-      padding: 22px 24px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+      background:rgba(245,158,11,.04); border:1px solid rgba(245,158,11,.12);
+      border-radius:16px; padding:22px 22px; display:flex; flex-direction:column;
     }
     .coupon-info-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: #7c6faa;
-      margin-bottom: 16px;
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.9px; color:#7c6faa; margin-bottom:14px;
     }
-    .coupon-info-list {
-      list-style: none;
-      padding: 0; margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-      flex: 1;
-    }
-    .coupon-info-list li {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 13px; color: #9d8ec7; line-height: 1.55;
-    }
-    .coupon-info-list li strong { color: #c4b5fd; font-weight: 600; }
-    .coupon-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      flex-shrink: 0; margin-top: 5px;
-    }
-    .coupon-dot--amber  { background: #f59e0b; }
-    .coupon-dot--purple { background: #7c3aed; }
-    .coupon-dot--green  { background: #10b981; }
-    .coupon-dot--blue   { background: #3b82f6; }
 
-    /* balance row */
-    .coupon-balance-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(245,158,11,0.1);
+    /* reward chips */
+    .coupon-reward-chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .coupon-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600;
     }
-    .coupon-balance-icon {
-      width: 26px; height: 26px;
-      border-radius: 7px;
-      background: rgba(245,158,11,0.14);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+    .coupon-chip--amber  { background:rgba(245,158,11,.1);  color:#fcd34d; border:1px solid rgba(245,158,11,.2); }
+    .coupon-chip--purple { background:rgba(124,58,237,.1);  color:#c4b5fd; border:1px solid rgba(124,58,237,.2); }
+    .coupon-chip--blue   { background:rgba(59,130,246,.1);  color:#93c5fd; border:1px solid rgba(59,130,246,.2); }
+    .coupon-chip--green  { background:rgba(16,185,129,.1);  color:#6ee7b7; border:1px solid rgba(16,185,129,.2); }
+
+    /* info list */
+    .coupon-info-list {
+      list-style:none; padding:0; margin:0;
+      display:flex; flex-direction:column; gap:12px;
     }
-    .coupon-balance-label { font-size: 12px; color: #7c6faa; }
-    .coupon-balance-val   { font-size: 13px; font-weight: 700; color: #fcd34d; }
-    .coupon-plan-badge    { font-size: 11px; margin-left: auto; }
+    .coupon-info-list li { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#9d8ec7; line-height:1.55; }
+    .coupon-info-list li strong { color:#c4b5fd; font-weight:600; }
+    .coupon-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+    .coupon-dot--amber  { background:#f59e0b; }
+    .coupon-dot--purple { background:#7c3aed; }
+    .coupon-dot--green  { background:#10b981; }
+    .coupon-dot--blue   { background:#3b82f6; }
   </style>
 
 </body>

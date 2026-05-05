@@ -10,62 +10,106 @@
 
       <main class="content">
         <style>
-          .cs-steps { display:flex; align-items:center; gap:0; margin-bottom:28px; }
+          /* Steps bar */
+          .cs-steps { display:flex; align-items:center; gap:0; margin-bottom:6px; flex-wrap:wrap; }
           .cs-step {
-            display:flex; align-items:center; gap:10px; cursor:pointer;
-            padding:10px 18px; border-radius:10px; font-size:13px; font-weight:500;
-            color:#5b4f85; transition:all 0.15s; user-select:none;
+            display:flex; align-items:center; gap:9px; cursor:pointer;
+            padding:9px 14px; border-radius:10px; font-size:13px; font-weight:500;
+            color:#4b5563; transition:all 0.15s; user-select:none;
           }
-          .cs-step.active { background:rgba(109,40,217,0.18); color:#c4b5fd; }
-          .cs-step.active .cs-step-num { background:linear-gradient(135deg,#6d28d9,#4f46e5); color:white; box-shadow:0 0 10px rgba(109,40,217,0.5); }
+          .cs-step.active { background:rgba(124,58,237,0.15); color:#c4b5fd; }
+          .cs-step.done  { color:#6b7280; }
+          .cs-step.done .cs-step-num { background:rgba(16,185,129,0.15); color:#34d399; }
+          .cs-step.active .cs-step-num { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; box-shadow:0 0 10px rgba(124,58,237,0.4); }
           .cs-step-num {
             width:26px; height:26px; border-radius:50%;
-            background:rgba(139,92,246,0.1); color:#5b4f85;
+            background:rgba(255,255,255,0.05); color:#4b5563;
             display:flex; align-items:center; justify-content:center;
             font-size:11px; font-weight:700; flex-shrink:0; transition:all 0.15s;
           }
-          .cs-step-arrow { color:#3d3160; font-size:16px; padding:0 2px; }
-          .cs-progress { height:6px; border-radius:9999px; background:rgba(139,92,246,0.08); overflow:hidden; margin:8px 2px 20px; }
-          .cs-progress-bar { height:100%; width:0%; background:linear-gradient(90deg,#6d28d9,#4f46e5); box-shadow:0 0 12px rgba(109,40,217,0.5) inset; transition:width .2s ease; }
-          .cs-panel { display:none; }
+          .cs-step-arrow { color:#2d2d3a; font-size:18px; padding:0 2px; line-height:1; }
+
+          /* Progress */
+          .cs-progress { height:3px; border-radius:9999px; background:rgba(255,255,255,0.05); overflow:hidden; margin:0 0 28px; }
+          .cs-progress-bar { height:100%; width:0%; background:linear-gradient(90deg,#7c3aed,#3b82f6); transition:width .3s ease; }
+
+          /* Panels */
+          .cs-panel { display:none; animation:fadeIn .18s ease; }
           .cs-panel.active { display:block; }
-          .cs-field { margin-bottom:20px; }
-          .cs-field label { display:block; font-size:12px; font-weight:600; color:#7c6faa; margin-bottom:8px; text-transform:uppercase; letter-spacing:.6px; }
+          @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+          /* Fields */
+          .cs-field { margin-bottom:22px; }
+          .cs-field label { display:block; font-size:11px; font-weight:600; color:#6b7280; margin-bottom:8px; text-transform:uppercase; letter-spacing:.8px; }
           .cs-input {
-            width:100%; max-width:480px; padding:11px 14px;
-            background:rgba(109,40,217,0.07); border:1px solid rgba(139,92,246,0.2);
-            border-radius:9px; color:#e2d9f3; font-size:14px; outline:none;
-            transition:border-color 0.15s;
+            width:100%; max-width:520px; padding:12px 15px;
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:10px; color:#e5e7eb; font-size:14px; outline:none;
+            transition:border-color 0.15s, background 0.15s; font-family:inherit;
           }
-          .cs-input:focus { border-color:rgba(139,92,246,0.6); background:rgba(109,40,217,0.12); }
-          .cs-input option { background:#14112a; }
-          .cs-hint { font-size:11px; color:#3d3160; margin-top:6px; }
-          .cs-chips { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
-          .chip { padding:6px 10px; border-radius:9999px; font-size:12px; color:#c4b5fd; cursor:pointer;
-                  border:1px solid rgba(139,92,246,0.25); background:rgba(109,40,217,0.1); }
-          .chip:hover { border-color:rgba(139,92,246,0.5); }
+          .cs-input:focus { border-color:rgba(124,58,237,0.6); background:rgba(124,58,237,0.06); }
+          .cs-input option { background:#13111f; }
+          .cs-hint { font-size:11px; color:#4b5563; margin-top:7px; }
+
+          /* Quick-pick chips */
+          .cs-chips { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+          .chip {
+            padding:5px 12px; border-radius:8px; font-size:12px; font-weight:500;
+            color:#a78bfa; cursor:pointer;
+            border:1px solid rgba(124,58,237,0.2); background:rgba(124,58,237,0.07);
+            transition:all .15s;
+          }
+          .chip:hover { border-color:rgba(124,58,237,0.5); background:rgba(124,58,237,0.15); color:#c4b5fd; }
+
+          /* Resource usage bar inside step */
+          .cs-avail-bar { margin-top:12px; }
+          .cs-avail-label { display:flex; justify-content:space-between; font-size:11px; color:#4b5563; margin-bottom:5px; }
+          .cs-avail-track { height:4px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+          .cs-avail-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#7c3aed,#a78bfa); transition:width .4s; }
+
+          /* Location cards */
           .cs-loc-grid { display:flex; flex-wrap:wrap; gap:14px; }
           .cs-loc-card {
             position:relative; cursor:pointer;
-            border:2px solid rgba(139,92,246,0.15); border-radius:12px; overflow:hidden;
-            transition:border-color 0.15s, box-shadow 0.15s; flex-shrink:0;
+            border:1px solid rgba(255,255,255,0.07); border-radius:14px; overflow:hidden;
+            transition:border-color 0.15s, box-shadow 0.15s, transform 0.15s; flex-shrink:0;
+            background:rgba(255,255,255,0.03);
           }
-          .cs-loc-card:hover { border-color:rgba(139,92,246,0.4); }
-          .cs-loc-card.selected { border-color:#7c3aed; box-shadow:0 0 16px rgba(124,58,237,0.3); }
+          .cs-loc-card:hover { border-color:rgba(124,58,237,0.4); transform:translateY(-2px); }
+          .cs-loc-card.selected { border-color:#7c3aed; box-shadow:0 0 20px rgba(124,58,237,0.25); }
           .cs-loc-card input { position:absolute; opacity:0; width:0; height:0; }
-          .cs-loc-card img { width:240px; height:140px; object-fit:cover; display:block; }
-          .cs-loc-fallback { width:240px; height:140px; display:none; align-items:center; justify-content:center; flex-direction:column;
-                              background: radial-gradient(120% 120% at 50% 0%, rgba(124,58,237,0.25) 0%, rgba(14,11,30,0.85) 60%);
-                              color:#e2d9f3; text-align:center; padding:12px; gap:6px; }
-          .cs-loc-fallback .title { font-weight:700; letter-spacing:-0.2px; }
-          .cs-loc-fallback .desc { font-size:12px; color:#a899cc; }
-          .cs-loc-tick { position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%;
-                          background:linear-gradient(135deg,#6d28d9,#4f46e5); color:#fff; display:none; align-items:center; justify-content:center;
-                          font-size:12px; box-shadow:0 0 12px rgba(109,40,217,0.5); }
+          .cs-loc-card img { width:220px; height:120px; object-fit:cover; display:block; }
+          .cs-loc-fallback {
+            width:220px; height:120px; display:none; align-items:center; justify-content:center; flex-direction:column;
+            background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(14,11,30,0.9));
+            color:#e5e7eb; text-align:center; padding:14px; gap:6px;
+          }
+          .cs-loc-fallback .loc-name { font-weight:700; font-size:14px; }
+          .cs-loc-fallback .loc-id   { font-size:11px; color:#6b7280; }
+          .cs-loc-tick {
+            position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%;
+            background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; display:none;
+            align-items:center; justify-content:center; font-size:11px;
+            box-shadow:0 0 10px rgba(124,58,237,0.5);
+          }
           .cs-loc-card.selected .cs-loc-tick { display:flex; }
-          .cs-loc-label { padding:8px 12px; font-size:12px; font-weight:600; color:#a899cc; background:rgba(14,11,30,0.8); }
-          .cs-footer { display:flex; align-items:center; justify-content:space-between; margin-top:28px; padding-top:20px; border-top:1px solid rgba(139,92,246,0.08); }
-          .cs-error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:10px; padding:12px 16px; color:#fca5a5; font-size:13px; margin-bottom:20px; }
+          .cs-loc-label { padding:9px 12px; font-size:12px; font-weight:600; color:#9ca3af; background:rgba(0,0,0,0.3); border-top:1px solid rgba(255,255,255,0.05); }
+          .cs-loc-label strong { color:#e5e7eb; }
+
+          /* Footer nav */
+          .cs-footer { display:flex; align-items:center; justify-content:space-between; margin-top:32px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.06); }
+          .cs-btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .15s; font-family:inherit; }
+          .cs-btn--ghost { background:rgba(255,255,255,0.05); color:#9ca3af; border:1px solid rgba(255,255,255,0.08); }
+          .cs-btn--ghost:hover { background:rgba(255,255,255,0.09); color:#fff; }
+          .cs-btn--primary { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; box-shadow:0 4px 16px rgba(124,58,237,0.3); }
+          .cs-btn--primary:hover { box-shadow:0 6px 24px rgba(124,58,237,0.5); transform:translateY(-1px); }
+
+          /* Error */
+          .cs-error { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:12px 16px; color:#fca5a5; font-size:13px; margin-bottom:24px; display:flex; align-items:center; gap:10px; }
+
+          /* Section title inside card */
+          .cs-section-title { font-size:16px; font-weight:700; color:#fff; margin-bottom:4px; }
+          .cs-section-sub   { font-size:13px; color:#6b7280; margin-bottom:24px; }
         </style>
 
         <div class="page-header">
@@ -108,106 +152,124 @@
           <div class="card-body">
 
             <div class="cs-panel active" id="panel-1">
+              <div class="cs-section-title">Name your server</div>
+              <div class="cs-section-sub">Choose something memorable — you can change it later</div>
               <div class="cs-field">
                 <label>Server Name</label>
-                <input class="cs-input" type="text" id="InputName" placeholder="My awesome server">
-                <div class="cs-hint">Give your server a unique name (max 191 characters)</div>
+                <input class="cs-input" type="text" id="InputName" placeholder="My awesome server" maxlength="191">
+                <div class="cs-hint">Max 191 characters</div>
               </div>
             </div>
 
             <div class="cs-panel" id="panel-2">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <% const _maxRam = packages.ram + extraresources.ram; %>
-                  <div class="cs-field">
-                    <label>RAM (MB)</label>
-                    <input class="cs-input" type="number" id="InputRAM" placeholder="e.g. 1024">
-                    <div class="cs-hint">Available: <%= _maxRam %> MB</div>
-                    <div class="cs-chips">
-                      <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.25) %>)">25%</span>
-                      <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.50) %>)">50%</span>
-                      <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.75) %>)">75%</span>
-                      <span class="chip" onclick="setVal('InputRAM',<%= _maxRam %>)">100%</span>
-                    </div>
+              <div class="cs-section-title">Memory & CPU</div>
+              <div class="cs-section-sub">Allocate resources for your server</div>
+              <% const _maxRam = packages.ram + extraresources.ram; %>
+              <% const _maxCpu = packages.cpu + extraresources.cpu; %>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:640px;">
+                <div class="cs-field">
+                  <label>RAM (MB)</label>
+                  <input class="cs-input" type="number" id="InputRAM" placeholder="e.g. 1024" style="max-width:100%;">
+                  <div class="cs-chips">
+                    <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.25) %>)">25%</span>
+                    <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.50) %>)">50%</span>
+                    <span class="chip" onclick="setVal('InputRAM',<%= Math.floor(_maxRam*0.75) %>)">75%</span>
+                    <span class="chip" onclick="setVal('InputRAM',<%= _maxRam %>)">Max</span>
+                  </div>
+                  <div class="cs-avail-bar">
+                    <div class="cs-avail-label"><span>Pool available</span><span><%= _maxRam %> MB</span></div>
+                    <div class="cs-avail-track"><div class="cs-avail-fill" style="width:100%"></div></div>
                   </div>
                 </div>
-                <div class="col-md-6">
-                  <% const _maxCpu = packages.cpu + extraresources.cpu; %>
-                  <div class="cs-field">
-                    <label>CPU (%)</label>
-                    <input class="cs-input" type="number" id="InputCPU" placeholder="e.g. 100">
-                    <div class="cs-hint">Available: <%= _maxCpu %>%</div>
-                    <div class="cs-chips">
-                      <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.25) %>)">25%</span>
-                      <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.50) %>)">50%</span>
-                      <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.75) %>)">75%</span>
-                      <span class="chip" onclick="setVal('InputCPU',<%= _maxCpu %>)">100%</span>
-                    </div>
+                <div class="cs-field">
+                  <label>CPU (%)</label>
+                  <input class="cs-input" type="number" id="InputCPU" placeholder="e.g. 100" style="max-width:100%;">
+                  <div class="cs-chips">
+                    <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.25) %>)">25%</span>
+                    <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.50) %>)">50%</span>
+                    <span class="chip" onclick="setVal('InputCPU',<%= Math.floor(_maxCpu*0.75) %>)">75%</span>
+                    <span class="chip" onclick="setVal('InputCPU',<%= _maxCpu %>)">Max</span>
+                  </div>
+                  <div class="cs-avail-bar">
+                    <div class="cs-avail-label"><span>Pool available</span><span><%= _maxCpu %>%</span></div>
+                    <div class="cs-avail-track"><div class="cs-avail-fill" style="width:100%"></div></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="cs-panel" id="panel-3">
+              <div class="cs-section-title">Disk Storage</div>
+              <div class="cs-section-sub">How much storage should your server have?</div>
               <% const _maxDisk = packages.disk + extraresources.disk; %>
-              <div class="cs-field">
-                <label>Disk Size (MB)</label>
-                <input class="cs-input" type="number" id="InputDisk" placeholder="e.g. 5120">
-                <div class="cs-hint">Available: <%= _maxDisk %> MB</div>
-                <div class="cs-chips">
-                  <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.25) %>)">25%</span>
-                  <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.50) %>)">50%</span>
-                  <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.75) %>)">75%</span>
-                  <span class="chip" onclick="setVal('InputDisk',<%= _maxDisk %>)">100%</span>
+              <div style="max-width:320px;">
+                <div class="cs-field">
+                  <label>Disk Size (MB)</label>
+                  <input class="cs-input" type="number" id="InputDisk" placeholder="e.g. 5120" style="max-width:100%;">
+                  <div class="cs-chips">
+                    <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.25) %>)">25%</span>
+                    <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.50) %>)">50%</span>
+                    <span class="chip" onclick="setVal('InputDisk',<%= Math.floor(_maxDisk*0.75) %>)">75%</span>
+                    <span class="chip" onclick="setVal('InputDisk',<%= _maxDisk %>)">Max</span>
+                  </div>
+                  <div class="cs-avail-bar">
+                    <div class="cs-avail-label"><span>Pool available</span><span><%= _maxDisk %> MB</span></div>
+                    <div class="cs-avail-track"><div class="cs-avail-fill" style="width:100%"></div></div>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div class="cs-panel" id="panel-4">
-              <div class="cs-field">
-                <label>Select Location</label>
-                <script>let inputLOCC = "";</script>
-                <div class="cs-loc-grid">
-                  <% for (let [name, value] of Object.entries(settings.api.client.locations)) { %>
-                  <label class="cs-loc-card" id="loc-<%= name %>" onclick="selectLoc('<%= name %>', this)">
-                    <input type="radio" name="InputLoc" value="<%= name %>">
-                    <img src="<%= value.banner %>" alt="<%= value.name || name %>" onerror="this.style.display='none'; this.parentNode.querySelector('.cs-loc-fallback').style.display='flex';">
-                    <div class="cs-loc-fallback">
-                      <svg width="28" height="28" fill="none" stroke="#7c3aed" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:4px;opacity:0.6;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                      <div class="title"><%= value.name || ('Location ' + name) %></div>
-                      <div class="desc">ID: <%= name %></div>
-                    </div>
-                    <div class="cs-loc-tick">✓</div>
-                    <div class="cs-loc-label">
-                      <span style="color:#e2d9f3;font-weight:700;"><%= value.name || ('Location ' + name) %></span>
-                      <span style="color:#4b4669;font-size:10px;margin-left:6px;">ID: <%= name %></span>
-                    </div>
-                  </label>
-                  <% } %>
-                </div>
+              <div class="cs-section-title">Choose Location</div>
+              <div class="cs-section-sub">Pick the datacenter closest to your players</div>
+              <script>let inputLOCC = "";</script>
+              <div class="cs-loc-grid">
+                <% for (let [name, value] of Object.entries(settings.api.client.locations)) { %>
+                <label class="cs-loc-card" id="loc-<%= name %>" onclick="selectLoc('<%= name %>', this)">
+                  <input type="radio" name="InputLoc" value="<%= name %>">
+                  <img src="<%= value.banner %>" alt="<%= value.name || name %>" onerror="this.style.display='none'; this.parentNode.querySelector('.cs-loc-fallback').style.display='flex';">
+                  <div class="cs-loc-fallback">
+                    <svg width="28" height="28" fill="none" stroke="#7c3aed" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.7"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                    <div class="loc-name"><%= value.name || ('Location ' + name) %></div>
+                    <div class="loc-id">ID: <%= name %></div>
+                  </div>
+                  <div class="cs-loc-tick">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div class="cs-loc-label"><strong><%= value.name || ('Location ' + name) %></strong> <span style="font-size:10px;margin-left:4px;">· <%= name %></span></div>
+                </label>
+                <% } %>
               </div>
             </div>
 
             <div class="cs-panel" id="panel-5">
+              <div class="cs-section-title">Select Software</div>
+              <div class="cs-section-sub">Choose the game or application to run on your server</div>
               <div class="cs-field">
                 <label>Server Software</label>
-                <select class="cs-input" id="InputEgg">
+                <select class="cs-input" id="InputEgg" style="max-width:400px;cursor:pointer;">
                   <% for (let [name, value] of Object.entries(settings.api.client.eggs)) { %>
                     <option value="<%= name %>"><%= value.display %></option>
                   <% } %>
                 </select>
-                <div class="cs-hint">Choose the game or application you want to run</div>
               </div>
             </div>
 
             <!-- Footer nav -->
             <div class="cs-footer">
-              <button class="btn btn-secondary" id="btn-prev" onclick="goStep(currentStep-1)" style="display:none;">← Back</button>
+              <button class="cs-btn cs-btn--ghost" id="btn-prev" onclick="goStep(currentStep-1)" style="display:none;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+              </button>
               <div style="flex:1;"></div>
-              <button class="btn btn-primary" id="btn-next" onclick="goStep(currentStep+1)">Next →</button>
-              <button class="btn btn-primary" id="btn-create" onclick="submitNew()" style="display:none;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>
-                Create Server
+              <button class="cs-btn cs-btn--primary" id="btn-next" onclick="goStep(currentStep+1)">
+                Next
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              <button class="cs-btn cs-btn--primary" id="btn-create" onclick="submitNew()" style="display:none;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                Deploy Server
               </button>
             </div>
 
@@ -233,15 +295,23 @@
 
     function goStep(n) {
       if (n < 1 || n > totalSteps) return;
-      document.getElementById('panel-' + currentStep).classList.remove('active');
-      document.getElementById('step-' + currentStep).classList.remove('active');
+      const prevStep = currentStep;
+      document.getElementById('panel-' + prevStep).classList.remove('active');
+      const prevEl = document.getElementById('step-' + prevStep);
+      prevEl.classList.remove('active');
+      if (n > prevStep) {
+        prevEl.classList.add('done');
+        prevEl.querySelector('.cs-step-num').innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+      }
       currentStep = n;
       document.getElementById('panel-' + currentStep).classList.add('active');
-      document.getElementById('step-' + currentStep).classList.add('active');
+      const curEl = document.getElementById('step-' + currentStep);
+      curEl.classList.add('active');
+      curEl.classList.remove('done');
+      curEl.querySelector('.cs-step-num').textContent = currentStep;
       document.getElementById('btn-prev').style.display = currentStep > 1 ? 'inline-flex' : 'none';
       document.getElementById('btn-next').style.display = currentStep < totalSteps ? 'inline-flex' : 'none';
       document.getElementById('btn-create').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
-      // progress
       const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
       const bar = document.getElementById('cs-progress');
       if (bar) bar.style.width = pct + '%';

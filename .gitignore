@@ -133,3 +133,5 @@ dist
 database.sqlite
 settings.json
 .setup_complete
+
+bot

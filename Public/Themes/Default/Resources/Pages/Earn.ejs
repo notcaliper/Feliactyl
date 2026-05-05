@@ -25,94 +25,123 @@
         <% } %>
 
 
-        <div class="row g-4">
+        <% const _afkCoins = settings.api.arcio["afk page"].coins; const _afkEvery = settings.api.arcio["afk page"].every; %>
+
+        <!-- Top stat strip -->
+        <div class="afk-stat-strip">
+          <div class="afk-stat">
+            <div class="afk-stat-icon afk-stat-icon--green">
+              <svg width="15" height="15" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div>
+              <div class="afk-stat-val"><%= _afkCoins %> <span>coins / cycle</span></div>
+              <div class="afk-stat-sub">every <%= _afkEvery %>s</div>
+            </div>
+          </div>
+          <div class="afk-stat-div"></div>
+          <div class="afk-stat">
+            <div class="afk-stat-icon afk-stat-icon--amber">
+              <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="afk-stat-val" id="afkBalDisplay"><%= Math.floor(coins * 100) / 100 %> <span>coins balance</span></div>
+              <div class="afk-stat-sub"><%= packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default' %> plan</div>
+            </div>
+          </div>
+          <div class="afk-stat-div"></div>
+          <div class="afk-stat">
+            <div class="afk-stat-icon afk-stat-icon--blue">
+              <svg width="15" height="15" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div>
+              <div class="afk-stat-val" id="afk-session-display">0 <span>earned this session</span></div>
+              <div class="afk-stat-sub">keep the tab open</div>
+            </div>
+          </div>
+          <div class="afk-stat-div afk-stat-div--right"></div>
+          <a href="/store" class="afk-spend-btn">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Spend Coins
+          </a>
+        </div>
+
+        <!-- Main layout -->
+        <div class="afk-main-grid">
 
           <!-- Countdown card -->
-          <div class="col-12 col-lg-5">
-            <div class="afk-card">
-              <div class="afk-card-header">
-                <div class="afk-card-icon">
-                  <svg width="18" height="18" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="afk-card-title">Earning Active</div>
-                  <div class="afk-card-sub">Keep this tab open</div>
-                </div>
-                <div class="afk-live-dot" id="afk-live-status"></div>
-              </div>
-
-              <!-- Ring countdown -->
-              <div class="afk-ring-wrap">
-                <svg class="afk-ring" viewBox="0 0 120 120">
-                  <circle class="afk-ring-track" cx="60" cy="60" r="50"/>
-                  <circle class="afk-ring-fill" id="afkRingFill" cx="60" cy="60" r="50"
-                    stroke-dasharray="314"
-                    stroke-dashoffset="0"/>
+          <div class="afk-card">
+            <div class="afk-card-header">
+              <div class="afk-card-icon">
+                <svg width="18" height="18" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <div class="afk-ring-inner">
-                  <span class="afk-ring-num" id="arciotimer"><%= settings.api.arcio["afk page"].every %></span>
-                  <span class="afk-ring-label">seconds</span>
-                </div>
               </div>
+              <div>
+                <div class="afk-card-title">Earning Active</div>
+                <div class="afk-card-sub">Keep this tab open & visible</div>
+              </div>
+              <div class="afk-live-dot" id="afk-live-status"></div>
+            </div>
 
-              <div class="afk-reward-line">
-                <span class="afk-reward-pill">
-                  🪙 +<%= settings.api.arcio["afk page"].coins %> coin<%= settings.api.arcio["afk page"].coins == 1 ? "" : "s" %> every <%= settings.api.arcio["afk page"].every %>s
-                </span>
+            <!-- Ring countdown -->
+            <div class="afk-ring-wrap">
+              <svg class="afk-ring" viewBox="0 0 120 120">
+                <circle class="afk-ring-track" cx="60" cy="60" r="50"/>
+                <circle class="afk-ring-fill" id="afkRingFill" cx="60" cy="60" r="50"
+                  stroke-dasharray="314" stroke-dashoffset="0"/>
+              </svg>
+              <div class="afk-ring-inner">
+                <span class="afk-ring-num" id="arciotimer"><%= _afkEvery %></span>
+                <span class="afk-ring-label">seconds</span>
               </div>
-              <div style="text-align:center;font-size:12px;color:#4b7a68;margin-top:6px;">Earned this session: <span id="arciogainedcoins">0</span> coins</div>
+            </div>
+
+            <div class="afk-reward-line">
+              <span class="afk-reward-pill">
+                🪙 +<%= _afkCoins %> coin<%= _afkCoins == 1 ? "" : "s" %> every <%= _afkEvery %>s
+              </span>
+            </div>
+
+            <!-- Session progress bar -->
+            <div class="afk-session-bar-wrap">
+              <div class="afk-session-bar-labels">
+                <span>Session earnings</span>
+                <span id="afk-session-bar-val">0 coins</span>
+              </div>
+              <div class="afk-session-bar-track">
+                <div class="afk-session-bar-fill" id="afk-session-bar"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#374151;margin-top:4px;">
+                <span>0</span><span id="arciogainedcoins" style="display:none">0</span><span>Goal: 50 coins</span>
+              </div>
             </div>
           </div>
 
-          <!-- Stats + info -->
-          <div class="col-12 col-lg-7">
-            <div class="row g-3 mb-3">
+          <!-- Right panel -->
+          <div class="afk-right">
 
-              <div class="col-6">
-                <div class="sc sc--green">
-                  <div class="sc-top">
-                    <div class="sc-icon sc-icon--green">
-                      <svg width="16" height="16" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    </div>
-                    <span class="sc-badge sc-badge--green">per cycle</span>
-                  </div>
-                  <div class="sc-value"><%= settings.api.arcio["afk page"].coins %><span class="sc-unit"> coins</span></div>
-                  <div class="sc-label">Reward Rate</div>
-                  <div class="sc-bar-track"><div class="sc-bar sc-bar--green" style="width:100%"></div></div>
-                  <div class="sc-sub">every <%= settings.api.arcio["afk page"].every %> seconds</div>
-                </div>
+            <!-- Recent events feed -->
+            <div class="afk-events-card">
+              <div class="afk-events-title">
+                <svg width="13" height="13" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Live Activity
               </div>
-
-              <div class="col-6">
-                <div class="sc sc--purple">
-                  <div class="sc-top">
-                    <div class="sc-icon sc-icon--purple">
-                      <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </div>
-                    <span class="sc-badge sc-badge--purple">balance</span>
-                  </div>
-                  <div class="sc-value" id="afkBalDisplay"><%= Math.floor(coins * 100) / 100 %><span class="sc-unit"> 🪙</span></div>
-                  <div class="sc-label">Your Coins</div>
-                  <div class="sc-bar-track"><div class="sc-bar sc-bar--purple" style="width:60%"></div></div>
-                  <div class="sc-sub"><%= packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default' %> plan</div>
-                </div>
+              <div class="afk-events-list" id="afk-events-list">
+                <div class="afk-event afk-event--idle">Waiting for first reward...</div>
               </div>
-
             </div>
 
             <!-- Tips card -->
             <div class="afk-tips-card">
               <div class="afk-tips-title">Tips to maximise earnings</div>
               <ul class="afk-tips-list">
-                <li><div class="gift-info-dot gift-info-dot--green"></div><span>Keep this tab <strong>visible and active</strong> — some browsers throttle hidden tabs</span></li>
-                <li><div class="gift-info-dot gift-info-dot--purple"></div><span>Disable <strong>sleep / screen lock</strong> on your device while earning</span></li>
-                <li><div class="gift-info-dot gift-info-dot--blue"></div><span>Spend coins in the <strong>Store</strong> to upgrade your plan and get more resources</span></li>
+                <li><div class="afk-dot afk-dot--green"></div><span>Keep this tab <strong>visible and active</strong> — browsers throttle hidden tabs</span></li>
+                <li><div class="afk-dot afk-dot--purple"></div><span>Disable <strong>sleep / screen lock</strong> while earning</span></li>
+                <li><div class="afk-dot afk-dot--blue"></div><span>Spend coins in the <a href="/store" style="color:#93c5fd;text-decoration:none;font-weight:600;">Store</a> to get more resources</span></li>
               </ul>
             </div>
-          </div>
 
+          </div>
         </div>
 
       </main>
@@ -120,8 +149,8 @@
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
-            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/Feliactyl" target="_blank" style="color:#a78bfa;">Feliactyl v<%= settings.version %></a></div>
+            <div class="col-6 text-end"><a href="https://discord.gg/N7C2nbYpQf" target="_blank" style="color:#5865f2;text-decoration:none;">Discord</a> · <span id="loadtime"></span></div>
           </div>
         </div>
       </footer>
@@ -200,12 +229,32 @@
     })();
   </script>
 
-  <!-- Ring animation -->
+  <!-- Ring + session bar + live feed -->
   <script>
     (function() {
       const total = <%= settings.api.arcio["afk page"].every %>;
+      const coinsPerCycle = <%= settings.api.arcio["afk page"].coins %>;
       const fill  = document.getElementById('afkRingFill');
       const circumference = 314;
+      const SESSION_GOAL = 50;
+      let lastGained = 0;
+
+      function now() {
+        const d = new Date();
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+      }
+
+      function pushEvent(msg, type) {
+        const list = document.getElementById('afk-events-list');
+        if (!list) return;
+        const idle = list.querySelector('.afk-event--idle');
+        if (idle) idle.remove();
+        const el = document.createElement('div');
+        el.className = 'afk-event afk-event--' + type;
+        el.innerHTML = msg + '<span class="afk-event-time">' + now() + '</span>';
+        list.insertBefore(el, list.firstChild);
+        if (list.children.length > 8) list.removeChild(list.lastChild);
+      }
 
       function updateRing() {
         const current = parseInt(document.getElementById('arciotimer').textContent, 10) || 0;
@@ -213,157 +262,168 @@
         fill.style.strokeDashoffset = circumference * (1 - pct);
       }
 
+      function updateSession(gained) {
+        const barFill = document.getElementById('afk-session-bar');
+        const barVal  = document.getElementById('afk-session-bar-val');
+        const display = document.getElementById('afk-session-display');
+        const pct = Math.min((gained / SESSION_GOAL) * 100, 100);
+        if (barFill) barFill.style.width = pct + '%';
+        if (barVal)  barVal.textContent = gained + ' coins';
+        if (display) display.childNodes[0].textContent = gained + ' ';
+      }
+
       updateRing();
+
       const obs = new MutationObserver(() => {
         updateRing();
         const gained = parseInt(document.getElementById('arciogainedcoins').textContent, 10) || 0;
         const base = <%= Math.floor(coins * 100) / 100 %>;
         const balEl = document.getElementById('afkBalDisplay');
-        if (balEl) balEl.childNodes[0].textContent = (base + gained).toFixed(0);
+        if (balEl) balEl.childNodes[0].textContent = (base + gained).toFixed(0) + ' ';
+
+        if (gained > lastGained) {
+          const diff = gained - lastGained;
+          lastGained = gained;
+          pushEvent('🪙 +' + diff + ' coin' + (diff === 1 ? '' : 's') + ' earned', 'reward');
+          updateSession(gained);
+        }
       });
       obs.observe(document.getElementById('arciotimer'), { childList: true, characterData: true, subtree: true });
+
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden) pushEvent('⚠️ Tab hidden — earnings may slow', 'warn');
+        else pushEvent('✓ Tab active again', 'reward');
+      });
     })();
   </script>
 
   <style>
-    /* ── AFK card ── */
+    /* ── Stat strip ── */
+    .afk-stat-strip {
+      display: flex; align-items: center; gap: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 22px; margin-bottom: 20px;
+      flex-wrap: wrap; gap: 0;
+    }
+    .afk-stat { display:flex; align-items:center; gap:12px; flex:1; min-width:160px; }
+    .afk-stat-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .afk-stat-icon--green  { background:rgba(16,185,129,.12); }
+    .afk-stat-icon--amber  { background:rgba(245,158,11,.12); }
+    .afk-stat-icon--blue   { background:rgba(59,130,246,.12); }
+    .afk-stat-val { font-size:15px; font-weight:700; color:#fff; line-height:1.2; }
+    .afk-stat-val span { font-size:11px; font-weight:400; color:#6b7280; }
+    .afk-stat-sub { font-size:11px; color:#4b5563; margin-top:2px; }
+    .afk-stat-div { width:1px; height:36px; background:rgba(255,255,255,.06); margin:0 20px; flex-shrink:0; }
+    .afk-stat-div--right { margin-left:auto; }
+    .afk-spend-btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:8px 16px; border-radius:9px; font-size:12px; font-weight:600;
+      background:rgba(124,58,237,.15); color:#c4b5fd;
+      border:1px solid rgba(124,58,237,.25); text-decoration:none;
+      transition:all .15s; white-space:nowrap; flex-shrink:0;
+    }
+    .afk-spend-btn:hover { background:rgba(124,58,237,.28); color:#fff; text-decoration:none; }
+
+    /* ── Main grid ── */
+    .afk-main-grid { display:grid; grid-template-columns:340px 1fr; gap:18px; }
+    @media(max-width:800px){ .afk-main-grid{ grid-template-columns:1fr; } }
+
+    /* ── Countdown card ── */
     .afk-card {
       background: var(--surface);
       border: 1px solid rgba(16,185,129,0.2);
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
+      border-radius: 16px; overflow: hidden; position: relative;
     }
     .afk-card::before {
-      content: '';
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: linear-gradient(90deg, #059669, #6ee7b7, #34d399);
+      content: ''; position: absolute; inset: 0 0 auto 0; height: 3px;
+      background: linear-gradient(90deg, #059669, #6ee7b7);
       border-radius: 16px 16px 0 0;
     }
-
     .afk-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 22px 16px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 20px 14px;
       border-bottom: 1px solid rgba(16,185,129,0.1);
     }
     .afk-card-icon {
-      width: 40px; height: 40px; flex-shrink: 0;
-      border-radius: 10px;
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.2);
+      width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px;
+      background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.2);
       display: flex; align-items: center; justify-content: center;
     }
-    .afk-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
-    .afk-card-sub   { font-size: 11px; color: #4b7a68; margin-top: 2px; }
-
+    .afk-card-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .afk-card-sub   { font-size: 11px; color: #4b7a68; margin-top: 1px; }
     .afk-live-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      margin-left: auto;
-      box-shadow: 0 0 8px #10b981;
+      width: 8px; height: 8px; border-radius: 50%; background: #10b981;
+      margin-left: auto; box-shadow: 0 0 8px #10b981;
       animation: livePulse 1.4s ease-in-out infinite;
     }
     @keyframes livePulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 6px #10b981; }
-      50%       { opacity: 0.5; box-shadow: 0 0 14px #10b981; }
+      0%,100%{ opacity:1; box-shadow:0 0 6px #10b981; }
+      50%    { opacity:.5; box-shadow:0 0 14px #10b981; }
     }
 
     /* ring */
-    .afk-ring-wrap {
-      position: relative;
-      width: 160px; height: 160px;
-      margin: 28px auto 20px;
-    }
-    .afk-ring {
-      width: 100%; height: 100%;
-      transform: rotate(-90deg);
-    }
-    .afk-ring-track {
-      fill: none;
-      stroke: rgba(16,185,129,0.1);
-      stroke-width: 8;
-    }
-    .afk-ring-fill {
-      fill: none;
-      stroke: url(#afkGrad);
-      stroke-width: 8;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 1s linear;
-    }
-    .afk-ring-inner {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .afk-ring-num {
-      font-size: 36px;
-      font-weight: 800;
-      color: #e2e8f0;
-      letter-spacing: -2px;
-      line-height: 1;
-    }
-    .afk-ring-label {
-      font-size: 11px;
-      color: #4b7a68;
-      margin-top: 4px;
+    .afk-ring-wrap { position:relative; width:150px; height:150px; margin:24px auto 16px; }
+    .afk-ring { width:100%; height:100%; transform:rotate(-90deg); }
+    .afk-ring-track { fill:none; stroke:rgba(16,185,129,.1); stroke-width:8; }
+    .afk-ring-fill  { fill:none; stroke:url(#afkGrad); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+    .afk-ring-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .afk-ring-num   { font-size:34px; font-weight:800; color:#e2e8f0; letter-spacing:-2px; line-height:1; }
+    .afk-ring-label { font-size:11px; color:#4b7a68; margin-top:4px; }
+
+    .afk-reward-line { text-align:center; padding:0 20px 14px; }
+    .afk-reward-pill {
+      display:inline-block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.22);
+      border-radius:999px; padding:5px 16px; font-size:12px; font-weight:700; color:#6ee7b7;
     }
 
-    .afk-reward-line {
-      text-align: center;
-      padding-bottom: 22px;
+    /* session bar */
+    .afk-session-bar-wrap { padding:0 20px 20px; }
+    .afk-session-bar-labels { display:flex; justify-content:space-between; font-size:11px; color:#4b5563; margin-bottom:6px; }
+    .afk-session-bar-labels span:last-child { color:#6ee7b7; font-weight:600; }
+    .afk-session-bar-track { height:5px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; }
+    .afk-session-bar-fill  { height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#059669,#6ee7b7); transition:width .5s ease; }
+    .afk-session-goal { display:flex; justify-content:space-between; font-size:10px; color:#374151; margin-top:4px; }
+
+    /* ── Right panel ── */
+    .afk-right { display:flex; flex-direction:column; gap:14px; }
+
+    /* events feed */
+    .afk-events-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; flex:1;
     }
-    .afk-reward-pill {
-      display: inline-block;
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.22);
-      border-radius: 999px;
-      padding: 5px 16px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #6ee7b7;
+    .afk-events-title {
+      display:flex; align-items:center; gap:7px;
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#4b5563;
+      padding:14px 16px 12px; border-bottom:1px solid var(--border);
     }
+    .afk-events-list { padding:10px 12px; display:flex; flex-direction:column; gap:6px; min-height:80px; max-height:160px; overflow-y:auto; }
+    .afk-event {
+      display:flex; align-items:center; gap:10px; padding:8px 10px;
+      border-radius:8px; font-size:12px; background:rgba(255,255,255,.03);
+      animation:eventIn .2s ease;
+    }
+    @keyframes eventIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:translateX(0)} }
+    .afk-event--reward { color:#6ee7b7; background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.12); }
+    .afk-event--warn   { color:#fcd34d; background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.12); }
+    .afk-event--idle   { color:#4b5563; font-style:italic; background:transparent; }
+    .afk-event-time { font-size:10px; color:#374151; margin-left:auto; white-space:nowrap; }
 
     /* tips */
     .afk-tips-card {
-      background: rgba(124,58,237,0.06);
-      border: 1px solid rgba(124,58,237,0.14);
-      border-radius: 14px;
-      padding: 18px 20px;
+      background:rgba(124,58,237,.06); border:1px solid rgba(124,58,237,.14);
+      border-radius:14px; padding:16px 18px;
     }
     .afk-tips-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: #7c6faa;
-      margin-bottom: 14px;
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.9px;
+      color:#7c6faa; margin-bottom:12px;
     }
-    .afk-tips-list {
-      list-style: none;
-      padding: 0; margin: 0;
-      display: flex; flex-direction: column; gap: 12px;
-    }
-    .afk-tips-list li {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 12px; color: #9d8ec7; line-height: 1.55;
-    }
-    .afk-tips-list li strong { color: #c4b5fd; font-weight: 600; }
-
-    /* reuse gift dots */
-    .gift-info-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px; }
-    .gift-info-dot--green  { background:#10b981; }
-    .gift-info-dot--purple { background:#7c3aed; }
-    .gift-info-dot--blue   { background:#3b82f6; }
-
-    /* SVG gradient for ring */
+    .afk-tips-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+    .afk-tips-list li { display:flex; align-items:flex-start; gap:10px; font-size:12px; color:#9d8ec7; line-height:1.55; }
+    .afk-tips-list li strong { color:#c4b5fd; font-weight:600; }
+    .afk-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+    .afk-dot--green  { background:#10b981; }
+    .afk-dot--purple { background:#7c3aed; }
+    .afk-dot--blue   { background:#3b82f6; }
   </style>
 
   <!-- gradient def for ring stroke -->
