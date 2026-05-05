@@ -76,7 +76,7 @@
         <span class="menu-title">Settings</span>
       </a>
     </li>
-    <% if (settings.api.arcio.enabled == true) { %>
+    <% if (settings.api.arcio.enabled == true && settings.api.arcio['afk page'].enabled == true) { %>
     <li class="nav-item menu-items">
       <a class="nav-link" href="/afk">
         <span class="menu-icon">
