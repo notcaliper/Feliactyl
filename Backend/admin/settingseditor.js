@@ -182,6 +182,101 @@ module.exports.load = async function (app, db) {
     return res.redirect("/admin?err=none");
   });
 
+  app.get("/admin/logs", async (req, res) => {
+    const indexjs = require("../../index.js");
+    let theme = indexjs.get(req);
+    if (!req.session.pterodactyl) return res.redirect("/?error=noauth");
+    let cacheaccount = await fetch(
+      `${JSON.parse(fs.readFileSync("./settings.json").toString()).pterodactyl.domain}/api/application/users/${await db.get("users-" + req.session.userinfo.id)}?include=servers`,
+      { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${JSON.parse(fs.readFileSync("./settings.json").toString()).pterodactyl.key}` }, method: "GET" }
+    );
+    if (cacheaccount.statusText === "Not Found") return res.send("User not found.");
+    let cacheaccountinfo;
+    try { cacheaccountinfo = JSON.parse(await cacheaccount.text()); } catch(e) { return res.send("Error loading page."); }
+    if (!cacheaccountinfo.attributes || cacheaccountinfo.attributes.root_admin !== true) return res.redirect("/?error=notadmin");
+    const ejs = require("ejs");
+    ejs.renderFile(
+      `./Public/Themes/${theme.name}/Admin/Logs.ejs`,
+      { ...(await indexjs.renderData(req, db, theme)) },
+      null,
+      (err, str) => {
+        if (err) { console.error(err); return res.send("Failed to load logs page."); }
+        res.send(str);
+      }
+    );
+  });
+
+  app.get("/admin/logsdata", async (req, res) => {
+    const settings = JSON.parse(fs.readFileSync("./settings.json").toString());
+    if (!req.session.pterodactyl) return res.json({ error: "Not logged in." });
+    let cacheaccount = await fetch(
+      `${settings.pterodactyl.domain}/api/application/users/${await db.get("users-" + req.session.userinfo.id)}?include=servers`,
+      { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${settings.pterodactyl.key}` }, method: "GET" }
+    );
+    let cacheaccountinfo;
+    try { cacheaccountinfo = JSON.parse(await cacheaccount.text()); } catch(e) { return res.json({ error: "Unauthorized." }); }
+    if (!cacheaccountinfo.attributes || cacheaccountinfo.attributes.root_admin !== true) return res.json({ error: "Unauthorized." });
+    const actionLogs   = await db.get("action-logs")   || [];
+    const firewallLogs = await db.get("firewall-logs") || [];
+    res.json({ success: true, actionLogs, firewallLogs });
+  });
+
+  app.post("/admin/setadmin", async (req, res) => {
+    const settings = JSON.parse(fs.readFileSync("./settings.json").toString());
+    if (!req.session.pterodactyl) return res.json({ success: false, error: "Not logged in." });
+
+    try {
+      const selfId = await db.get("users-" + req.session.userinfo.id);
+      if (!selfId) return res.json({ success: false, error: "Session user not found." });
+
+      const cacheaccount = await fetch(
+        `${settings.pterodactyl.domain}/api/application/users/${selfId}?include=servers`,
+        { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${settings.pterodactyl.key}` }, method: "GET" }
+      );
+      const cacheText = await cacheaccount.text();
+      if (!cacheaccount.ok) return res.json({ success: false, error: "Could not verify requester." });
+      const cacheaccountinfo = JSON.parse(cacheText);
+      if (!cacheaccountinfo.attributes || cacheaccountinfo.attributes.root_admin !== true)
+        return res.json({ success: false, error: "Unauthorized." });
+
+      const { pteroId, admin } = req.body;
+      if (!pteroId) return res.json({ success: false, error: "Missing pteroId." });
+
+      const userRes = await fetch(
+        `${settings.pterodactyl.domain}/api/application/users/${pteroId}`,
+        { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${settings.pterodactyl.key}` }, method: "GET" }
+      );
+      if (!userRes.ok) return res.json({ success: false, error: "Target user not found." });
+      const userData = JSON.parse(await userRes.text());
+      if (!userData.attributes) return res.json({ success: false, error: "Target user not found." });
+
+      const u = userData.attributes;
+      const patchRes = await fetch(
+        `${settings.pterodactyl.domain}/api/application/users/${pteroId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${settings.pterodactyl.key}` },
+          body: JSON.stringify({
+            username: u.username,
+            email: u.email,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            root_admin: admin === true || admin === "true"
+          })
+        }
+      );
+      if (!patchRes.ok) {
+        const errText = await patchRes.text();
+        return res.json({ success: false, error: "Pterodactyl patch failed: " + patchRes.status });
+      }
+      const patchData = JSON.parse(await patchRes.text());
+      if (!patchData.attributes) return res.json({ success: false, error: "Pterodactyl patch returned no data." });
+      return res.json({ success: true });
+    } catch (e) {
+      return res.json({ success: false, error: e.message });
+    }
+  });
+
   app.get("/admin/plans", async (req, res) => {
     const indexjs = require("../../index.js");
     let theme = indexjs.get(req);

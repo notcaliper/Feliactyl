@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "2.2.0",
   "name": "Feliactyl",
   "icon": "https://media.discordapp.net/attachments/1000768414220038204/1157719211678904420/Heliactylv13.png",
   "defaulttheme": "Feliactyl",
@@ -57,7 +57,19 @@
         ]
       },
       "bot": {
+        "enabled": true,
         "token": "Discord bot token",
+        "restrictToGuilds": {
+          "_comment": "Restrict bot commands to specific Discord servers only. Bot will auto-leave unauthorized servers.",
+          "enabled": true,
+          "guildIds": [
+            "YOUR_GUILD_ID_HERE"
+          ]
+        },
+        "restrictToLinkedUsers": {
+          "_comment": "Only allow users who have linked their Discord to a panel account to use bot commands",
+          "enabled": true
+        },
         "joinguild": {
           "_comment": "The Discord bot must be in these servers and have invite permissions. Automatic guild joining will not work unless role packages are configured correctly.",
           "enabled": true,
@@ -344,5 +356,40 @@
     "whitelistedIPs": [
       "IP address"
     ]
+  },
+  "firewall": {
+    "_comment": "Feliactyl Firewall - AntiVPN, AntiAlt, AbuseIPDB, Geo-blocking",
+    "antiVPN": {
+      "enabled": false,
+      "action": "block",
+      "blockTor": true,
+      "apiKey": "Proxycheck APIKey (from proxycheck.io)"
+    },
+    "antiAlt": {
+      "enabled": false,
+      "action": "block",
+      "_comment": "action: block = deny login, warn = allow but log"
+    },
+    "abuseIPDB": {
+      "enabled": false,
+      "apiKey": "AbuseIPDB API key (from abuseipdb.com)",
+      "threshold": 75,
+      "_comment": "Block IPs with abuse confidence score >= threshold (0-100)"
+    },
+    "geoBlock": {
+      "enabled": false,
+      "blockedCountries": [],
+      "_comment": "ISO 3166-1 alpha-2 country codes e.g. ['CN', 'RU', 'KP']"
+    },
+    "whitelist": [
+      "127.0.0.1"
+    ]
+  },
+  "workers": {
+    "_comment": "Background worker processes for economy operations - enables horizontal scaling",
+    "enabled": true,
+    "count": 2,
+    "maxConcurrent": 5,
+    "retryAttempts": 3
   }
 }

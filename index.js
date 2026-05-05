@@ -7,6 +7,10 @@
 
 "use strict";
 
+// Load environment variables first
+const { init: initEnv, applySecureConfig, checkPlaceholderSecrets } = require('./functions/envLoader.js');
+const envStatus = initEnv();
+
 // Load packages.
 
 const fs = require("fs");
@@ -17,7 +21,16 @@ const gradient = require('gradient-string');
 const arciotext = require('./System/arciotext')
 const glob = require('fast-glob');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { getManager } = require('./services/serviceManager.js');
+const WorkerManager = require('./services/workerManager.js');
+const HealthService = require('./services/healthService.js');
 global.Buffer = global.Buffer || require('buffer').Buffer;
+
+// Service instances
+const serviceManager = getManager();
+let workerManager = null;
 
 
 if (typeof btoa === 'undefined') {
@@ -33,7 +46,18 @@ if (typeof atob === 'undefined') {
 
 // Load settings.
 
-const settings = require("./settings.json");
+let settings = require("./settings.json");
+
+// Apply secure configuration from environment variables
+settings = applySecureConfig(settings);
+
+// Check for placeholder secrets
+const secretWarnings = checkPlaceholderSecrets(settings);
+if (secretWarnings.length > 0) {
+    console.log(chalk.yellow("⚠️  Security Warnings:"));
+    secretWarnings.forEach(w => console.log(chalk.yellow(`   - ${w}`)));
+    console.log(chalk.yellow("   Set these in your .env file for better security.\n"));
+}
 
 const defaultthemesettings = {
   index: "Authentication/Login.ejs",
@@ -44,6 +68,21 @@ const defaultthemesettings = {
   mustbeadmin: [],
   variables: {}
 };
+
+let _versionCache = { latest: null, fetchedAt: 0 };
+async function getLatestVersion() {
+  const now = Date.now();
+  if (_versionCache.latest && now - _versionCache.fetchedAt < 3600000) return _versionCache.latest;
+  try {
+    const r = await fetch('https://api.github.com/repos/notcaliper/feliactyl/releases/latest');
+    const j = await r.json();
+    if (j && j.tag_name) {
+      _versionCache = { latest: j.tag_name.replace('v', ''), fetchedAt: now };
+      return _versionCache.latest;
+    }
+  } catch(e) {}
+  return null;
+}
 
 async function renderData(req, db, theme) {
   try {
@@ -60,7 +99,8 @@ async function renderData(req, db, theme) {
       theme: theme.name,
       extra: theme.settings.variables,
       addons: theme.settings.addons,
-      db: db
+      db: db,
+      latestVersion: await getLatestVersion()
     };
 
     if (settings.api.arcio.enabled == true && req.session.arcsessiontoken) {
@@ -94,6 +134,7 @@ db.on('error', err => {
 
 module.exports.db = db;
 
+
 // Load ExpressJS.
 
 const express = require("express");
@@ -110,7 +151,48 @@ const indexjs = require("./index.js");
 
 module.exports.app = app;
 
-app.use(session({ secret: settings.website.secret, resave: false, saveUninitialized: false }));
+// Security middleware
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://challenges.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://challenges.cloudflare.com"],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "https://challenges.cloudflare.com"],
+            frameSrc: ["https://challenges.cloudflare.com"],
+            objectSrc: ["'none'"]
+        }
+    },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    }
+}));
+
+// Rate limiting
+const { createRateLimit } = require('./functions/security.js');
+const generalLimiter = rateLimit(createRateLimit(15 * 60 * 1000, 500)); // 500 requests per 15 min
+const apiLimiter = rateLimit(createRateLimit(60 * 1000, 200)); // 200 requests per minute
+const authLimiter = rateLimit(createRateLimit(15 * 60 * 1000, 20)); // 20 auth attempts per 15 min
+
+app.use(generalLimiter);
+app.use('/api/', apiLimiter);
+app.use(['/login', '/submitlogin', '/callback'], authLimiter);
+
+app.use(session({ 
+    secret: settings.website.secret, 
+    resave: false, 
+    saveUninitialized: false,
+    cookie: {
+        secure: envStatus.isProduction,
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 
 app.use("/assets", express.static("./assets"));
 
@@ -125,7 +207,63 @@ app.use(express.json({
 
 app.use(express.urlencoded({ extended: true }));
 
-const listener = app.listen(settings.website.port, function () {
+// Initialize services before starting server
+async function initializeServices() {
+    console.log(chalk.cyan('[Main] Initializing services...'));
+    
+    // Initialize worker manager if enabled
+    if (settings.workers?.enabled !== false) {
+        workerManager = new WorkerManager({
+            maxWorkers: settings.workers?.count || 2,
+            restartDelay: 5000,
+            maxRestarts: 5
+        });
+        
+        serviceManager.register('workers', workerManager);
+        serviceManager.markCritical('workers');
+        
+        await workerManager.start();
+        console.log(chalk.green('[Main] Worker manager started'));
+    }
+    
+    // Health service
+    const healthService = new HealthService({ checkInterval: 30000 });
+    
+    // Register health checks
+    healthService.register('database', async () => {
+        await db.get('health-check');
+        return true;
+    }, { weight: 2 });
+    
+    healthService.register('webserver', () => {
+        return listener && listener.listening;
+    }, { weight: 1 });
+    
+    if (workerManager) {
+        healthService.register('workers', () => {
+            const stats = workerManager.getStats();
+            return stats.healthy > 0 || stats.total === 0;
+        }, { weight: 2 });
+    }
+    
+    healthService.on('statusChange', (newStatus, oldStatus, results) => {
+        console.log(chalk.yellow(`[Health] Status changed: ${oldStatus} → ${newStatus}`));
+        if (newStatus === 'unhealthy') {
+            console.error(chalk.red('[Health] Unhealthy checks:'), results);
+        }
+    });
+    
+    healthService.start();
+    serviceManager.register('health', healthService);
+    
+    // Initialize all services
+    await serviceManager.initialize(db);
+    await serviceManager.start();
+    
+    console.log(chalk.green('[Main] All services initialized'));
+}
+
+const listener = app.listen(settings.website.port, async function () {
   console.log(chalk.white("                                                                   "));
   console.log(chalk.white("                                                                   "));
   console.log(chalk.white("                                                                   "));
@@ -147,6 +285,14 @@ const listener = app.listen(settings.website.port, function () {
   console.log("📝 Sidenote: If you ever encounter a 502 Bad Gateway error,");
   console.log("   remember it's likely a proxy issue, not Feliactyl itself.");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  
+  // Initialize services after server starts
+  try {
+      await initializeServices();
+  } catch (err) {
+      console.error(chalk.red('[Main] Service initialization failed:'), err);
+      // Don't crash - web server can still function
+  }
 
 });
 
@@ -183,8 +329,82 @@ const router = glob.sync('./Backend/**/*.js');
     if (typeof router.load === 'function') router.load(app, db);
   }
 
+// Health check endpoints
+app.get('/health', async (req, res) => {
+    const health = serviceManager.get('health');
+    if (health) {
+        const status = health.getStatus();
+        res.status(status.status === 'healthy' ? 200 : status.status === 'degraded' ? 200 : 503).json(status);
+    } else {
+        res.json({ status: 'starting', uptime: Date.now() - startTime });
+    }
+});
+
+app.get('/health/ready', async (req, res) => {
+    const health = serviceManager.get('health');
+    if (health && health.isReady()) {
+        res.status(200).json({ ready: true });
+    } else {
+        res.status(503).json({ ready: false });
+    }
+});
+
+app.get('/health/live', (req, res) => {
+    res.status(200).json({ alive: true });
+});
+
+app.get('/health/workers', async (req, res) => {
+    if (!workerManager) {
+        return res.status(404).json({ error: 'Worker manager not enabled' });
+    }
+    res.json(workerManager.getStats());
+});
+
+// Track start time
+const startTime = Date.now();
+
+// Graceful shutdown handlers
+async function gracefulShutdown(signal) {
+    console.log(chalk.yellow(`[Main] Received ${signal}, starting graceful shutdown...`));
+    
+    // Stop accepting new connections
+    listener.close(async () => {
+        console.log(chalk.cyan('[Main] HTTP server closed'));
+        
+        // Shutdown services
+        await serviceManager.shutdown(30000);
+        
+        console.log(chalk.green('[Main] Graceful shutdown complete'));
+        process.exit(0);
+    });
+    
+    // Force shutdown after timeout
+    setTimeout(() => {
+        console.error(chalk.red('[Main] Forced shutdown - timeout exceeded'));
+        process.exit(1);
+    }, 35000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+    console.error(chalk.red('[Main] Uncaught exception:'), err);
+    gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error(chalk.red('[Main] Unhandled rejection at:'), promise, 'reason:', reason);
+});
+
+app.get("/credentials", (req, res) => res.redirect("/settings"));
+
 app.all("*", async (req, res) => {
-  if (req.session.pterodactyl) if (req.session.pterodactyl.id !== await db.get("users-" + req.session.userinfo.id)) return res.redirect("/login?prompt=none");
+  if (req.session.pterodactyl && req.session.userinfo) {
+    const dbPteroId = await db.get("users-" + req.session.userinfo.id);
+    if (String(req.session.pterodactyl.id) !== String(dbPteroId)) return res.redirect("/login?prompt=none");
+  }
   let theme = indexjs.get(req);
   let newsettings = JSON.parse(require("fs").readFileSync("./settings.json"));
   if (newsettings.api.arcio.enabled == true) req.session.arcsessiontoken = Math.random().toString(36).substring(2, 15);

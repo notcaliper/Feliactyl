@@ -11,15 +11,33 @@
 
       <main class="content">
 
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="adm-page-header">
           <div>
             <div class="page-title">Plans</div>
             <div class="page-subtitle">Create and manage resource packages</div>
           </div>
-          <a href="/admin" class="btn plans-back-btn">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><polyline points="15 18 9 12 15 6"/></svg>
-            Back to Admin
-          </a>
+          <div class="adm-tab-nav">
+            <a href="/admin" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Overview
+            </a>
+            <a href="/admin/users" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </a>
+            <a href="/admin/plans" class="adm-tab adm-tab--active">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Plans
+            </a>
+            <a href="/admin/settings" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Settings
+            </a>
+            <a href="/admin/logs" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Logs
+            </a>
+          </div>
         </div>
 
         <div id="plans-alert" class="plans-alert" style="display:none;"></div>
@@ -33,7 +51,10 @@
                 <div class="plans-icon plans-icon--purple">
                   <svg width="15" height="15" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                 </div>
-                <span class="plans-card-title">Current Plans</span>
+                <div style="flex:1;">
+                  <div class="plans-card-title">Current Plans</div>
+                  <div class="plans-card-desc">All configured resource packages</div>
+                </div>
                 <span class="plans-badge" id="plan-count">0</span>
               </div>
               <div class="plans-card-body">
@@ -49,7 +70,10 @@
                 <div class="plans-icon plans-icon--green">
                   <svg width="15" height="15" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </div>
-                <span class="plans-card-title">New Plan</span>
+                <div style="flex:1;">
+                  <div class="plans-card-title">New Plan</div>
+                  <div class="plans-card-desc">Define a new resource package</div>
+                </div>
               </div>
               <div class="plans-card-body">
                 <div class="plans-field mb-2">
@@ -103,12 +127,15 @@
 
           <!-- Active discounts list -->
           <div class="col-lg-7">
-            <div class="plans-card">
+            <div class="plans-card plans-card--amber">
               <div class="plans-card-header">
                 <div class="plans-icon plans-icon--amber">
-                  <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                 </div>
-                <span class="plans-card-title">Active Discounts</span>
+                <div style="flex:1;">
+                  <div class="plans-card-title">Active Discounts</div>
+                  <div class="plans-card-desc">Time-limited sale prices per plan</div>
+                </div>
                 <span class="plans-badge plans-badge--amber" id="discount-count">0</span>
               </div>
               <div class="plans-card-body">
@@ -124,7 +151,10 @@
                 <div class="plans-icon plans-icon--amber">
                   <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </div>
-                <span class="plans-card-title">New Discount</span>
+                <div style="flex:1;">
+                  <div class="plans-card-title">New Discount</div>
+                  <div class="plans-card-desc">Add a timed sale to a plan</div>
+                </div>
               </div>
               <div class="plans-card-body">
                 <div class="plans-field mb-2">
@@ -157,9 +187,12 @@
 
         </div>
 
-        <!-- Save bar -->
-        <div class="plans-save-bar" id="save-bar" style="display:none;">
-          <span style="color:#9d8ec7;font-size:13px;">You have unsaved changes</span>
+        <!-- Sticky save bar -->
+        <div class="plans-save-bar" id="save-bar">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="plans-save-dot"></div>
+            <span style="font-size:13px;color:#c4b5fd;font-weight:600;">Unsaved changes</span>
+          </div>
           <button onclick="savePlans()" class="btn plans-btn plans-btn--purple" id="save-btn">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-2px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Save Changes
@@ -196,11 +229,12 @@
     }
     .plans-card--green::before { background: linear-gradient(90deg,#059669,#6ee7b7); }
     .plans-card-header {
-      display:flex; align-items:center; gap:10px;
-      padding:14px 18px 12px;
+      display:flex; align-items:center; gap:12px;
+      padding:16px 20px 14px;
       border-bottom:1px solid rgba(139,92,246,0.08);
     }
-    .plans-card-title { font-size:13px; font-weight:700; color:#e2e8f0; flex:1; }
+    .plans-card-title { font-size:14px; font-weight:700; color:#e2e8f0; }
+    .plans-card-desc  { font-size:12px; color:#6b7280; margin-top:2px; }
     .plans-icon {
       width:32px; height:32px; border-radius:8px; flex-shrink:0;
       display:flex; align-items:center; justify-content:center;
@@ -239,13 +273,11 @@
     .plans-btn--red    { background:rgba(220,38,38,0.12)!important; color:#fca5a5!important; border:1px solid rgba(220,38,38,0.2)!important; padding:5px 10px!important; font-size:12px!important; }
     .plans-btn--red:hover { background:rgba(220,38,38,0.22)!important; }
 
-    .plans-back-btn {
-      background: rgba(139,92,246,0.1)!important; color:#a78bfa!important;
-      border:1px solid rgba(139,92,246,0.2)!important; border-radius:9px!important;
-      font-size:13px!important; font-weight:600!important; padding:8px 14px!important;
-      display:inline-flex; align-items:center; transition:all 0.15s!important;
-    }
-    .plans-back-btn:hover { background:rgba(139,92,246,0.18)!important; }
+    .adm-page-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px; }
+    .adm-tab-nav { display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.14);border-radius:12px;padding:4px; }
+    .adm-tab { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#6b7280;text-decoration:none;transition:all .15s; }
+    .adm-tab:hover { color:#c4b5fd;background:rgba(124,58,237,.08);text-decoration:none; }
+    .adm-tab--active { background:rgba(124,58,237,.18);color:#c4b5fd;border:1px solid rgba(124,58,237,.25); }
 
     /* plan row */
     .plan-row {
@@ -278,13 +310,16 @@
 
     /* save bar */
     .plans-save-bar {
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:var(--surface); border:1px solid rgba(124,58,237,0.3);
-      border-radius:14px; padding:12px 20px;
-      display:flex; align-items:center; gap:16px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.4);
-      z-index:999;
+      position:fixed; bottom:0; left:0; right:0; z-index:800;
+      background:rgba(13,10,20,.95); backdrop-filter:blur(12px);
+      border-top:1px solid rgba(124,58,237,.25);
+      padding:14px 32px;
+      display:flex; align-items:center; justify-content:space-between;
+      transform:translateY(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
     }
+    .plans-save-bar.visible { transform:translateY(0); }
+    .plans-save-dot { width:8px;height:8px;border-radius:50%;background:#a78bfa;box-shadow:0 0 8px #a78bfa;animation:pulse-dot 1.4s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
     /* alert */
     .plans-alert { padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
@@ -362,7 +397,7 @@
       plans[name] = { ram, disk, cpu, servers, cost };
       dirty = true;
       renderPlans();
-      document.getElementById('save-bar').style.display = 'flex';
+      document.getElementById('save-bar').classList.add('visible');
 
       document.getElementById('new-name').value   = '';
       document.getElementById('new-ram').value    = '';
@@ -377,7 +412,7 @@
       delete plans[name];
       dirty = true;
       renderPlans();
-      document.getElementById('save-bar').style.display = 'flex';
+      document.getElementById('save-bar').classList.add('visible');
     }
 
     function showAlert(type, msg) {
@@ -444,7 +479,7 @@
       discounts[plan] = { pct, expiresAt };
       dirty = true;
       renderDiscounts();
-      document.getElementById('save-bar').style.display = 'flex';
+      document.getElementById('save-bar').classList.add('visible');
       document.getElementById('disc-plan').value = '';
       document.getElementById('disc-pct').value  = '';
       document.getElementById('disc-hrs').value  = '';
@@ -454,7 +489,7 @@
       delete discounts[plan];
       dirty = true;
       renderDiscounts();
-      document.getElementById('save-bar').style.display = 'flex';
+      document.getElementById('save-bar').classList.add('visible');
     }
 
     async function savePlans() {
@@ -471,7 +506,7 @@
         if (data.success) {
           showAlert('success', 'Saved! Restart for full effect.');
           dirty = false;
-          document.getElementById('save-bar').style.display = 'none';
+          document.getElementById('save-bar').classList.remove('visible');
         } else {
           showAlert('error', 'Error: ' + (data.error || 'Unknown.'));
         }

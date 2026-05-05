@@ -9,7 +9,9 @@ const fs = require("fs");
 const indexjs = require("../../index.js");
 const adminjs = require("./admin.js");
 const ejs = require("ejs");
-const log = require('../../functions/log.js')
+const log = require('../../functions/log.js');
+const { withUserLock } = require('../../functions/atomic.js');
+const { validateCoins, isValidDiscordId } = require('../../functions/security.js');
 
 module.exports.load = async function (app, db) {
     app.get("/setcoins", async (req, res) => {
@@ -36,23 +38,25 @@ module.exports.load = async function (app, db) {
         let coins = req.query.coins;
 
         if (!id) return res.redirect(failredirect + "?err=MISSINGID");
-
         if (!coins) return res.redirect(failredirect + "?err=MISSINGCOINS");
+        
+        // Validate Discord ID format
+        if (!isValidDiscordId(id)) return res.redirect(failredirect + "?err=INVALIDID");
 
-        coins = parseFloat(coins);
+        const coinValidation = validateCoins(parseFloat(coins));
+        if (!coinValidation.valid) return res.redirect(`${failredirect}?err=INVALIDCOINNUMBER`);
 
-        if (isNaN(coins)) return res.redirect(failredirect + "?err=INVALIDCOINNUMBER");
-
-        if (coins < 0 || coins > 999999999999999) return res.redirect(`${failredirect}?err=COINSIZE`);
-
-        if (coins == 0) {
-            await db.delete("coins-" + id)
-        } else {
-            await db.set("coins-" + id, coins);
-        }
+        // Use atomic lock for consistency
+        await withUserLock(id, async () => {
+            if (coinValidation.value === 0) {
+                await db.delete("coins-" + id);
+            } else {
+                await db.set("coins-" + id, coinValidation.value);
+            }
+        });
 
         let successredirect = theme.settings.redirect.setcoins || "/";
-        log(`set coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the coins of the user with the ID \`${id}\` to \`${coins}\`.`)
+        log(`set coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the coins of the user with the ID \`${id}\` to \`${coinValidation.value}\`.`, db);
         res.redirect(successredirect + "?err=none");
     });
 
@@ -80,25 +84,33 @@ module.exports.load = async function (app, db) {
         let coins = req.query.coins;
 
         if (!id) return res.redirect(failredirect + "?err=MISSINGID");
-
         if (!coins) return res.redirect(failredirect + "?err=MISSINGCOINS");
+        
+        // Validate Discord ID format
+        if (!isValidDiscordId(id)) return res.redirect(failredirect + "?err=INVALIDID");
 
-        let currentcoins = await db.get("coins-" + id) || 0;
+        const amount = parseFloat(coins);
+        if (isNaN(amount)) return res.redirect(failredirect + "?err=INVALIDCOINNUMBER");
+        if (amount < -999999999999999 || amount > 999999999999999) return res.redirect(`${failredirect}?err=COINSIZE`);
 
-        coins = currentcoins + parseFloat(coins);
-
-        if (isNaN(coins)) return res.redirect(failredirect + "?err=INVALIDCOINNUMBER");
-
-        if (coins < 0 || coins > 999999999999999) return res.redirect(`${failredirect}?err=COINSIZE`);
-
-        if (coins == 0) {
-            await db.delete("coins-" + id)
-        } else {
-            await db.set("coins-" + id, coins);
-        }
+        // Use atomic lock for consistency
+        let newBalance;
+        await withUserLock(id, async () => {
+            let currentcoins = await db.get("coins-" + id) || 0;
+            newBalance = currentcoins + amount;
+            
+            if (newBalance < 0) newBalance = 0;
+            if (newBalance > 999999999999) newBalance = 999999999999;
+            
+            if (newBalance === 0) {
+                await db.delete("coins-" + id);
+            } else {
+                await db.set("coins-" + id, newBalance);
+            }
+        });
 
         let successredirect = theme.settings.redirect.setcoins || "/";
-        log(`add coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} added \`${coins}\` coins to the user with the ID \`${id}\`'s account.`)
+        log(`add coins`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} adjusted coins for user \`${id}\` by \`${amount}\` (new balance: ${newBalance})`, db);
         res.redirect(successredirect + "?err=none");
     });
 
@@ -169,7 +181,7 @@ module.exports.load = async function (app, db) {
 
             adminjs.suspend(req.body.id);
 
-            log(`set resources`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the resources of the user with the ID \`${id}\` to:\`\`\`servers: ${serversstring || 'unchanged'}\nCPU: ${cpustring || 'unchanged'}%\nMemory: ${ramstring || 'unchanged'} MB\nDisk: ${diskstring || 'unchanged'} MB\`\`\``)
+            log(`set resources`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the resources of the user with the ID \`${id}\` to:\`\`\`servers: ${serversstring || 'unchanged'}\nCPU: ${cpustring || 'unchanged'}%\nMemory: ${ramstring || 'unchanged'} MB\nDisk: ${diskstring || 'unchanged'} MB\`\`\``, db)
             return res.redirect(successredirect + "?err=none");
         } else {
             res.redirect(`${failredirect}?err=MISSINGVARIABLES`);
@@ -288,7 +300,7 @@ module.exports.load = async function (app, db) {
             await db.delete("package-" + req.body.id);
             adminjs.suspend(req.body.id);
 
-            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the plan of the user with the ID \`${req.body.id}\`.`)
+            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the plan of the user with the ID \`${req.body.id}\`.`, db)
             return res.redirect(successredirect + "?err=none");
         } else {
             let newsettings = JSON.parse(fs.readFileSync("./settings.json").toString());
@@ -296,7 +308,7 @@ module.exports.load = async function (app, db) {
             await db.set("package-" + req.body.id, req.body.package);
             adminjs.suspend(req.body.id);
 
-            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the plan of the user with the ID \`${req.body.id}\` to \`${req.body.package}\`.`)
+            log(`set plan`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} set the plan of the user with the ID \`${req.body.id}\` to \`${req.body.package}\`.`, db)
             return res.redirect(successredirect + "?err=none");
         }
     });
@@ -351,7 +363,7 @@ module.exports.load = async function (app, db) {
             servers: servers
         });
 
-        log(`create coupon`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} created the coupon code \`${code}\` which gives:\`\`\`coins: ${coins}\nMemory: ${ram} MB\nDisk: ${disk} MB\nCPU: ${cpu}%\nServers: ${servers}\`\`\``)
+        log(`create coupon`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} created the coupon code \`${code}\` which gives:\`\`\`coins: ${coins}\nMemory: ${ram} MB\nDisk: ${disk} MB\nCPU: ${cpu}%\nServers: ${servers}\`\`\``, db)
         res.redirect(theme.settings.redirect.couponcreationsuccess + "?code=" + code)
     });
 
@@ -381,7 +393,7 @@ module.exports.load = async function (app, db) {
 
         await db.delete("coupon-" + code);
 
-        log(`revoke coupon`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} revoked the coupon code \`${code}\`.`)
+        log(`revoke coupon`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} revoked the coupon code \`${code}\`.`, db)
         res.redirect(theme.settings.redirect.couponrevokesuccess + "?revokedcode=true");
     });
 
@@ -446,7 +458,7 @@ module.exports.load = async function (app, db) {
         await db.delete("extra-" + discordid);
         await db.delete("package-" + discordid);
 
-        log(`remove account`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the account with the ID \`${discordid}\`.`)
+        log(`remove account`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} removed the account with the ID \`${discordid}\`.`, db)
         res.redirect(theme.settings.redirect.removeaccountsuccess + "?success=REMOVEACCOUNT");
     });
 
@@ -474,7 +486,7 @@ module.exports.load = async function (app, db) {
 
         if (!(await db.get("ip-" + req.body.id))) return res.json({ error: "NOIP" });
         let ip = await db.get("ip-" + req.body.id);
-        log(`view ip`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} viewed the IP of the account with the ID \`${req.body.id}\`.`)
+        log(`view ip`, `${req.session.userinfo.username}#${req.session.userinfo.discriminator} viewed the IP of the account with the ID \`${req.body.id}\`.`, db)
         return res.json({ status: "success", ip: ip });
     });
 

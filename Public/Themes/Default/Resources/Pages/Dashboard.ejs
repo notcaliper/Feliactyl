@@ -33,149 +33,243 @@
         <div class="alert-banner alert-banner--green mb-4">Action completed successfully.</div>
         <% } %>
 
-        <!-- Page header -->
-        <div class="page-header">
-          <div class="page-title">Dashboard</div>
-          <div class="page-subtitle">Welcome back, <%= userinfo.username %> 👋</div>
-        </div>
-
-        <!-- Stat cards -->
         <%
           let ramTotal  = _pkg.ram  + _extra.ram;
           let diskTotal = _pkg.disk + _extra.disk;
           let cpuTotal  = _pkg.cpu  + _extra.cpu;
           let srvTotal  = _pkg.servers + _extra.servers;
-          let ramPct    = ramTotal  > 0 ? Math.round((1 - ramAvail  / ramTotal)  * 100) : 0;
-          let diskPct   = diskTotal > 0 ? Math.round((1 - diskAvail / diskTotal) * 100) : 0;
-          let cpuPct    = cpuTotal  > 0 ? Math.round((1 - cpuAvail  / cpuTotal)  * 100) : 0;
-          let srvPct    = srvTotal  > 0 ? Math.round((1 - srvAvail  / srvTotal)  * 100) : 0;
+          let ramPct    = ramTotal  > 0 ? Math.round((ram  / ramTotal)  * 100) : 0;
+          let diskPct   = diskTotal > 0 ? Math.round((disk / diskTotal) * 100) : 0;
+          let cpuPct    = cpuTotal  > 0 ? Math.round((cpu  / cpuTotal)  * 100) : 0;
+          let srvPct    = srvTotal  > 0 ? Math.round((servers / srvTotal) * 100) : 0;
+          const _plan   = packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default';
+          const _avatar = userinfo.avatar
+            ? `https://cdn.discordapp.com/avatars/${userinfo.id}/${userinfo.avatar}.png?size=64`
+            : `https://cdn.discordapp.com/embed/avatars/${(BigInt(userinfo.id) >> 22n) % 6n}.png`;
+          const _hour   = new Date().getHours();
+          const _greet  = _hour < 12 ? 'Good morning' : _hour < 18 ? 'Good afternoon' : 'Good evening';
         %>
-        <div class="row g-3 mb-4">
 
+<style>
+  /* ── Dashboard extras ── */
+  .db-hero { display:flex; align-items:center; gap:16px; margin-bottom:28px; }
+  .db-avatar { width:52px; height:52px; border-radius:50%; border:2px solid rgba(167,139,250,.4); flex-shrink:0; }
+  .db-avatar-fallback { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#3b82f6); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff; flex-shrink:0; }
+  .db-greet { font-size:13px; color:var(--muted); margin-bottom:2px; }
+  .db-name  { font-size:22px; font-weight:700; color:#fff; letter-spacing:-.3px; }
+  .db-plan-badge { margin-left:10px; font-size:11px; background:rgba(124,58,237,.18); color:#c4b5fd; border:1px solid rgba(124,58,237,.3); padding:2px 10px; border-radius:20px; vertical-align:middle; }
+
+  /* Quick actions */
+  .qa-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
+  .qa-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px; font-size:13px; font-weight:500; text-decoration:none; transition:all .18s; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); color:#d1d5db; cursor:pointer; }
+  .qa-btn:hover { background:rgba(255,255,255,.09); color:#fff; text-decoration:none; transform:translateY(-1px); }
+  .qa-btn--purple { background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(59,130,246,.15)); border-color:rgba(124,58,237,.35); color:#c4b5fd; }
+  .qa-btn--purple:hover { background:linear-gradient(135deg,rgba(124,58,237,.4),rgba(59,130,246,.25)); color:#fff; }
+
+  /* Resource cards */
+  .rc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  @media(max-width:900px){ .rc-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:500px){ .rc-grid{ grid-template-columns:1fr 1fr; } }
+
+  .rc { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 18px 16px; position:relative; overflow:hidden; transition:transform .2s,box-shadow .2s; }
+  .rc:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  .rc::before { content:''; position:absolute; inset:0; opacity:.04; pointer-events:none; }
+  .rc--purple::before { background:linear-gradient(135deg,#7c3aed,transparent); }
+  .rc--blue::before   { background:linear-gradient(135deg,#3b82f6,transparent); }
+  .rc--green::before  { background:linear-gradient(135deg,#10b981,transparent); }
+  .rc--amber::before  { background:linear-gradient(135deg,#f59e0b,transparent); }
+
+  .rc-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .rc-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .rc-icon--purple { background:rgba(124,58,237,.15); }
+  .rc-icon--blue   { background:rgba(59,130,246,.15); }
+  .rc-icon--green  { background:rgba(16,185,129,.15); }
+  .rc-icon--amber  { background:rgba(245,158,11,.15); }
+  .rc-pct { font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; }
+  .rc-pct--purple { background:rgba(124,58,237,.15); color:#c4b5fd; }
+  .rc-pct--blue   { background:rgba(59,130,246,.15);  color:#93c5fd; }
+  .rc-pct--green  { background:rgba(16,185,129,.15);  color:#6ee7b7; }
+  .rc-pct--amber  { background:rgba(245,158,11,.15);  color:#fcd34d; }
+
+  .rc-val { font-size:26px; font-weight:700; color:#fff; line-height:1; margin-bottom:2px; }
+  .rc-val span { font-size:13px; font-weight:400; color:var(--muted); }
+  .rc-lbl { font-size:12px; color:var(--muted); margin-bottom:12px; }
+  .rc-track { height:4px; background:rgba(255,255,255,.07); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+  .rc-fill { height:100%; border-radius:4px; transition:width .6s ease; }
+  .rc-fill--purple { background:linear-gradient(90deg,#7c3aed,#a78bfa); }
+  .rc-fill--blue   { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+  .rc-fill--green  { background:linear-gradient(90deg,#10b981,#34d399); }
+  .rc-fill--amber  { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+  .rc-sub { font-size:11px; color:#4b5563; }
+
+  /* Server cards */
+  .srv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+  .srv-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; transition:transform .2s,box-shadow .2s,border-color .2s; }
+  .srv-card:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,.3); border-color:rgba(124,58,237,.3); }
+  .srv-card-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+  .srv-card-name { font-size:14px; font-weight:600; color:#fff; margin-bottom:3px; }
+  .srv-card-id { font-size:11px; color:#4b5563; font-family:monospace; }
+  .srv-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 6px rgba(16,185,129,.6); margin-top:5px; flex-shrink:0; }
+  .srv-limits { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .srv-chip { font-size:11px; padding:3px 9px; border-radius:6px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.07); color:#9ca3af; }
+  .srv-chip span { color:#c4b5fd; font-weight:600; }
+  .srv-actions { display:flex; gap:8px; }
+  .srv-btn { flex:1; text-align:center; padding:7px 0; font-size:12px; font-weight:500; border-radius:8px; text-decoration:none; transition:all .15s; border:1px solid rgba(255,255,255,.08); }
+  .srv-btn:hover { text-decoration:none; }
+  .srv-btn--edit { background:rgba(255,255,255,.05); color:#9ca3af; }
+  .srv-btn--edit:hover { background:rgba(255,255,255,.1); color:#fff; }
+  .srv-btn--open { background:rgba(124,58,237,.15); color:#c4b5fd; border-color:rgba(124,58,237,.25); }
+  .srv-btn--open:hover { background:rgba(124,58,237,.3); color:#fff; }
+  .srv-btn--del  { background:rgba(239,68,68,.08); color:#f87171; border-color:rgba(239,68,68,.2); }
+  .srv-btn--del:hover { background:rgba(239,68,68,.2); color:#fff; }
+
+  .srv-empty { text-align:center; padding:56px 20px; color:#4b5563; }
+  .srv-empty svg { margin:0 auto 16px; display:block; opacity:.4; }
+  .srv-empty p { font-size:14px; margin-bottom:16px; }
+</style>
+
+        <!-- Hero greeting -->
+        <div class="db-hero">
+          <img class="db-avatar" src="<%= _avatar %>" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" alt="">
+          <div class="db-avatar-fallback" style="display:none;"><%= userinfo.username.charAt(0).toUpperCase() %></div>
+          <div>
+            <div class="db-greet"><%= _greet %> 👋</div>
+            <div class="db-name"><%= userinfo.username %><span class="db-plan-badge"><%= _plan %></span></div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="qa-row">
+          <a href="/servers/new" class="qa-btn qa-btn--purple">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Server
+          </a>
+          <a href="/store" class="qa-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Upgrade Resources
+          </a>
+          <a href="/earn" class="qa-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            AFK Earn
+          </a>
+          <a href="/gift" class="qa-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            Gift Coins
+          </a>
+          <a href="/settings" class="qa-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </a>
+        </div>
+
+        <!-- Resource cards -->
+        <div class="rc-grid">
           <!-- RAM -->
-          <div class="col-6 col-xl-3">
-            <div class="sc sc--purple">
-              <div class="sc-top">
-                <div class="sc-icon sc-icon--purple">
-                  <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                </div>
-                <span class="sc-badge sc-badge--purple"><%= ramPct %>% used</span>
+          <div class="rc rc--purple">
+            <div class="rc-head">
+              <div class="rc-icon rc-icon--purple">
+                <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
               </div>
-              <div class="sc-value"><%= ramAvail %><span class="sc-unit"> MB</span></div>
-              <div class="sc-label">RAM Available</div>
-              <div class="sc-bar-track"><div class="sc-bar sc-bar--purple" style="width:<%= ramPct %>%"></div></div>
-              <div class="sc-sub">of <%= ramTotal %> MB total</div>
+              <span class="rc-pct rc-pct--purple"><%= ramPct %>% used</span>
             </div>
+            <div class="rc-val"><%= ramAvail %><span> MB</span></div>
+            <div class="rc-lbl">RAM Available</div>
+            <div class="rc-track"><div class="rc-fill rc-fill--purple" style="width:<%= ramPct %>%"></div></div>
+            <div class="rc-sub"><%= ram %> / <%= ramTotal %> MB allocated</div>
           </div>
 
           <!-- Disk -->
-          <div class="col-6 col-xl-3">
-            <div class="sc sc--blue">
-              <div class="sc-top">
-                <div class="sc-icon sc-icon--blue">
-                  <svg width="16" height="16" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
-                </div>
-                <span class="sc-badge sc-badge--blue"><%= diskPct %>% used</span>
+          <div class="rc rc--blue">
+            <div class="rc-head">
+              <div class="rc-icon rc-icon--blue">
+                <svg width="16" height="16" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
               </div>
-              <div class="sc-value"><%= diskAvail %><span class="sc-unit"> MB</span></div>
-              <div class="sc-label">Disk Available</div>
-              <div class="sc-bar-track"><div class="sc-bar sc-bar--blue" style="width:<%= diskPct %>%"></div></div>
-              <div class="sc-sub">of <%= diskTotal %> MB total</div>
+              <span class="rc-pct rc-pct--blue"><%= diskPct %>% used</span>
             </div>
+            <div class="rc-val"><%= diskAvail %><span> MB</span></div>
+            <div class="rc-lbl">Disk Available</div>
+            <div class="rc-track"><div class="rc-fill rc-fill--blue" style="width:<%= diskPct %>%"></div></div>
+            <div class="rc-sub"><%= disk %> / <%= diskTotal %> MB allocated</div>
           </div>
 
           <!-- CPU -->
-          <div class="col-6 col-xl-3">
-            <div class="sc sc--green">
-              <div class="sc-top">
-                <div class="sc-icon sc-icon--green">
-                  <svg width="16" height="16" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                </div>
-                <span class="sc-badge sc-badge--green"><%= cpuPct %>% used</span>
+          <div class="rc rc--green">
+            <div class="rc-head">
+              <div class="rc-icon rc-icon--green">
+                <svg width="16" height="16" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </div>
-              <div class="sc-value"><%= cpuAvail %><span class="sc-unit">%</span></div>
-              <div class="sc-label">CPU Available</div>
-              <div class="sc-bar-track"><div class="sc-bar sc-bar--green" style="width:<%= cpuPct %>%"></div></div>
-              <div class="sc-sub">of <%= cpuTotal %>% total</div>
+              <span class="rc-pct rc-pct--green"><%= cpuPct %>% used</span>
             </div>
+            <div class="rc-val"><%= cpuAvail %><span>%</span></div>
+            <div class="rc-lbl">CPU Available</div>
+            <div class="rc-track"><div class="rc-fill rc-fill--green" style="width:<%= cpuPct %>%"></div></div>
+            <div class="rc-sub"><%= cpu %> / <%= cpuTotal %>% allocated</div>
           </div>
 
           <!-- Servers -->
-          <div class="col-6 col-xl-3">
-            <div class="sc sc--amber">
-              <div class="sc-top">
-                <div class="sc-icon sc-icon--amber">
-                  <svg width="16" height="16" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                </div>
-                <span class="sc-badge sc-badge--amber"><%= packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default' %></span>
+          <div class="rc rc--amber">
+            <div class="rc-head">
+              <div class="rc-icon rc-icon--amber">
+                <svg width="16" height="16" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
               </div>
-              <div class="sc-value"><%= srvAvail %><span class="sc-unit"> slots</span></div>
-              <div class="sc-label">Servers Available</div>
-              <div class="sc-bar-track"><div class="sc-bar sc-bar--amber" style="width:<%= srvPct %>%"></div></div>
-              <div class="sc-sub">of <%= srvTotal %> slots total</div>
+              <span class="rc-pct rc-pct--amber"><%= _plan %></span>
+            </div>
+            <div class="rc-val"><%= srvAvail %><span> slots</span></div>
+            <div class="rc-lbl">Servers Available</div>
+            <div class="rc-track"><div class="rc-fill rc-fill--amber" style="width:<%= srvPct %>%"></div></div>
+            <div class="rc-sub"><%= servers %> / <%= srvTotal %> slots used</div>
+          </div>
+        </div>
+
+        <!-- Server cards -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:15px;font-weight:600;color:#fff;">Your Servers <span style="font-size:13px;color:var(--muted);font-weight:400;margin-left:6px;"><%= servers %> running</span></div>
+          <a href="/servers/new" class="qa-btn qa-btn--purple" style="padding:7px 14px;font-size:12px;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Server
+          </a>
+        </div>
+
+        <% if (pterodactyl.relationships.servers.data.length === 0) { %>
+        <div class="srv-empty">
+          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          <p>No servers yet</p>
+          <a href="/servers/new" class="qa-btn qa-btn--purple" style="display:inline-flex;">Create your first server →</a>
+        </div>
+        <% } else { %>
+        <div class="srv-grid">
+          <% for (let i = 0; i < pterodactyl.relationships.servers.data.length; i++) { %>
+          <% let sv = pterodactyl.relationships.servers.data[i].attributes; %>
+          <div class="srv-card">
+            <div class="srv-card-head">
+              <div>
+                <div class="srv-card-name"><%= sv.name.length > 32 ? sv.name.slice(0,32)+'…' : sv.name %></div>
+                <div class="srv-card-id">#<%= sv.identifier %></div>
+              </div>
+              <div class="srv-dot"></div>
+            </div>
+            <div class="srv-limits">
+              <span class="srv-chip"><span><%= sv.limits.memory %></span> MB RAM</span>
+              <span class="srv-chip"><span><%= sv.limits.disk %></span> MB Disk</span>
+              <span class="srv-chip"><span><%= sv.limits.cpu %></span>% CPU</span>
+            </div>
+            <div class="srv-actions">
+              <a href="/servers/edit?id=<%= sv.id %>" class="srv-btn srv-btn--edit">Edit</a>
+              <a href="<%= settings.pterodactyl.domain %>/server/<%= sv.identifier %>" target="_blank" class="srv-btn srv-btn--open">Open Panel</a>
+              <a href="#" class="srv-btn srv-btn--del" onclick="if(confirm('Delete <%= sv.name %>?')){window.location.href='/delete?id=<%= sv.id %>'}; return false;">Delete</a>
             </div>
           </div>
-
+          <% } %>
         </div>
-
-        <!-- Servers table -->
-        <div class="card">
-          <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
-            <span class="card-title mb-0">Your Servers</span>
-            <a href="../servers/new" class="btn btn-primary btn-sm" style="font-size:12px;padding:6px 14px;">
-              + New Server
-            </a>
-          </div>
-          <div class="table-responsive">
-            <table class="table mb-0">
-              <thead>
-                <tr>
-                  <th>Server Name</th>
-                  <th>RAM</th>
-                  <th>Disk</th>
-                  <th>CPU</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if (pterodactyl.relationships.servers.data.length === 0) { %>
-                  <tr>
-                    <td colspan="5" style="text-align:center;padding:40px;color:#6b7280;">
-                      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
-                      No servers yet. <a href="../servers/new" style="color:#a78bfa;">Create your first one →</a>
-                    </td>
-                  </tr>
-                <% } else { %>
-                  <% for (let i = 0; i < pterodactyl.relationships.servers.data.length; i++) { %>
-                    <% let sv = pterodactyl.relationships.servers.data[i].attributes; %>
-                    <tr>
-                      <td>
-                        <div style="font-weight:500;color:white;"><%= sv.name.length > 45 ? sv.name.slice(0,45)+'…' : sv.name %></div>
-                        <div style="font-size:11px;color:#6b7280;">ID: <%= sv.id %></div>
-                      </td>
-                      <td><span class="badge-purple"><%= sv.limits.memory %> MB</span></td>
-                      <td><span class="badge-purple"><%= sv.limits.disk %> MB</span></td>
-                      <td><span class="badge-purple"><%= sv.limits.cpu %>%</span></td>
-                      <td style="white-space:nowrap;">
-                        <a href="/servers/edit?id=<%= sv.id %>" class="btn btn-secondary btn-sm" style="font-size:11px;margin-right:4px;">Edit</a>
-                        <a href="<%= settings.pterodactyl.domain %>/server/<%= sv.identifier %>" target="_blank" class="btn btn-secondary btn-sm" style="font-size:11px;margin-right:4px;">Open</a>
-                        <a class="btn btn-danger btn-sm" style="font-size:11px;" onclick="if(confirm('Delete <%= sv.name %>? This cannot be undone.')){window.location.href='/delete?id=<%= sv.id %>'}">Delete</a>
-                      </td>
-                    </tr>
-                  <% } %>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <% } %>
 
       </main>
 
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
-            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/Feliactyl" target="_blank" style="color:#a78bfa;">Feliactyl v<%= settings.version %></a></div>
+            <div class="col-6 text-end"><a href="https://discord.gg/N7C2nbYpQf" target="_blank" style="color:#5865f2;text-decoration:none;">Discord</a> · <span id="loadtime"></span></div>
           </div>
         </div>
       </footer>

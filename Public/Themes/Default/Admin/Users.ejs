@@ -10,27 +10,87 @@
 
       <main class="content">
 
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="adm-page-header">
           <div>
             <div class="page-title">All Users</div>
             <div class="page-subtitle">View all registered users, their coins, plans and resources</div>
           </div>
-          <div style="display:flex;gap:8px;">
-            <a href="/admin" class="btn adm-btn adm-btn--muted">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Admin Panel
+          <div class="adm-tab-nav">
+            <a href="/admin" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Overview
+            </a>
+            <a href="/admin/users" class="adm-tab adm-tab--active">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Users
+            </a>
+            <a href="/admin/plans" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Plans
+            </a>
+            <a href="/admin/settings" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Settings
+            </a>
+            <a href="/admin/logs" class="adm-tab">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Logs
             </a>
           </div>
         </div>
 
-        <!-- Search + refresh bar -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-          <input id="userSearch" class="form-control adm-input" placeholder="Search username, email or Discord ID..." style="max-width:340px;" oninput="filterUsers()">
-          <button class="btn adm-btn adm-btn--blue" onclick="loadUsers()" id="refreshBtn">
+        <!-- Stat strip -->
+        <div class="users-stat-strip mb-4" id="statStrip" style="display:none;">
+          <div class="users-stat">
+            <div class="users-stat-icon users-stat-icon--purple">
+              <svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="users-stat-label">Total Users</div>
+              <div class="users-stat-val" id="statTotal">—</div>
+            </div>
+          </div>
+          <div class="users-stat">
+            <div class="users-stat-icon users-stat-icon--amber">
+              <svg width="14" height="14" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="users-stat-label">Total Coins</div>
+              <div class="users-stat-val" id="statCoins">—</div>
+            </div>
+          </div>
+          <div class="users-stat">
+            <div class="users-stat-icon users-stat-icon--red">
+              <svg width="14" height="14" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div class="users-stat-label">Admins</div>
+              <div class="users-stat-val" id="statAdmins">—</div>
+            </div>
+          </div>
+          <div class="users-stat" style="margin-left:auto;">
+            <div class="users-search-wrap">
+              <svg class="users-search-icon" width="14" height="14" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="userSearch" class="users-search-input" placeholder="Search users..." oninput="filterUsers()">
+            </div>
+            <button class="btn adm-btn adm-btn--blue" onclick="loadUsers()" id="refreshBtn" style="flex-shrink:0;">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Initial load bar (shown before data loads) -->
+        <div class="users-load-bar mb-4" id="initialBar">
+          <div class="users-search-wrap">
+            <svg class="users-search-icon" width="14" height="14" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="userSearchInit" class="users-search-input" placeholder="Search username, email or Discord ID..." oninput="filterUsersInit()" disabled>
+          </div>
+          <button class="btn adm-btn adm-btn--blue" onclick="loadUsers()" id="refreshBtnInit">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right:5px;vertical-align:-1px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>
             Refresh
           </button>
-          <span id="userCount" style="font-size:12px;color:#6b7280;"></span>
+          <span id="userCount" class="users-count-badge" style="display:none;"></span>
         </div>
 
         <!-- Table card -->
@@ -52,12 +112,123 @@
                   <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Disk</th>
                   <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">CPU</th>
                   <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Servers</th>
+                  <th style="padding:12px 18px;text-align:center;color:#6b7280;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;">Actions</th>
                 </tr>
               </thead>
               <tbody id="userTableBody"></tbody>
             </table>
           </div>
         </div>
+
+        <!-- Management drawer overlay -->
+        <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+        <div id="mgmtDrawer" class="mgmt-drawer">
+          <div class="mgmt-drawer-header">
+            <div id="drawerUserInfo" class="mgmt-drawer-user"></div>
+            <button class="mgmt-close-btn" onclick="closeDrawer()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="mgmt-drawer-body">
+
+            <!-- Coins -->
+            <div class="mgmt-section">
+              <div class="mgmt-section-label mgmt-section-label--amber">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Coins
+              </div>
+              <div class="mgmt-row">
+                <input id="inputSetCoins" class="mgmt-input" type="number" min="0" placeholder="Set amount">
+                <button class="mgmt-btn mgmt-btn--amber" type="button" onclick="doSetCoins()">Set</button>
+              </div>
+              <div class="mgmt-row" style="margin-top:8px;">
+                <input id="inputAddCoins" class="mgmt-input" type="number" placeholder="±amount">
+                <button class="mgmt-btn mgmt-btn--purple" type="button" onclick="doAddCoins()">Add</button>
+              </div>
+            </div>
+
+            <!-- Plan -->
+            <div class="mgmt-section">
+              <div class="mgmt-section-label mgmt-section-label--blue">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Plan
+              </div>
+              <div class="mgmt-row">
+                <select id="selectPlan" class="mgmt-select">
+                  <% for (let [pname] of Object.entries(settings.api.client.packages.list)) { %>
+                    <option value="<%= pname %>"><%= pname %></option>
+                  <% } %>
+                </select>
+                <button class="mgmt-btn mgmt-btn--blue" type="button" onclick="doSetPlan()">Apply</button>
+              </div>
+            </div>
+
+            <!-- Resources -->
+            <div class="mgmt-section">
+              <div class="mgmt-section-label mgmt-section-label--green">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                Set Extra Resources
+              </div>
+              <div class="mgmt-res-grid">
+                <input id="setRam" class="mgmt-input" type="number" min="0" placeholder="RAM (MB)">
+                <input id="setDisk" class="mgmt-input" type="number" min="0" placeholder="Disk (MB)">
+                <input id="setCpu" class="mgmt-input" type="number" min="0" placeholder="CPU (%)">
+                <input id="setSrv" class="mgmt-input" type="number" min="0" placeholder="Servers">
+              </div>
+              <button class="mgmt-btn mgmt-btn--green" type="button" style="margin-top:10px;width:100%;" onclick="doSetRes()">Set Resources</button>
+            </div>
+
+            <!-- Add Resources -->
+            <div class="mgmt-section">
+              <div class="mgmt-section-label mgmt-section-label--teal">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Extra Resources
+              </div>
+              <div class="mgmt-res-grid">
+                <input id="addRam" class="mgmt-input" type="number" min="0" placeholder="+RAM (MB)">
+                <input id="addDisk" class="mgmt-input" type="number" min="0" placeholder="+Disk (MB)">
+                <input id="addCpu" class="mgmt-input" type="number" min="0" placeholder="+CPU (%)">
+                <input id="addSrv" class="mgmt-input" type="number" min="0" placeholder="+Servers">
+              </div>
+              <button class="mgmt-btn mgmt-btn--teal" type="button" style="margin-top:10px;width:100%;" onclick="doAddRes()">Add Resources</button>
+            </div>
+
+            <!-- Admin toggle -->
+            <div class="mgmt-section">
+              <div class="mgmt-section-label">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Admin Status
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="mgmt-btn mgmt-btn--green" id="btnPromote" type="button" style="flex:1;" onclick="doSetAdmin(true)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Promote to Admin
+                </button>
+                <button class="mgmt-btn mgmt-btn--orange" id="btnDemote" type="button" style="flex:1;" onclick="doSetAdmin(false)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Remove Admin
+                </button>
+              </div>
+              <div id="adminStatusBadge" style="margin-top:8px;font-size:11px;font-weight:600;"></div>
+            </div>
+
+            <!-- Delete -->
+            <div class="mgmt-section mgmt-section--danger">
+              <div class="mgmt-section-label mgmt-section-label--red">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Danger Zone
+              </div>
+              <button class="mgmt-btn mgmt-btn--red" type="button" style="width:100%;" onclick="doDeleteUser()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Remove Account
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="mgmtToast" class="mgmt-toast"></div>
 
       </main>
 
@@ -79,26 +250,39 @@
     let allUsersData = [];
 
     async function loadUsers() {
-      const loading = document.getElementById('userLoading');
-      const wrap    = document.getElementById('userTableWrap');
-      const btn     = document.getElementById('refreshBtn');
-      const count   = document.getElementById('userCount');
+      const loading  = document.getElementById('userLoading');
+      const wrap     = document.getElementById('userTableWrap');
+      const initBar  = document.getElementById('initialBar');
+      const statStrip= document.getElementById('statStrip');
+      const btns     = document.querySelectorAll('#refreshBtn,#refreshBtnInit');
       loading.style.display = 'block';
-      loading.innerHTML = '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:0.4;animation:spin 1s linear infinite;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg>Loading users...';
+      loading.innerHTML = '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:0.4;animation:spin 1s linear infinite;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.58"/></svg><span style="color:#6b7280;">Loading users...</span>';
       wrap.style.display = 'none';
-      btn.disabled = true;
+      btns.forEach(b => b.disabled = true);
       try {
         const res  = await fetch('/admin/usersdata');
         const data = await res.json();
-        if (data.error) { loading.innerHTML = '<span style="color:#fca5a5;">Error: ' + data.error + '</span>'; btn.disabled=false; return; }
+        if (data.error) {
+          loading.innerHTML = '<span style="color:#fca5a5;">Error: ' + data.error + '</span>';
+          btns.forEach(b => b.disabled = false);
+          return;
+        }
         allUsersData = data.users;
-        count.textContent = allUsersData.length + ' users';
+        // Populate stat strip
+        document.getElementById('statTotal').textContent  = allUsersData.length;
+        document.getElementById('statCoins').textContent  = allUsersData.reduce((s,u)=>s+u.coins,0).toLocaleString();
+        document.getElementById('statAdmins').textContent = allUsersData.filter(u=>u.admin).length;
+        // Swap bars
+        initBar.style.display   = 'none';
+        statStrip.style.display = 'flex';
         renderUsers(allUsersData);
       } catch(e) {
         loading.innerHTML = '<span style="color:#fca5a5;">Failed: ' + e.message + '</span>';
       }
-      btn.disabled = false;
+      btns.forEach(b => b.disabled = false);
     }
+
+    const _userMap = {};
 
     function renderUsers(users) {
       const loading = document.getElementById('userLoading');
@@ -107,32 +291,39 @@
       tbody.innerHTML = '';
       if (!users.length) {
         loading.style.display = 'block';
-        loading.innerHTML = '<span style="color:#6b7280;">No users match your search.</span>';
+        loading.innerHTML = '<div style="padding:20px 0;"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:0.2;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span style="color:#4b5563;">No users match your search.</span></div>';
         wrap.style.display = 'none';
         return;
       }
-      users.forEach(u => {
+      users.forEach((u, idx) => {
+        const key = 'u_' + idx;
+        _userMap[key] = u;
         const tr = document.createElement('tr');
-        tr.style.cssText = 'border-bottom:1px solid rgba(139,92,246,0.07);transition:background 0.15s;cursor:default;';
-        tr.onmouseenter = () => tr.style.background = 'rgba(139,92,246,0.05)';
-        tr.onmouseleave = () => tr.style.background = '';
-        const cell = (html, center) => `<td style="padding:11px 18px;${center?'text-align:center;':''}color:#e2e8f0;white-space:nowrap;">${html}</td>`;
+        tr.className = 'users-row';
+        const cell = (html, cls) => `<td class="users-td${cls?' '+cls:''}">${html}</td>`;
+        const totalRam  = (u.packages?.ram  || 0) + (u.extra?.ram  || 0);
+        const totalDisk = (u.packages?.disk || 0) + (u.extra?.disk || 0);
+        const totalCpu  = (u.packages?.cpu  || 0) + (u.extra?.cpu  || 0);
+        const totalServ = (u.packages?.servers||0) + (u.extra?.servers||0);
         tr.innerHTML =
-          cell(`<div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:30px;height:30px;border-radius:8px;background:rgba(124,58,237,0.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#a78bfa;flex-shrink:0;">${u.username.charAt(0).toUpperCase()}</div>
+          cell(`<div class="users-user-cell">
+            <div class="users-avatar">${u.username.charAt(0).toUpperCase()}</div>
             <div>
-              <div style="font-weight:600;font-size:13px;">${u.username}</div>
-              ${u.admin ? '<span style="font-size:10px;background:rgba(220,38,38,0.15);color:#fca5a5;border-radius:4px;padding:1px 6px;">admin</span>' : ''}
+              <div class="users-username">${u.username}</div>
+              ${u.admin ? '<span class="users-admin-badge">admin</span>' : ''}
             </div>
           </div>`) +
-          cell(`<span style="color:#9ca3af;font-size:12px;">${u.email}</span>`) +
-          cell(u.discordId ? `<div>${u.discordUsername ? `<span style="font-size:12px;color:#c4b5fd;font-weight:600;">${u.discordUsername}</span><br>` : ''}<code style="font-size:10px;color:#6b7280;background:rgba(124,58,237,0.08);padding:1px 6px;border-radius:4px;">${u.discordId}</code></div>` : `<span style="color:#374151;font-size:12px;">Not linked</span>`) +
-          cell(`<span style="font-weight:700;color:#fbbf24;">🪙 ${u.coins.toLocaleString()}</span>`, true) +
-          cell(`<span style="font-size:11px;background:rgba(124,58,237,0.12);color:#c4b5fd;border-radius:5px;padding:3px 10px;font-weight:600;">${u.plan}</span>`, true) +
-          cell(`<span style="color:#6ee7b7;">${u.extra.ram.toLocaleString()} MB</span>`, true) +
-          cell(`<span style="color:#93c5fd;">${u.extra.disk.toLocaleString()} MB</span>`, true) +
-          cell(`<span style="color:#fcd34d;">${u.extra.cpu}%</span>`, true) +
-          cell(`<span style="color:#e2e8f0;">${u.extra.servers ?? 0}</span>`, true);
+          cell(`<span class="users-email">${u.email}</span>`) +
+          cell(u.discordId
+            ? `<div>${u.discordUsername ? `<span class="users-discord-name">${u.discordUsername}</span><br>` : ''}<code class="users-discord-id">${u.discordId}</code></div>`
+            : `<span class="users-not-linked">Not linked</span>`) +
+          cell(`<span class="users-coins">🪙 ${u.coins.toLocaleString()}</span>`, 'center') +
+          cell(`<span class="users-plan-badge">${u.plan}</span>`, 'center') +
+          cell(`<span class="users-res users-res--green">${totalRam.toLocaleString()} MB</span>`, 'center') +
+          cell(`<span class="users-res users-res--blue">${totalDisk.toLocaleString()} MB</span>`, 'center') +
+          cell(`<span class="users-res users-res--yellow">${totalCpu}%</span>`, 'center') +
+          cell(`<span class="users-res">${totalServ}</span>`, 'center') +
+          cell(`<button class="mgmt-open-btn" onclick="openDrawer('${key}')">Manage</button>`, 'center');
         tbody.appendChild(tr);
       });
       loading.style.display = 'none';
@@ -141,32 +332,289 @@
 
     function filterUsers() {
       const q = document.getElementById('userSearch').value.toLowerCase();
+      filterByQuery(q);
+    }
+    function filterUsersInit() {
+      const q = document.getElementById('userSearchInit').value.toLowerCase();
+      filterByQuery(q);
+    }
+    function filterByQuery(q) {
       const filtered = allUsersData.filter(u =>
         u.username.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         (u.discordId && u.discordId.includes(q))
       );
-      document.getElementById('userCount').textContent = filtered.length + ' / ' + allUsersData.length + ' users';
+      document.getElementById('statTotal').textContent = filtered.length + ' / ' + allUsersData.length;
       renderUsers(filtered);
     }
 
-    // Auto-load on page open
+    let _activeUserId = null;
+
+    function openDrawer(key) {
+      const u = _userMap[key];
+      if (!u) return;
+      _activeUserId = u.discordId;
+      // header
+      document.getElementById('drawerUserInfo').innerHTML =
+        `<div class="users-avatar" style="width:36px;height:36px;font-size:14px;">${u.username.charAt(0).toUpperCase()}</div>
+         <div>
+           <div style="font-weight:700;font-size:14px;color:#e2e8f0;">${u.username}</div>
+           <div style="font-size:11px;color:#6b7280;">${u.discordId || 'No Discord'}</div>
+         </div>`;
+      // pre-fill coin input
+      document.getElementById('inputSetCoins').value  = u.coins;
+      document.getElementById('inputAddCoins').value  = '';
+      // admin status
+      const badge = document.getElementById('adminStatusBadge');
+      if (u.admin) {
+        badge.innerHTML = '<span style="color:#fcd34d;">⚡ Currently Admin</span>';
+        document.getElementById('btnPromote').disabled = true;
+        document.getElementById('btnDemote').disabled  = false;
+      } else {
+        badge.innerHTML = '<span style="color:#6b7280;">Not an admin</span>';
+        document.getElementById('btnPromote').disabled = false;
+        document.getElementById('btnDemote').disabled  = true;
+      }
+      // open
+      document.getElementById('drawerOverlay').classList.add('active');
+      document.getElementById('mgmtDrawer').classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('active');
+      document.getElementById('mgmtDrawer').classList.remove('open');
+    }
+
+    function showToast(msg, ok) {
+      const t = document.getElementById('mgmtToast');
+      t.textContent = msg;
+      t.className = 'mgmt-toast ' + (ok ? 'mgmt-toast--ok' : 'mgmt-toast--err') + ' mgmt-toast--show';
+      clearTimeout(t._tid);
+      t._tid = setTimeout(() => t.classList.remove('mgmt-toast--show'), 3000);
+    }
+
+    async function doSetAdmin(makeAdmin) {
+      const u = _userMap[Object.keys(_userMap).find(k => _userMap[k].discordId === _activeUserId)];
+      if (!u) return showToast('User not found', false);
+      try {
+        const res = await fetch('/admin/setadmin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pteroId: u.id, admin: makeAdmin })
+        });
+        const data = await res.json();
+        if (data.success) {
+          u.admin = makeAdmin;
+          const badge = document.getElementById('adminStatusBadge');
+          if (makeAdmin) {
+            badge.innerHTML = '<span style="color:#fcd34d;">⚡ Currently Admin</span>';
+            document.getElementById('btnPromote').disabled = true;
+            document.getElementById('btnDemote').disabled  = false;
+          } else {
+            badge.innerHTML = '<span style="color:#6b7280;">Not an admin</span>';
+            document.getElementById('btnPromote').disabled = false;
+            document.getElementById('btnDemote').disabled  = true;
+          }
+          showToast(makeAdmin ? 'Promoted to admin' : 'Admin removed', true);
+          renderUsers(allUsersData);
+        } else {
+          showToast('Error: ' + (data.error || 'Unknown'), false);
+        }
+      } catch(e) { showToast('Request failed', false); }
+    }
+
+    async function postForm(url, body) {
+      const fd = new FormData();
+      Object.entries(body).forEach(([k,v]) => fd.append(k, v));
+      const res = await fetch(url, { method:'POST', body: fd, redirect:'manual' });
+      return res.ok || res.status === 0 || res.type === 'opaqueredirect';
+    }
+
+    function doSetCoins() {
+      const v = document.getElementById('inputSetCoins').value;
+      if (v === '' || !_activeUserId) return;
+      fetch(`/setcoins?id=${encodeURIComponent(_activeUserId)}&coins=${encodeURIComponent(v)}`, { redirect:'manual' })
+        .then(() => { showToast('Coins set to ' + v, true); loadUsers(); })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
+    function doAddCoins() {
+      const v = document.getElementById('inputAddCoins').value;
+      if (v === '' || !_activeUserId) return;
+      fetch(`/addcoins?id=${encodeURIComponent(_activeUserId)}&coins=${encodeURIComponent(v)}`, { redirect:'manual' })
+        .then(() => { showToast('Coins adjusted by ' + v, true); loadUsers(); })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
+    function doSetPlan() {
+      const pkg = document.getElementById('selectPlan').value;
+      if (!pkg || !_activeUserId) return;
+      postForm('/setplan', { id: _activeUserId, package: pkg })
+        .then(ok => { showToast(ok ? 'Plan set to ' + pkg : 'Failed to set plan', ok); if (ok) loadUsers(); })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
+    function doSetRes() {
+      if (!_activeUserId) return;
+      const body = { id: _activeUserId };
+      const ram = document.getElementById('setRam').value;
+      const disk = document.getElementById('setDisk').value;
+      const cpu = document.getElementById('setCpu').value;
+      const srv = document.getElementById('setSrv').value;
+      if (ram !== '') body.ram = ram;
+      if (disk !== '') body.disk = disk;
+      if (cpu !== '') body.cpu = cpu;
+      if (srv !== '') body.servers = srv;
+      postForm('/setresources', body)
+        .then(ok => { showToast(ok ? 'Resources updated' : 'Failed to set resources', ok); if (ok) loadUsers(); })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
+    function doAddRes() {
+      if (!_activeUserId) return;
+      const body = { id: _activeUserId };
+      const ram = document.getElementById('addRam').value;
+      const disk = document.getElementById('addDisk').value;
+      const cpu = document.getElementById('addCpu').value;
+      const srv = document.getElementById('addSrv').value;
+      if (ram !== '') body.ram = ram;
+      if (disk !== '') body.disk = disk;
+      if (cpu !== '') body.cpu = cpu;
+      if (srv !== '') body.servers = srv;
+      postForm('/addresources', body)
+        .then(ok => { showToast(ok ? 'Resources added' : 'Failed to add resources', ok); if (ok) loadUsers(); })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
+    function doDeleteUser() {
+      if (!_activeUserId) return;
+      if (!confirm('Remove this user from the database? This cannot be undone.')) return;
+      postForm('/remove_account', { id: _activeUserId })
+        .then(ok => {
+          showToast(ok ? 'User removed' : 'Failed to remove user', ok);
+          if (ok) { closeDrawer(); loadUsers(); }
+        })
+        .catch(e => showToast('Error: ' + e.message, false));
+    }
+
     loadUsers();
   </script>
 
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* tabs */
+    .adm-page-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px; }
+    .adm-tab-nav { display:flex;gap:4px;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.14);border-radius:12px;padding:4px; }
+    .adm-tab { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#6b7280;text-decoration:none;transition:all .15s; }
+    .adm-tab:hover { color:#c4b5fd;background:rgba(124,58,237,.08);text-decoration:none; }
+    .adm-tab--active { background:rgba(124,58,237,.18);color:#c4b5fd;border:1px solid rgba(124,58,237,.25); }
+
+    /* stat strip */
+    .users-stat-strip { display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;flex-wrap:wrap; }
+    .users-stat { display:flex;align-items:center;gap:12px;padding:14px 20px;border-right:1px solid var(--border);flex-shrink:0; }
+    .users-stat:last-child { border-right:none;gap:10px; }
+    .users-stat-icon { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .users-stat-icon--purple { background:rgba(124,58,237,.12); }
+    .users-stat-icon--amber  { background:rgba(245,158,11,.12); }
+    .users-stat-icon--red    { background:rgba(220,38,38,.12); }
+    .users-stat-label { font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;font-weight:600; }
+    .users-stat-val   { font-size:17px;font-weight:800;color:#e2e8f0;margin-top:1px; }
+
+    /* initial load bar */
+    .users-load-bar { display:flex;align-items:center;gap:10px; }
+    .users-count-badge { font-size:12px;color:#6b7280; }
+
+    /* search */
+    .users-search-wrap { position:relative;display:flex;align-items:center; }
+    .users-search-icon { position:absolute;left:11px;pointer-events:none;flex-shrink:0; }
+    .users-search-input { background:var(--surface2);border:1px solid rgba(139,92,246,.18);border-radius:9px;color:#e2e8f0;font-size:13px;padding:9px 12px 9px 34px;outline:none;font-family:inherit;min-width:260px;transition:border-color .15s; }
+    .users-search-input::placeholder { color:#4b4669; }
+    .users-search-input:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+    .users-search-input:disabled { opacity:.4;cursor:not-allowed; }
+
+    /* buttons */
+    .adm-btn { font-size:13px!important;font-weight:600!important;padding:9px 18px!important;border:none!important;border-radius:9px!important;display:inline-flex;align-items:center;transition:all 0.15s!important; }
+    .adm-btn:hover { transform:translateY(-1px)!important;filter:brightness(1.1)!important; }
+    .adm-btn--blue  { background:linear-gradient(135deg,#2563eb,#60a5fa)!important;color:white!important;box-shadow:0 2px 10px rgba(37,99,235,0.3)!important; }
+    .adm-btn:disabled { opacity:0.6!important;cursor:not-allowed!important;transform:none!important; }
+
+    /* card */
     .adm-card { background:var(--surface);border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(139,92,246,0.14); }
     .adm-card::before { content:'';position:absolute;inset:0 0 auto 0;height:3px;border-radius:16px 16px 0 0; }
     .adm-card--blue::before { background:linear-gradient(90deg,#2563eb,#60a5fa); }
-    .adm-input { background:var(--surface2)!important;border:1px solid rgba(139,92,246,0.18)!important;border-radius:9px!important;color:#e2e8f0!important;font-size:13px!important;padding:9px 12px!important; }
-    .adm-input:focus { border-color:#7c3aed!important;box-shadow:0 0 0 3px rgba(124,58,237,0.15)!important;outline:none!important; }
-    .adm-input::placeholder { color:#4b4669!important; }
-    .adm-btn { font-size:13px!important;font-weight:600!important;padding:9px 18px!important;border:none!important;border-radius:9px!important;display:inline-flex;align-items:center;transition:all 0.15s!important; }
-    .adm-btn:hover { transform:translateY(-1px)!important;filter:brightness(1.1)!important; }
-    .adm-btn--muted { background:rgba(139,92,246,0.12)!important;color:#a78bfa!important;border:1px solid rgba(139,92,246,0.22)!important; }
-    .adm-btn--blue  { background:linear-gradient(135deg,#2563eb,#60a5fa)!important;color:white!important;box-shadow:0 2px 10px rgba(37,99,235,0.3)!important; }
-    .adm-btn:disabled { opacity:0.6!important;cursor:not-allowed!important;transform:none!important; }
+
+    /* table */
+    .users-row { border-bottom:1px solid rgba(139,92,246,.07);transition:background .12s;cursor:default; }
+    .users-row:hover { background:rgba(139,92,246,.04); }
+    .users-row:last-child { border-bottom:none; }
+    .users-td { padding:11px 18px;color:#e2e8f0;white-space:nowrap; }
+    .users-td.center { text-align:center; }
+    .users-user-cell { display:flex;align-items:center;gap:9px; }
+    .users-avatar { width:32px;height:32px;border-radius:9px;background:rgba(124,58,237,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#a78bfa;flex-shrink:0; }
+    .users-username { font-weight:600;font-size:13px;color:#e2e8f0; }
+    .users-admin-badge { font-size:10px;background:rgba(220,38,38,.14);color:#fca5a5;border-radius:4px;padding:1px 6px;display:inline-block;margin-top:2px; }
+    .users-email { color:#6b7280;font-size:12px; }
+    .users-discord-name { font-size:12px;color:#c4b5fd;font-weight:600; }
+    .users-discord-id { font-size:10px;color:#6b7280;background:rgba(124,58,237,.08);padding:1px 6px;border-radius:4px; }
+    .users-not-linked { color:#374151;font-size:12px; }
+    .users-coins { font-weight:700;color:#fbbf24; }
+    .users-plan-badge { font-size:11px;background:rgba(124,58,237,.12);color:#c4b5fd;border-radius:5px;padding:3px 10px;font-weight:600; }
+    .users-res { font-size:12px;font-weight:600;color:#9ca3af; }
+    .users-res--green  { color:#6ee7b7; }
+    .users-res--blue   { color:#93c5fd; }
+    .users-res--yellow { color:#fcd34d; }
+
+    /* manage button */
+    .mgmt-open-btn { background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.28);color:#c4b5fd;font-size:11px;font-weight:700;padding:5px 14px;border-radius:7px;cursor:pointer;transition:all .14s;white-space:nowrap; }
+    .mgmt-open-btn:hover { background:rgba(139,92,246,.28);color:#e9d5ff;transform:translateY(-1px); }
+
+    /* drawer overlay */
+    .drawer-overlay { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;opacity:0;pointer-events:none;transition:opacity .2s; }
+    .drawer-overlay.active { opacity:1;pointer-events:all; }
+
+    /* drawer panel */
+    .mgmt-drawer { position:fixed;top:0;right:0;height:100vh;width:380px;max-width:100vw;background:#13111c;border-left:1px solid rgba(139,92,246,.2);z-index:901;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden; }
+    .mgmt-drawer.open { transform:translateX(0); }
+    .mgmt-drawer-header { display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid rgba(139,92,246,.14);flex-shrink:0; }
+    .mgmt-drawer-user { display:flex;align-items:center;gap:12px; }
+    .mgmt-close-btn { background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);color:#a78bfa;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .14s; }
+    .mgmt-close-btn:hover { background:rgba(139,92,246,.22); }
+    .mgmt-drawer-body { flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px; }
+
+    /* drawer sections */
+    .mgmt-section { background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.1);border-radius:12px;padding:14px 16px; }
+    .mgmt-section--danger { border-color:rgba(220,38,38,.2);background:rgba(220,38,38,.04); }
+    .mgmt-section-label { display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px; }
+    .mgmt-section-label--amber  { color:#fcd34d; }
+    .mgmt-section-label--purple { color:#c4b5fd; }
+    .mgmt-section-label--blue   { color:#93c5fd; }
+    .mgmt-section-label--green  { color:#6ee7b7; }
+    .mgmt-section-label--teal   { color:#5eead4; }
+    .mgmt-section-label--red    { color:#fca5a5; }
+    .mgmt-row { display:flex;gap:8px;align-items:center; }
+    .mgmt-input { flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(139,92,246,.2);border-radius:8px;color:#e2e8f0;font-size:13px;padding:8px 11px;outline:none;font-family:inherit;min-width:0;transition:border-color .14s; }
+    .mgmt-input::placeholder { color:#4b4669; }
+    .mgmt-input:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+    .mgmt-select { flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(139,92,246,.2);border-radius:8px;color:#e2e8f0;font-size:13px;padding:8px 11px;outline:none;font-family:inherit;min-width:0; }
+    .mgmt-select option { background:#13111c; }
+    .mgmt-res-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+    .mgmt-btn { flex-shrink:0;font-size:12px;font-weight:700;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .14s;white-space:nowrap; }
+    .mgmt-btn:hover { filter:brightness(1.15);transform:translateY(-1px); }
+    .mgmt-btn--amber  { background:linear-gradient(135deg,#d97706,#fbbf24);color:#1c1400; }
+    .mgmt-btn--purple { background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff; }
+    .mgmt-btn--blue   { background:linear-gradient(135deg,#2563eb,#60a5fa);color:#fff; }
+    .mgmt-btn--green  { background:linear-gradient(135deg,#059669,#6ee7b7);color:#052e16; }
+    .mgmt-btn--teal   { background:linear-gradient(135deg,#0d9488,#5eead4);color:#021a17; }
+    .mgmt-btn--red    { background:linear-gradient(135deg,#dc2626,#f87171);color:#fff; }
+    .mgmt-btn--orange { background:linear-gradient(135deg,#d97706,#fbbf24);color:#1a0a00; }
+    .mgmt-btn:disabled { opacity:.4;cursor:not-allowed;transform:none!important; }
+
+    /* toast */
+    .mgmt-toast { position:fixed;bottom:28px;right:28px;z-index:1100;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:320px; }
+    .mgmt-toast--show { opacity:1;transform:translateY(0); }
+    .mgmt-toast--ok  { background:linear-gradient(135deg,#059669,#34d399);box-shadow:0 4px 20px rgba(5,150,105,.35); }
+    .mgmt-toast--err { background:linear-gradient(135deg,#dc2626,#f87171);box-shadow:0 4px 20px rgba(220,38,38,.35); }
   </style>
 
 </body>

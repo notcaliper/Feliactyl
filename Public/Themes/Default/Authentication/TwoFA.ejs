@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../Components/Header.ejs') %>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+    top: -200px; left: -200px;
+    animation: orb1 8s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    bottom: -150px; right: -150px;
+    animation: orb2 10s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes orb1 { from { transform: translate(0,0) scale(1); } to { transform: translate(80px,60px) scale(1.2); } }
+  @keyframes orb2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-60px,-80px) scale(1.15); } }
+
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+  }
+
+  .login-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .login-logo {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 0 40px rgba(124,58,237,0.4);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 30px rgba(124,58,237,0.4); }
+    50%       { box-shadow: 0 0 60px rgba(124,58,237,0.7); }
+  }
+  .login-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .login-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  }
+
+  .code-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 24px 0;
+  }
+  .code-digit {
+    width: 52px; height: 60px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    caret-color: #7c3aed;
+    outline: none;
+  }
+  .code-digit:focus {
+    border-color: rgba(124,58,237,0.6);
+    background: rgba(124,58,237,0.08);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+  }
+  .code-digit.filled {
+    border-color: rgba(124,58,237,0.4);
+    background: rgba(124,58,237,0.06);
+  }
+
+  .btn-verify {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+  }
+  .btn-verify:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(124,58,237,0.5);
+  }
+  .btn-verify:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 24px;
+    background: rgba(255,255,255,0.05);
+    color: #9ca3af;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+  }
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.09);
+    color: white;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #374151;
+    font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  /* Backup code panel */
+  .backup-panel {
+    display: none;
+  }
+  .backup-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    font-family: 'Inter', monospace;
+    text-align: center;
+    letter-spacing: 3px;
+    transition: all 0.2s;
+    outline: none;
+    margin: 16px 0 20px;
+  }
+  .backup-input:focus {
+    border-color: rgba(124,58,237,0.6);
+    background: rgba(124,58,237,0.08);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+  }
+
+  .error-banner {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #f87171;
+    text-align: center;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .info-text {
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .back-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .back-link a {
+    color: #7c3aed;
+    text-decoration: none;
+  }
+  .back-link a:hover { text-decoration: underline; }
+
+  .version-badge {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #4b5563;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Shake animation on error */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+</style>
+
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="login-wrapper">
+    <div class="login-header">
+      <div class="login-logo">
+        <svg width="36" height="36" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="login-title">Two-Factor Auth</div>
+      <div class="login-subtitle">Enter the code from your authenticator app</div>
+    </div>
+
+    <div class="glass-card">
+
+      <!-- TOTP Panel -->
+      <div id="totp-panel">
+        <p class="info-text">Open your authenticator app and enter the 6-digit code for <strong style="color:#c4b5fd;"><%= settings.name %></strong></p>
+
+        <div class="error-banner" id="totp-error"></div>
+
+        <div class="code-inputs" id="digit-inputs">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+          <input class="code-digit" type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        </div>
+
+        <button class="btn-verify" id="verify-btn" onclick="submitTOTP()" disabled>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Verify Code
+        </button>
+
+        <div class="divider">lost access?</div>
+
+        <button class="btn-secondary" onclick="showBackupPanel()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Use a backup code instead
+        </button>
+      </div>
+
+      <!-- Backup Code Panel -->
+      <div class="backup-panel" id="backup-panel">
+        <p class="info-text">Enter one of your 10-character backup codes</p>
+
+        <div class="error-banner" id="backup-error"></div>
+
+        <input class="backup-input" type="text" id="backup-input" placeholder="XXXX-XXXX-XX" maxlength="12" autocomplete="off" spellcheck="false">
+
+        <button class="btn-verify" onclick="submitBackup()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Verify Backup Code
+        </button>
+
+        <button class="btn-secondary" onclick="showTOTPPanel()" style="margin-top:10px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to authenticator
+        </button>
+      </div>
+
+    </div>
+
+    <div class="back-link">
+      <a href="/logout">← Sign out and use a different account</a>
+    </div>
+  </div>
+
+  <div class="version-badge"><%= settings.name %> v<%= settings.version %></div>
+
+  <script>
+    const digits = document.querySelectorAll('.code-digit');
+    const verifyBtn = document.getElementById('verify-btn');
+
+    // Auto-advance between digit boxes
+    digits.forEach((input, i) => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !input.value && i > 0) {
+          digits[i - 1].focus();
+          digits[i - 1].value = '';
+          digits[i - 1].classList.remove('filled');
+        }
+      });
+
+      input.addEventListener('input', e => {
+        const val = e.target.value.replace(/\D/g, '');
+        input.value = val;
+        if (val) {
+          input.classList.add('filled');
+          if (i < 5) digits[i + 1].focus();
+        } else {
+          input.classList.remove('filled');
+        }
+        checkComplete();
+      });
+
+      // Handle paste
+      input.addEventListener('paste', e => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((char, j) => {
+          if (digits[j]) {
+            digits[j].value = char;
+            digits[j].classList.add('filled');
+          }
+        });
+        if (pasted.length === 6) {
+          digits[5].focus();
+          checkComplete();
+          submitTOTP();
+        }
+      });
+    });
+
+    function checkComplete() {
+      const code = Array.from(digits).map(d => d.value).join('');
+      verifyBtn.disabled = code.length !== 6;
+      if (code.length === 6) verifyBtn.focus();
+    }
+
+    function getCode() {
+      return Array.from(digits).map(d => d.value).join('');
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('digit-inputs')?.classList.add('shake');
+      setTimeout(() => document.getElementById('digit-inputs')?.classList.remove('shake'), 400);
+    }
+
+    function clearError(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    async function submitTOTP() {
+      const token = getCode();
+      if (token.length !== 6) return;
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = 'Verifying...';
+      clearError('totp-error');
+
+      try {
+        const res = await fetch('/api/2fa/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          verifyBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Verified!';
+          verifyBtn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+          setTimeout(() => window.location.href = data.redirect || '/', 400);
+        } else {
+          showError('totp-error', data.message || 'Invalid code. Please try again.');
+          digits.forEach(d => { d.value = ''; d.classList.remove('filled'); });
+          digits[0].focus();
+          verifyBtn.disabled = true;
+          verifyBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Verify Code';
+        }
+      } catch (e) {
+        showError('totp-error', 'Connection error. Please try again.');
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Verify Code';
+      }
+    }
+
+    async function submitBackup() {
+      const backupCode = document.getElementById('backup-input').value.trim();
+      if (!backupCode) return;
+      clearError('backup-error');
+
+      try {
+        const res = await fetch('/api/2fa/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ backupCode })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          setTimeout(() => window.location.href = data.redirect || '/', 400);
+        } else {
+          showError('backup-error', data.message || 'Invalid backup code.');
+          document.getElementById('backup-input').value = '';
+        }
+      } catch (e) {
+        showError('backup-error', 'Connection error. Please try again.');
+      }
+    }
+
+    function showBackupPanel() {
+      document.getElementById('totp-panel').style.display = 'none';
+      document.getElementById('backup-panel').style.display = 'block';
+      document.querySelector('.login-subtitle').textContent = 'Enter a backup code to continue';
+      setTimeout(() => document.getElementById('backup-input').focus(), 50);
+    }
+
+    function showTOTPPanel() {
+      document.getElementById('backup-panel').style.display = 'none';
+      document.getElementById('totp-panel').style.display = 'block';
+      document.querySelector('.login-subtitle').textContent = 'Enter the code from your authenticator app';
+      digits[0].focus();
+    }
+
+    // Auto-focus first digit on load
+    digits[0].focus();
+  </script>
+
+  <%- include('../Components/LoadingBar.ejs') %>
+</body>
+</html>

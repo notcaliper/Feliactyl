@@ -25,81 +25,93 @@
         <div class="alert-banner alert-banner--red mb-4">Error: <%= req.query.err %></div>
         <% } %>
 
-        <div class="row g-4">
+        <!-- Stat strip -->
+        <div class="lv-stat-strip">
+          <div class="lv-stat">
+            <div class="lv-stat-icon lv-stat-icon--blue">
+              <svg width="15" height="15" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div>
+              <div class="lv-stat-val"><%= settings.linkvertise.coins %> <span>coins per link</span></div>
+              <div class="lv-stat-sub">instant reward</div>
+            </div>
+          </div>
+          <div class="lv-stat-div"></div>
+          <div class="lv-stat">
+            <div class="lv-stat-icon lv-stat-icon--amber">
+              <svg width="15" height="15" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="lv-stat-val"><%= Math.floor(coins * 100) / 100 %> <span>coins balance</span></div>
+              <div class="lv-stat-sub"><%= packagename ? packagename.charAt(0).toUpperCase() + packagename.slice(1) : 'Default' %> plan</div>
+            </div>
+          </div>
+          <div class="lv-stat-div"></div>
+          <div class="lv-stat">
+            <div class="lv-stat-icon lv-stat-icon--green">
+              <svg width="15" height="15" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="lv-stat-val">~30 <span>seconds per link</span></div>
+              <div class="lv-stat-sub">quick to complete</div>
+            </div>
+          </div>
+          <div class="lv-stat-div lv-stat-div--right"></div>
+          <a href="/store" class="lv-spend-btn">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Spend Coins
+          </a>
+        </div>
+
+        <!-- Main grid -->
+        <div class="lv-main-grid">
 
           <!-- Action card -->
-          <div class="col-12 col-lg-5">
-            <div class="lv-card">
-              <div class="lv-card-header">
-                <div class="lv-card-icon">
-                  <svg width="18" height="18" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="lv-card-title">Linkvertise Earning</div>
-                  <div class="lv-card-sub">Complete links to earn coins</div>
-                </div>
+          <div class="lv-card">
+            <div class="lv-card-glow"></div>
+            <div class="lv-card-header">
+              <div class="lv-card-icon">
+                <svg width="18" height="18" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
               </div>
-
-              <!-- Reward highlight -->
-              <div class="lv-reward-wrap">
-                <div class="lv-reward-num">🪙 <%= settings.linkvertise.coins %></div>
-                <div class="lv-reward-desc">coins per completed link</div>
+              <div>
+                <div class="lv-card-title">Linkvertise Earning</div>
+                <div class="lv-card-sub">Generate & complete links to earn coins</div>
               </div>
+            </div>
 
-              <!-- CTA -->
-              <div class="lv-cta-wrap">
-                <a href="../lv/gen" class="btn btn-primary lv-btn">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;vertical-align:-2px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  Generate Link
-                </a>
-                <div class="lv-cta-hint">A unique link will be generated for you</div>
+            <!-- Reward highlight -->
+            <div class="lv-reward-wrap">
+              <div class="lv-reward-badge">Per completed link</div>
+              <div class="lv-reward-num">+<%= settings.linkvertise.coins %></div>
+              <div class="lv-reward-unit">🪙 coins</div>
+            </div>
+
+            <!-- CTA -->
+            <div class="lv-cta-wrap">
+              <a href="../lv/gen" class="lv-generate-btn">
+                <span class="lv-generate-btn-icon">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </span>
+                Generate Link
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-left:4px;"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <div class="lv-cta-hint">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                A unique link will be generated and opened
               </div>
             </div>
           </div>
 
-          <!-- Stats + steps -->
-          <div class="col-12 col-lg-7">
+          <!-- Right panel: steps + info -->
+          <div class="lv-right">
 
-            <!-- Reward stat card -->
-            <div class="row g-3 mb-3">
-              <div class="col-6">
-                <div class="sc sc--blue">
-                  <div class="sc-top">
-                    <div class="sc-icon sc-icon--blue">
-                      <svg width="16" height="16" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    </div>
-                    <span class="sc-badge sc-badge--blue">per link</span>
-                  </div>
-                  <div class="sc-value"><%= settings.linkvertise.coins %><span class="sc-unit"> coins</span></div>
-                  <div class="sc-label">Reward</div>
-                  <div class="sc-bar-track"><div class="sc-bar sc-bar--blue" style="width:100%"></div></div>
-                  <div class="sc-sub">per completed link</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="sc sc--purple">
-                  <div class="sc-top">
-                    <div class="sc-icon sc-icon--purple">
-                      <svg width="16" height="16" fill="none" stroke="#c4b5fd" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    </div>
-                    <span class="sc-badge sc-badge--purple">balance</span>
-                  </div>
-                  <div class="sc-value"><%= Math.floor(coins * 100) / 100 %><span class="sc-unit"> 🪙</span></div>
-                  <div class="sc-label">Your Coins</div>
-                  <div class="sc-bar-track"><div class="sc-bar sc-bar--purple" style="width:60%"></div></div>
-                  <div class="sc-sub"><%= packagename.charAt(0).toUpperCase() + packagename.slice(1) %> plan</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Steps card -->
+            <!-- How it works -->
             <div class="lv-steps-card">
               <div class="lv-steps-title">How it works</div>
               <div class="lv-steps">
-
                 <div class="lv-step">
                   <div class="lv-step-num lv-step-num--blue">1</div>
                   <div class="lv-step-body">
@@ -107,9 +119,7 @@
                     <div class="lv-step-desc">Click the button to get a unique Linkvertise URL</div>
                   </div>
                 </div>
-
                 <div class="lv-step-divider"></div>
-
                 <div class="lv-step">
                   <div class="lv-step-num lv-step-num--purple">2</div>
                   <div class="lv-step-body">
@@ -117,22 +127,34 @@
                     <div class="lv-step-desc">Follow the Linkvertise steps — takes around 30 seconds</div>
                   </div>
                 </div>
-
                 <div class="lv-step-divider"></div>
-
                 <div class="lv-step">
                   <div class="lv-step-num lv-step-num--green">3</div>
                   <div class="lv-step-body">
                     <div class="lv-step-head">Coins Added</div>
-                    <div class="lv-step-desc"><strong><%= settings.linkvertise.coins %> coins</strong> are credited to your account instantly</div>
+                    <div class="lv-step-desc"><strong><%= settings.linkvertise.coins %> coins</strong> credited to your account instantly</div>
                   </div>
                 </div>
+              </div>
+            </div>
 
+            <!-- Info card -->
+            <div class="lv-info-card">
+              <div class="lv-info-row">
+                <svg width="13" height="13" fill="none" stroke="#fcd34d" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Daily limit resets every <strong>12 hours</strong></span>
+              </div>
+              <div class="lv-info-row">
+                <svg width="13" height="13" fill="none" stroke="#6ee7b7" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Disable your adblocker for Linkvertise to work</span>
+              </div>
+              <div class="lv-info-row">
+                <svg width="13" height="13" fill="none" stroke="#93c5fd" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Each link takes ~30 seconds to complete</span>
               </div>
             </div>
 
           </div>
-
         </div>
 
       </main>
@@ -140,8 +162,8 @@
       <footer class="footer">
         <div class="container-fluid">
           <div class="row">
-            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/feliactyl" target="_blank">Feliactyl</a></div>
-            <div class="col-6 text-end"><code>v<%= settings.version %></code> · <span id="loadtime"></span></div>
+            <div class="col-6">© <%= settings.name %> · Powered by <a href="https://github.com/notcaliper/Feliactyl" target="_blank" style="color:#a78bfa;">Feliactyl v<%= settings.version %></a></div>
+            <div class="col-6 text-end"><a href="https://discord.gg/N7C2nbYpQf" target="_blank" style="color:#5865f2;text-decoration:none;">Discord</a> · <span id="loadtime"></span></div>
           </div>
         </div>
       </footer>
@@ -152,127 +174,135 @@
   <%- include('../../Components/LoadingBar.ejs') %>
 
   <style>
-    /* ── Linkvertise card ── */
+    /* ── Stat strip ── */
+    .lv-stat-strip {
+      display:flex; align-items:center;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:16px 22px; margin-bottom:20px; flex-wrap:wrap;
+    }
+    .lv-stat { display:flex; align-items:center; gap:12px; flex:1; min-width:150px; }
+    .lv-stat-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .lv-stat-icon--blue  { background:rgba(59,130,246,.12); }
+    .lv-stat-icon--amber { background:rgba(245,158,11,.12); }
+    .lv-stat-icon--green { background:rgba(16,185,129,.12); }
+    .lv-stat-val { font-size:15px; font-weight:700; color:#fff; line-height:1.2; }
+    .lv-stat-val span { font-size:11px; font-weight:400; color:#6b7280; }
+    .lv-stat-sub { font-size:11px; color:#4b5563; margin-top:2px; }
+    .lv-stat-div { width:1px; height:36px; background:rgba(255,255,255,.06); margin:0 20px; flex-shrink:0; }
+    .lv-stat-div--right { margin-left:auto; }
+    .lv-spend-btn {
+      display:inline-flex; align-items:center; gap:7px; padding:8px 16px;
+      border-radius:9px; font-size:12px; font-weight:600;
+      background:rgba(124,58,237,.15); color:#c4b5fd;
+      border:1px solid rgba(124,58,237,.25); text-decoration:none;
+      transition:all .15s; white-space:nowrap; flex-shrink:0;
+    }
+    .lv-spend-btn:hover { background:rgba(124,58,237,.28); color:#fff; text-decoration:none; }
+
+    /* ── Main grid ── */
+    .lv-main-grid { display:grid; grid-template-columns:320px 1fr; gap:18px; }
+    @media(max-width:800px){ .lv-main-grid{ grid-template-columns:1fr; } }
+
+    /* ── Action card ── */
     .lv-card {
-      background: var(--surface);
-      border: 1px solid rgba(37,99,235,0.2);
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
+      background:var(--surface); border:1px solid rgba(59,130,246,.2);
+      border-radius:16px; overflow:hidden; position:relative;
     }
     .lv-card::before {
-      content: '';
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 3px;
-      background: linear-gradient(90deg, #2563eb, #60a5fa, #a78bfa);
-      border-radius: 16px 16px 0 0;
+      content:''; position:absolute; inset:0 0 auto 0; height:3px;
+      background:linear-gradient(90deg,#2563eb,#60a5fa,#a78bfa);
+      border-radius:16px 16px 0 0;
     }
-
+    .lv-card-glow {
+      position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+      width:200px; height:200px; border-radius:50%;
+      background:radial-gradient(circle,rgba(59,130,246,.1),transparent 70%);
+      pointer-events:none;
+    }
     .lv-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 22px 16px;
-      border-bottom: 1px solid rgba(37,99,235,0.1);
+      display:flex; align-items:center; gap:12px; padding:18px 20px 14px;
+      border-bottom:1px solid rgba(59,130,246,.1);
     }
     .lv-card-icon {
-      width: 40px; height: 40px; flex-shrink: 0;
-      border-radius: 10px;
-      background: rgba(37,99,235,0.14);
-      border: 1px solid rgba(37,99,235,0.22);
-      display: flex; align-items: center; justify-content: center;
+      width:38px; height:38px; flex-shrink:0; border-radius:10px;
+      background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.2);
+      display:flex; align-items:center; justify-content:center;
     }
-    .lv-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; }
-    .lv-card-sub   { font-size: 11px; color: #3b4f7a; margin-top: 2px; }
+    .lv-card-title { font-size:13px; font-weight:700; color:#e2e8f0; }
+    .lv-card-sub   { font-size:11px; color:#3b4f7a; margin-top:1px; }
 
     /* reward highlight */
-    .lv-reward-wrap {
-      text-align: center;
-      padding: 30px 24px 20px;
+    .lv-reward-wrap { text-align:center; padding:28px 24px 16px; }
+    .lv-reward-badge {
+      display:inline-block; font-size:11px; font-weight:600;
+      background:rgba(59,130,246,.1); color:#93c5fd;
+      border:1px solid rgba(59,130,246,.2); border-radius:20px;
+      padding:3px 12px; margin-bottom:12px;
     }
     .lv-reward-num {
-      font-size: 42px;
-      font-weight: 900;
-      color: #93c5fd;
-      letter-spacing: -2px;
-      line-height: 1;
+      font-size:52px; font-weight:900; color:#fff;
+      letter-spacing:-3px; line-height:1;
+      background:linear-gradient(135deg,#60a5fa,#a78bfa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
-    .lv-reward-desc {
-      font-size: 12px;
-      color: #4b5f8a;
-      margin-top: 6px;
-    }
+    .lv-reward-unit { font-size:14px; color:#6b7280; margin-top:6px; font-weight:500; }
 
     /* CTA */
-    .lv-cta-wrap {
-      padding: 0 22px 24px;
-      text-align: center;
+    .lv-cta-wrap { padding:16px 20px 22px; }
+    .lv-generate-btn {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; padding:13px 20px; border-radius:11px; font-size:14px; font-weight:700;
+      background:linear-gradient(135deg,#2563eb,#4f46e5);
+      color:#fff; text-decoration:none; border:none; cursor:pointer;
+      box-shadow:0 4px 20px rgba(37,99,235,.35); transition:all .18s;
     }
-    .lv-btn {
-      width: 100%;
-      padding: 11px !important;
-      font-size: 13px !important;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .lv-generate-btn:hover { box-shadow:0 6px 28px rgba(37,99,235,.55); transform:translateY(-1px); color:#fff; text-decoration:none; }
+    .lv-generate-btn-icon {
+      width:28px; height:28px; border-radius:7px;
+      background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
     .lv-cta-hint {
-      font-size: 11px;
-      color: #4b4669;
-      margin-top: 8px;
+      display:flex; align-items:center; justify-content:center; gap:5px;
+      font-size:11px; color:#4b5563; margin-top:10px;
     }
 
-    /* ── Steps card ── */
+    /* ── Right panel ── */
+    .lv-right { display:flex; flex-direction:column; gap:14px; }
+
+    /* Steps */
     .lv-steps-card {
-      background: rgba(37,99,235,0.05);
-      border: 1px solid rgba(37,99,235,0.14);
-      border-radius: 14px;
-      padding: 18px 20px;
+      background:rgba(37,99,235,.05); border:1px solid rgba(37,99,235,.14);
+      border-radius:14px; padding:18px 20px;
     }
     .lv-steps-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.9px;
-      color: #7c6faa;
-      margin-bottom: 16px;
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.9px; color:#7c6faa; margin-bottom:16px;
     }
-    .lv-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-    .lv-step {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
+    .lv-steps { display:flex; flex-direction:column; }
+    .lv-step { display:flex; align-items:flex-start; gap:14px; }
     .lv-step-num {
-      width: 28px; height: 28px; flex-shrink: 0;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800;
+      width:28px; height:28px; flex-shrink:0; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;
     }
-    .lv-step-num--blue   { background: rgba(37,99,235,0.2);  color: #93c5fd; }
-    .lv-step-num--purple { background: rgba(124,58,237,0.2); color: #c4b5fd; }
-    .lv-step-num--green  { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+    .lv-step-num--blue   { background:rgba(37,99,235,.2);  color:#93c5fd; }
+    .lv-step-num--purple { background:rgba(124,58,237,.2); color:#c4b5fd; }
+    .lv-step-num--green  { background:rgba(16,185,129,.2); color:#6ee7b7; }
+    .lv-step-head { font-size:13px; font-weight:600; color:#e2e8f0; margin-bottom:2px; }
+    .lv-step-desc { font-size:12px; color:#7c6faa; line-height:1.5; }
+    .lv-step-desc strong { color:#c4b5fd; font-weight:600; }
+    .lv-step-divider { width:1px; height:14px; background:rgba(139,92,246,.15); margin:4px 0 4px 13px; }
 
-    .lv-step-head {
-      font-size: 13px; font-weight: 600; color: #e2e8f0;
-      margin-bottom: 2px;
+    /* Info card */
+    .lv-info-card {
+      background:rgba(245,158,11,.04); border:1px solid rgba(245,158,11,.12);
+      border-radius:14px; padding:14px 18px; display:flex; flex-direction:column; gap:10px;
     }
-    .lv-step-desc {
-      font-size: 12px; color: #7c6faa; line-height: 1.5;
+    .lv-info-row {
+      display:flex; align-items:flex-start; gap:9px;
+      font-size:12px; color:#9ca3af; line-height:1.5;
     }
-    .lv-step-desc strong { color: #c4b5fd; font-weight: 600; }
-
-    .lv-step-divider {
-      width: 1px;
-      height: 16px;
-      background: rgba(139,92,246,0.15);
-      margin: 4px 0 4px 13px;
-    }
+    .lv-info-row svg { flex-shrink:0; margin-top:2px; }
+    .lv-info-row strong { color:#fcd34d; font-weight:600; }
   </style>
 
 </body>

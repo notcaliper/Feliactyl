@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('../../Components/Header.ejs') %>
+<%- include('../../Components/Styles.ejs') %>
+
+<style>
+  .settings-grid { display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+  .settings-nav { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px; height: fit-content; position: sticky; top: 24px; }
+  .settings-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; color: var(--muted); transition: all .15s; text-decoration: none;
+  }
+  .settings-nav-item:hover { background: rgba(124,58,237,.08); color: var(--text); }
+  .settings-nav-item.active { background: rgba(124,58,237,.15); color: #c4b5fd; }
+  .settings-nav-item svg { flex-shrink: 0; }
+
+  .settings-panel { display: none; }
+  .settings-panel.active { display: block; }
+
+  .settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .settings-card h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .settings-card p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(139,92,246,.07); }
+  .setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .setting-label { font-size: 13px; color: var(--text); font-weight: 500; }
+  .setting-desc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .btn-purple { background: linear-gradient(135deg,#7c3aed,#6d28d9); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn-purple:hover { opacity: .85; }
+  .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all .15s; }
+  .btn-outline:hover { border-color: #7c3aed; color: #c4b5fd; }
+  .btn-danger { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.2); padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all .15s; }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  .badge-enabled  { background: rgba(16,185,129,.15); color: #34d399; font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+  .badge-disabled { background: rgba(239,68,68,.12); color: #f87171; font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .stat-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .stat-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+  .stat-box .val { font-size: 22px; font-weight: 700; color: #c4b5fd; }
+  .stat-box .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .input-sm { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; width: 100%; margin-top: 8px; }
+  .input-sm:focus { outline: none; border-color: #7c3aed; }
+
+  .backup-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin: 12px 0; }
+  .backup-code { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-family: monospace; font-size: 12px; color: #c4b5fd; text-align: center; }
+
+  .qr-wrap { display: flex; gap: 24px; align-items: flex-start; }
+  .qr-wrap img { width: 160px; height: 160px; border-radius: 10px; border: 2px solid var(--border); }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #ef4444; }
+
+  @media (max-width: 768px) {
+    .settings-grid { grid-template-columns: 1fr; }
+    .settings-nav { position: static; display: flex; gap: 4px; flex-wrap: wrap; }
+    .two-col { grid-template-columns: 1fr; }
+    .qr-wrap { flex-direction: column; }
+    .stat-row { flex-wrap: wrap; }
+  }
+</style>
+
+<body>
+  <div class="wrapper">
+    <%- include('../../Routers/Navigation.ejs') %>
+    <div class="main">
+      <%- include('../../Components/Topbar.ejs') %>
+
+      <main class="content">
+        <div class="page-header">
+          <div class="page-title">Account Settings</div>
+          <div class="page-subtitle">Manage your security, referrals, and account preferences</div>
+        </div>
+
+        <div class="settings-grid">
+
+          <!-- Left Nav -->
+          <div class="settings-nav">
+            <a class="settings-nav-item active" data-panel="profile" href="#">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Profile
+            </a>
+            <a class="settings-nav-item" data-panel="security" href="#">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Security & 2FA
+            </a>
+            <a class="settings-nav-item" data-panel="referrals" href="#">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              Referrals
+            </a>
+            <a class="settings-nav-item" data-panel="account" href="#">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Account
+            </a>
+          </div>
+
+          <!-- Right Panels -->
+          <div>
+
+            <!-- Profile Panel -->
+            <div class="settings-panel active" id="panel-profile">
+              <div class="settings-card">
+                <h3>Profile Information</h3>
+                <p>Your Discord account details linked to Feliactyl</p>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Username</div>
+                    <div class="setting-desc"><%= userinfo.username %>#<%= userinfo.discriminator || '0' %></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Discord ID</div>
+                    <div class="setting-desc" style="font-family:monospace;"><%= userinfo.id %></div>
+                  </div>
+                  <button class="btn-outline" onclick="copyText('<%= userinfo.id %>')">Copy</button>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Email</div>
+                    <div class="setting-desc"><%= userinfo.email || 'Not available' %></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Current Plan</div>
+                    <div class="setting-desc"><%= typeof packagename !== 'undefined' ? (packagename.charAt(0).toUpperCase() + packagename.slice(1)) : 'Default' %></div>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Coin Balance</div>
+                    <div class="setting-desc">🪙 <%= typeof coins !== 'undefined' ? Math.floor(coins * 100) / 100 : 0 %> coins</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Security Panel -->
+            <div class="settings-panel" id="panel-security">
+
+              <!-- 2FA Status Card -->
+              <div class="settings-card">
+                <h3>Two-Factor Authentication</h3>
+                <p>Protect your account with an authenticator app (Google Authenticator, Authy, etc.)</p>
+
+                <div id="twofa-status-area">
+                  <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
+                    <div id="twofa-icon" style="font-size:24px;">⏳</div>
+                    <div>
+                      <div id="twofa-status-text" style="font-size:14px;font-weight:600;color:var(--text);">Checking...</div>
+                      <div id="twofa-status-sub" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
+                    </div>
+                    <div style="margin-left:auto;" id="twofa-action-btn"></div>
+                  </div>
+                </div>
+
+                <!-- Setup Flow (hidden by default) -->
+                <div id="twofa-setup-flow" style="display:none;margin-top:20px;">
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;">Step 1 — Scan with your authenticator app</div>
+                  <div class="qr-wrap">
+                    <img id="setup-qr" src="" alt="QR Code">
+                    <div>
+                      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Or enter manually:</div>
+                      <div id="setup-secret" style="font-family:monospace;font-size:12px;color:#c4b5fd;background:var(--surface2);padding:8px 12px;border-radius:6px;word-break:break-all;border:1px solid var(--border);"></div>
+                      <button class="btn-outline" style="margin-top:8px;font-size:11px;padding:5px 10px;" onclick="copyText(document.getElementById('setup-secret').textContent)">Copy Secret</button>
+                    </div>
+                  </div>
+
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin:20px 0 8px;">Step 2 — Save backup codes</div>
+                  <div style="font-size:12px;color:#f87171;margin-bottom:8px;">⚠️ Save these now — you won't see them again. Each can only be used once.</div>
+                  <div class="backup-grid" id="setup-backup-codes"></div>
+                  <button class="btn-outline" style="font-size:11px;padding:5px 10px;margin-bottom:16px;" onclick="copyBackupCodes()">Copy All Codes</button>
+
+                  <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Step 3 — Verify</div>
+                  <input type="text" class="input-sm" id="setup-token" placeholder="Enter 6-digit code from your app" maxlength="6" autocomplete="off">
+                  <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn-purple" onclick="verifySetup()">Enable 2FA</button>
+                    <button class="btn-outline" onclick="cancelSetup()">Cancel</button>
+                  </div>
+                </div>
+
+                <!-- Disable Flow -->
+                <div id="twofa-disable-flow" style="display:none;margin-top:20px;">
+                  <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Verify your identity to disable 2FA</div>
+                  <div style="display:flex;gap:8px;margin-bottom:8px;">
+                    <button class="btn-outline" id="disable-mode-totp" onclick="setDisableMode('totp')" style="font-size:12px;padding:5px 12px;">Authenticator Code</button>
+                    <button class="btn-outline" id="disable-mode-backup" onclick="setDisableMode('backup')" style="font-size:12px;padding:5px 12px;">Backup Code</button>
+                  </div>
+                  <input type="text" class="input-sm" id="disable-token" placeholder="6-digit code from authenticator" maxlength="6" autocomplete="off">
+                  <input type="text" class="input-sm" id="disable-backup" placeholder="10-character backup code" maxlength="10" autocomplete="off" style="display:none;margin-top:8px;">
+                  <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn-danger" onclick="disable2FA()">Disable 2FA</button>
+                    <button class="btn-outline" onclick="cancelDisable()">Cancel</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Credentials -->
+              <div class="settings-card">
+                <h3>Panel Credentials</h3>
+                <p>Your Pterodactyl panel login details</p>
+
+                <% if (req.session.password) { %>
+                <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#6ee7b7;">
+                  Your new panel password is <strong style="font-family:monospace;letter-spacing:1px;color:#34d399;font-size:14px;"><%= req.session.password %></strong>
+                  <span style="display:block;font-size:11px;color:#6ee7b7;margin-top:4px;opacity:0.8;">Save this now — it won't be shown again.</span>
+                </div>
+                <% } %>
+
+                <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+                  <div>
+                    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Email</div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                      <input type="text" class="input-sm" value="<%= pterodactyl.email %>" readonly style="flex:1;cursor:default;opacity:0.7;">
+                      <button class="btn-outline" onclick="copyText('<%= pterodactyl.email %>')">Copy</button>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Username</div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                      <input type="text" class="input-sm" value="<%= pterodactyl.username %>" readonly style="flex:1;cursor:default;opacity:0.7;">
+                      <button class="btn-outline" onclick="copyText('<%= pterodactyl.username %>')">Copy</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <a href="/regen" class="btn-purple" style="text-decoration:none;">Regenerate Password</a>
+                  <a href="/panel" target="_blank" class="btn-outline" style="text-decoration:none;">Open Panel</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Referrals Panel -->
+            <div class="settings-panel" id="panel-referrals">
+              <div class="settings-card" id="referrals-loading">
+                <h3>Referral Program</h3>
+                <p>Invite friends and earn coins when they join</p>
+                <div style="color:var(--muted);font-size:13px;">Loading...</div>
+              </div>
+
+              <div class="settings-card" id="referrals-data" style="display:none;">
+                <h3>Referral Program</h3>
+                <p>Share your link and earn coins for every new user who signs up</p>
+
+                <div class="stat-row" id="ref-stats-row"></div>
+
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Your Referral Link</div>
+                  <div style="display:flex;gap:8px;">
+                    <input type="text" class="input-sm" id="ref-link-input" readonly style="flex:1;cursor:pointer;" onclick="this.select()">
+                    <button class="btn-purple" onclick="copyText(document.getElementById('ref-link-input').value)">Copy</button>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Referral Code</div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <span id="ref-code" style="font-family:monospace;font-size:14px;color:#c4b5fd;background:var(--surface2);padding:8px 14px;border-radius:8px;border:1px solid var(--border);letter-spacing:2px;"></span>
+                    <button class="btn-outline" onclick="copyText(document.getElementById('ref-code').textContent)">Copy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Panel -->
+            <div class="settings-panel" id="panel-account">
+              <div class="settings-card">
+                <h3>Account Actions</h3>
+                <p>Manage your Feliactyl account</p>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label">Sign Out</div>
+                    <div class="setting-desc">Log out of your current session</div>
+                  </div>
+                  <a href="/logout" class="btn-outline" style="text-decoration:none;">Sign Out</a>
+                </div>
+                <% if (settings.api.client.allow["delete account"] == true) { %>
+                <div class="setting-row">
+                  <div>
+                    <div class="setting-label" style="color:#f87171;">Delete Account</div>
+                    <div class="setting-desc">Permanently remove your account and all data</div>
+                  </div>
+                  <a href="/removeaccount" class="btn-danger" style="text-decoration:none;">Delete</a>
+                </div>
+                <% } %>
+              </div>
+            </div>
+
+          </div><!-- end right -->
+        </div><!-- end settings-grid -->
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Panel nav
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        const panel = item.dataset.panel;
+        document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('panel-' + panel).classList.add('active');
+
+        if (panel === 'security') load2FAStatus();
+        if (panel === 'referrals') loadReferrals();
+      });
+    });
+
+    // Auto-switch to tab from URL ?tab= param
+    (function() {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab) {
+        const navItem = document.querySelector(`.settings-nav-item[data-panel="${tab}"]`);
+        if (navItem) navItem.click();
+      }
+    })();
+
+    // Toast
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      setTimeout(() => t.className = 'toast', 3000);
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    // ── 2FA ──
+    let twoFAEnabled = false;
+    let backupCodes = [];
+
+    async function load2FAStatus() {
+      const res = await fetch('/api/2fa/status');
+      const data = await res.json();
+      twoFAEnabled = data.enabled;
+      updateTwoFAUI(data.enabled);
+    }
+
+    function updateTwoFAUI(enabled) {
+      document.getElementById('twofa-icon').textContent = enabled ? '🔐' : '🔓';
+      document.getElementById('twofa-status-text').textContent = enabled ? '2FA Enabled' : '2FA Disabled';
+      document.getElementById('twofa-status-sub').textContent = enabled
+        ? 'Your account is protected with two-factor authentication'
+        : 'Enable 2FA to add an extra layer of security';
+      document.getElementById('twofa-action-btn').innerHTML = enabled
+        ? `<button class="btn-danger" onclick="showDisableFlow()">Disable</button>`
+        : `<button class="btn-purple" onclick="startSetup()">Enable 2FA</button>`;
+    }
+
+    async function startSetup() {
+      const res = await fetch('/api/2fa/setup', { method: 'POST' });
+      const data = await res.json();
+      if (data.status !== 'success') return showToast(data.message, true);
+
+      document.getElementById('setup-qr').src = data.qrCode;
+      document.getElementById('setup-secret').textContent = data.manualEntry;
+
+      backupCodes = data.backupCodes;
+      const grid = document.getElementById('setup-backup-codes');
+      grid.innerHTML = backupCodes.map(c => `<div class="backup-code">${c}</div>`).join('');
+
+      document.getElementById('twofa-setup-flow').style.display = 'block';
+      document.getElementById('twofa-action-btn').style.display = 'none';
+    }
+
+    function cancelSetup() {
+      document.getElementById('twofa-setup-flow').style.display = 'none';
+      document.getElementById('twofa-action-btn').style.display = '';
+    }
+
+    async function verifySetup() {
+      const token = document.getElementById('setup-token').value.replace(/\s/g, '');
+      if (!token || token.length !== 6) return showToast('Enter a 6-digit code', true);
+
+      const res = await fetch('/api/2fa/verify-setup', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        showToast('2FA enabled successfully!');
+        document.getElementById('twofa-setup-flow').style.display = 'none';
+        twoFAEnabled = true;
+        updateTwoFAUI(true);
+      } else {
+        showToast(data.message || 'Invalid code', true);
+      }
+    }
+
+    function copyBackupCodes() {
+      copyText(backupCodes.join('\n'));
+    }
+
+    let disableMode = 'totp';
+
+    function setDisableMode(mode) {
+      disableMode = mode;
+      document.getElementById('disable-token').style.display = mode === 'totp' ? 'block' : 'none';
+      document.getElementById('disable-backup').style.display = mode === 'backup' ? 'block' : 'none';
+      document.getElementById('disable-mode-totp').style.borderColor = mode === 'totp' ? '#7c3aed' : '';
+      document.getElementById('disable-mode-totp').style.color = mode === 'totp' ? '#c4b5fd' : '';
+      document.getElementById('disable-mode-backup').style.borderColor = mode === 'backup' ? '#7c3aed' : '';
+      document.getElementById('disable-mode-backup').style.color = mode === 'backup' ? '#c4b5fd' : '';
+    }
+
+    function showDisableFlow() {
+      disableMode = 'totp';
+      document.getElementById('twofa-disable-flow').style.display = 'block';
+      document.getElementById('twofa-action-btn').style.display = 'none';
+      setDisableMode('totp');
+    }
+
+    function cancelDisable() {
+      document.getElementById('twofa-disable-flow').style.display = 'none';
+      document.getElementById('twofa-action-btn').style.display = '';
+      document.getElementById('disable-token').value = '';
+      document.getElementById('disable-backup').value = '';
+    }
+
+    async function disable2FA() {
+      const body = {};
+      if (disableMode === 'totp') {
+        const token = document.getElementById('disable-token').value.replace(/\s/g, '');
+        if (!token || token.length !== 6) return showToast('Enter a 6-digit authenticator code', true);
+        body.token = token;
+      } else {
+        const backupCode = document.getElementById('disable-backup').value.trim();
+        if (!backupCode) return showToast('Enter a backup code', true);
+        body.backupCode = backupCode;
+      }
+
+      const res = await fetch('/api/2fa/disable', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        showToast('2FA disabled successfully');
+        document.getElementById('twofa-disable-flow').style.display = 'none';
+        twoFAEnabled = false;
+        updateTwoFAUI(false);
+      } else {
+        showToast(data.message || 'Invalid code', true);
+      }
+    }
+
+    // ── Referrals ──
+    async function loadReferrals() {
+      const res = await fetch('/api/referrals/stats');
+      const data = await res.json();
+      if (data.status !== 'success') return;
+
+      document.getElementById('referrals-loading').style.display = 'none';
+      document.getElementById('referrals-data').style.display = 'block';
+
+      document.getElementById('ref-stats-row').innerHTML = `
+        <div class="stat-box"><div class="val">${data.total}</div><div class="lbl">Total Referrals</div></div>
+        <div class="stat-box"><div class="val">${data.rewarded}</div><div class="lbl">Rewarded</div></div>
+        <div class="stat-box"><div class="val">${data.pending}</div><div class="lbl">Pending</div></div>
+        <div class="stat-box"><div class="val">${data.totalEarned}</div><div class="lbl">Coins Earned</div></div>
+      `;
+
+      document.getElementById('ref-code').textContent = data.code || '';
+
+      // Build referral link
+      const base = window.location.origin;
+      document.getElementById('ref-link-input').value = `${base}/register?ref=${data.code}`;
+    }
+
+    // Auto-numeric for 2FA inputs
+    ['setup-token','disable-token'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g,''); });
+    });
+  </script>
+
+<%- include('../../Components/LoadingBar.ejs') %>
+</body>
+</html>
