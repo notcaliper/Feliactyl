@@ -1,0 +1,117 @@
+---
+sidebar_position: 1
+title: Introduction
+description: What is Feliactyl and what can it do?
+---
+
+import Link from '@docusaurus/Link';
+
+# Welcome to Feliactyl 👋
+
+<div style={{display:'flex', gap:'0.5rem', flexWrap:'wrap', marginBottom:'1.5rem'}}>
+  <img src="https://img.shields.io/badge/version-2.2.0-a78bfa?style=flat-square&labelColor=1a1033" alt="version"/>
+  <img src="https://img.shields.io/badge/license-MIT-818cf8?style=flat-square&labelColor=1a1033" alt="license"/>
+  <img src="https://img.shields.io/badge/node-20.x-5865f2?style=flat-square&labelColor=1a1033" alt="node"/>
+  <img src="https://img.shields.io/badge/pterodactyl-compatible-7c3aed?style=flat-square&labelColor=1a1033" alt="pterodactyl"/>
+</div>
+
+**Feliactyl** is a free, open-source client dashboard for [Pterodactyl](https://pterodactyl.io/). It gives your users a polished interface to create and manage game servers, earn virtual coins, and purchase resources — without ever needing Pterodactyl admin access.
+
+:::tip Quick Install
+```bash
+bash <(curl -s https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/install.sh)
+```
+Or follow the [full Installation Guide →](./installation)
+:::
+
+---
+
+## What does it do?
+
+Feliactyl sits in front of your Pterodactyl panel and gives your users everything they need in one place:
+
+<div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px,1fr))', gap:'1rem', margin:'1.5rem 0'}}>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>🪙</div>
+<strong>Coin Economy</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>AFK earning, Linkvertise, gifting, referrals, Stripe payments, and coupons.</p>
+</div>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>🖥️</div>
+<strong>Server Management</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>Create, modify, and delete Pterodactyl servers directly from the dashboard.</p>
+</div>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>🛍️</div>
+<strong>Resource Store</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>Buy extra RAM, Disk, CPU and server slots with coins. Configurable pricing.</p>
+</div>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>🛡️</div>
+<strong>Security</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>Discord OAuth2, 2FA, Anti-VPN, AbuseIPDB, geo-blocking, Cloudflare Turnstile.</p>
+</div>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>⚙️</div>
+<strong>Admin Panel</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>Manage users, plans, coupons, audit logs, firewall rules, and all settings from the UI.</p>
+</div>
+
+<div style={{background:'var(--ifm-card-background-color)', border:'1px solid var(--ifm-color-emphasis-200)', borderRadius:'12px', padding:'1.25rem'}}>
+<div style={{fontSize:'1.6rem', marginBottom:'0.5rem'}}>⚡</div>
+<strong>Microservices</strong>
+<p style={{fontSize:'0.88rem', color:'var(--ifm-color-emphasis-600)', marginTop:'0.4rem', marginBottom:0}}>PM2 cluster, background economy workers, health endpoints, graceful scaling.</p>
+</div>
+
+</div>
+
+---
+
+## Requirements
+
+| Requirement | Details |
+|:---|:---|
+| **OS** | Ubuntu 20.04+ / Debian 11+ |
+| **Node.js** | 20.x LTS |
+| **Panel** | Pterodactyl v1.x |
+| **Domain** | Pointed at your VPS |
+| **Discord App** | OAuth2 enabled |
+
+---
+
+## Tech Stack
+
+Built on proven, production-ready open-source software:
+
+- **[Express.js](https://expressjs.com/)** — web framework
+- **[EJS](https://ejs.co/)** — templating engine
+- **[Keyv](https://keyv.org/) + SQLite** — database (PostgreSQL & MySQL supported)
+- **[PM2](https://pm2.keymetrics.io/)** — process manager & clustering
+- **[Helmet.js](https://helmetjs.github.io/)** — security headers
+- **[Stripe](https://stripe.com/)** — optional real-money payments
+
+---
+
+## Origin
+
+Feliactyl is a fork of [Heliactyl](https://github.com/Heliactyl/Heliactyl), completely rewritten from **v2.0** onwards with:
+- New microservices architecture
+- Atomic economy transactions
+- Comprehensive firewall system
+- Full settings editor UI
+- Referral system & 2FA
+
+---
+
+## Community & Support
+
+<div style={{display:'flex', gap:'0.75rem', flexWrap:'wrap', marginTop:'0.5rem'}}>
+  <Link className="button button--primary button--sm" href="https://discord.gg/N7C2nbYpQf">💬 Join Discord</Link>
+  <Link className="button button--secondary button--sm" href="https://github.com/notcaliper/Feliactyl">⭐ Star on GitHub</Link>
+  <Link className="button button--secondary button--sm" href="https://github.com/notcaliper/Feliactyl/issues">🐛 Report a Bug</Link>
+</div>
