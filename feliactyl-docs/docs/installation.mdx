@@ -1,0 +1,472 @@
+---
+sidebar_position: 4
+title: Installation
+description: How to install Feliactyl on your server
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 🚀 Installation
+
+This guide covers both the **quick auto-installer** (recommended) and a **full manual installation** for advanced users.
+
+---
+
+## Prerequisites
+
+Before installing, make sure you have:
+
+- A **VPS** running Ubuntu 20.04 or later
+- A working **Pterodactyl panel** accessible via a domain
+- A **domain name** pointed at your VPS (A record)
+- A **Discord application** with OAuth2 enabled — [create one here](https://discord.com/developers/applications)
+
+:::tip
+Your Feliactyl domain and Pterodactyl panel domain **must be different** (e.g. `dash.example.com` and `panel.example.com`).
+:::
+
+---
+
+## Quick Install (Recommended)
+
+Run this single command as **root** on your VPS:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/notcaliper/Feliactyl/v2-features/install.sh)
+```
+
+The installer will automatically:
+
+- ✅ Install **Node.js 20**, PM2, and your chosen web server (Nginx / Apache2 / Caddy)
+- ✅ Clone Feliactyl and install all npm dependencies
+- ✅ Prompt for your Pterodactyl domain, API key, and Discord OAuth2 credentials
+- ✅ Generate `settings.json` and `.env` from your inputs
+- ✅ Obtain an **SSL certificate** via Let's Encrypt and configure the reverse proxy
+- ✅ Start Feliactyl using the scalable PM2 ecosystem configuration
+- ✅ Enable **on-boot autostart** via `pm2 startup`
+
+### After Install — Scale Your Deployment
+
+```bash
+# Verify everything is healthy
+curl https://your-domain.com/health
+
+# Scale web servers for more concurrent users
+pm2 scale feliactyl-web 4
+
+# Scale background economy workers
+pm2 scale feliactyl-worker 3
+
+# Monitor all processes in real time
+pm2 monit
+```
+
+---
+
+## Manual Installation
+
+### Step 1 — System Dependencies
+
+```bash
+sudo apt update -y && sudo apt upgrade -y
+sudo apt install -y nginx certbot python3-certbot-nginx git curl
+
+# Install Node.js 20.x via NodeSource
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Verify versions
+node -v   # should print v20.x.x
+npm -v
+```
+
+---
+
+### Step 2 — Download Feliactyl
+
+```bash
+cd /var/www
+git clone -b v2-features https://github.com/notcaliper/Feliactyl.git
+cd Feliactyl
+npm install
+```
+
+---
+
+### Step 3 — Configure Settings
+
+```bash
+cp example.settings.json settings.json
+nano settings.json
+```
+
+| Field | Description | Example |
+|:---|:---|:---|
+| `name` | Your dashboard name | `"My Dashboard"` |
+| `pterodactyl.domain` | Full URL to your panel | `"https://panel.example.com"` |
+| `pterodactyl.key` | Application API key | `"ptla_xxxxx"` |
+| `api.client.oauth2.id` | Discord client ID | `"123456789"` |
+| `api.client.oauth2.secret` | Discord client secret | `"abc123..."` |
+| `api.client.oauth2.link` | Your Feliactyl domain | `"https://dash.example.com"` |
+| `api.client.oauth2.callbackpath` | OAuth2 callback path | `"/callback"` |
+| `website.port` | Port to listen on | `8000` |
+| `website.secret` | Express session secret | Any long random string |
+
+:::info Getting your Pterodactyl API key
+Panel Admin → **Application API** → Create New. Needs **Read & Write** on Users and Servers.
+:::
+
+:::info Getting Discord OAuth2 credentials
+[discord.com/developers/applications](https://discord.com/developers/applications) → New Application → OAuth2.  
+Add redirect URI: `https://your-domain.com/callback`
+:::
+
+---
+
+### Step 4 — Environment Variables
+
+Store sensitive secrets in `.env` instead of `settings.json`:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+```env
+PTERODACTYL_KEY=ptla_your_key_here
+DISCORD_OAUTH2_ID=your_client_id
+DISCORD_OAUTH2_SECRET=your_client_secret
+SESSION_SECRET=a_very_long_random_string_min_32_chars
+FELIACTYL_API_CODE=your_secure_api_code
+STRIPE_KEY=sk_live_your_stripe_key   # optional
+NODE_ENV=production
+```
+
+Generate secure secrets with:
+```bash
+openssl rand -hex 32
+```
+
+---
+
+### Step 5 — Test Run
+
+```bash
+npm start
+```
+
+Visit `http://your-server-ip:8000`. You should see the login page. Check console output for any errors, then stop with `Ctrl+C`.
+
+---
+
+### Step 6 — Web Server & SSL
+
+Open firewall ports first:
+
+```bash
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw enable
+```
+
+:::info SSL or no SSL?
+- **With SSL** — use a real domain + Let's Encrypt certificate (or Caddy auto HTTPS). Recommended for production.
+- **Without SSL** — use HTTP only. Works fine if you're behind **Cloudflare proxy** (orange cloud) or on a **local/dev network**. Not recommended for public production without a proxy.
+:::
+
+<Tabs>
+<TabItem value="nginx" label="Nginx (Recommended)" default>
+
+**Install Nginx:**
+```bash
+sudo apt install -y nginx
+```
+
+**With SSL (Let's Encrypt):**
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot certonly --nginx -d your.domain.com
+```
+
+```bash
+nano /etc/nginx/sites-enabled/feliactyl.conf
+```
+
+```nginx
+server {
+    listen 80;
+    server_name your.domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your.domain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/your.domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your.domain.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    location /afkwspath {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://localhost:8000/afkwspath;
+    }
+
+    location / {
+        proxy_pass http://localhost:8000/;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+**Without SSL (HTTP only / behind Cloudflare):**
+
+```bash
+nano /etc/nginx/sites-enabled/feliactyl.conf
+```
+
+```nginx
+server {
+    listen 80;
+    server_name your.domain.com;
+
+    location /afkwspath {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://localhost:8000/afkwspath;
+    }
+
+    location / {
+        proxy_pass http://localhost:8000/;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+**Test and restart:**
+```bash
+sudo nginx -t && sudo systemctl restart nginx
+```
+
+</TabItem>
+<TabItem value="apache" label="Apache2">
+
+**Install & enable required modules:**
+```bash
+sudo apt install -y apache2
+sudo a2enmod proxy proxy_http proxy_wstunnel rewrite headers
+```
+
+**With SSL (Let's Encrypt):**
+```bash
+sudo apt install -y certbot python3-certbot-apache
+sudo a2enmod ssl
+sudo certbot certonly --apache -d your.domain.com
+```
+
+```bash
+nano /etc/apache2/sites-available/feliactyl.conf
+```
+
+```apacheconf
+<VirtualHost *:80>
+    ServerName your.domain.com
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName your.domain.com
+
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/your.domain.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/your.domain.com/privkey.pem
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    RewriteEngine On
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/afkwspath(.*) "ws://localhost:8000/afkwspath$1" [P,L]
+
+    ProxyPass        / http://localhost:8000/
+    ProxyPassReverse / http://localhost:8000/
+
+    RequestHeader set X-Forwarded-For %{REMOTE_ADDR}s
+</VirtualHost>
+```
+
+**Without SSL (HTTP only / behind Cloudflare):**
+
+```apacheconf
+<VirtualHost *:80>
+    ServerName your.domain.com
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    RewriteEngine On
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/afkwspath(.*) "ws://localhost:8000/afkwspath$1" [P,L]
+
+    ProxyPass        / http://localhost:8000/
+    ProxyPassReverse / http://localhost:8000/
+
+    RequestHeader set X-Forwarded-For %{REMOTE_ADDR}s
+</VirtualHost>
+```
+
+**Enable the site and restart:**
+```bash
+sudo a2ensite feliactyl.conf
+sudo a2dissite 000-default.conf
+sudo apachectl configtest && sudo systemctl restart apache2
+```
+
+</TabItem>
+<TabItem value="caddy" label="Caddy (Auto HTTPS)">
+
+**Install Caddy:**
+```bash
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update && sudo apt install -y caddy
+```
+
+```bash
+nano /etc/caddy/Caddyfile
+```
+
+**With SSL (automatic — Caddy handles it):**
+
+```
+your.domain.com {
+    reverse_proxy /afkwspath localhost:8000 {
+        header_up Upgrade {http.upgrade}
+        header_up Connection {http.connection}
+        transport http {
+            versions h1
+        }
+    }
+
+    reverse_proxy localhost:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+    }
+}
+```
+
+**Without SSL (HTTP only / local/dev):**
+
+```
+:80 {
+    reverse_proxy /afkwspath localhost:8000 {
+        header_up Upgrade {http.upgrade}
+        header_up Connection {http.connection}
+        transport http {
+            versions h1
+        }
+    }
+
+    reverse_proxy localhost:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+    }
+}
+```
+
+**Reload Caddy:**
+```bash
+sudo systemctl reload caddy
+```
+
+:::tip
+With a real domain, Caddy automatically obtains and renews SSL certificates from Let's Encrypt — no `certbot` needed.
+:::
+
+</TabItem>
+</Tabs>
+
+---
+
+### Step 7 — Run with PM2
+
+```bash
+npm install -g pm2
+```
+
+**Development mode** (single process, easy debugging):
+```bash
+pm2 start start.js --name "feliactyl"
+```
+
+**Production mode** (recommended — scalable microservices):
+```bash
+pm2 start ecosystem.config.js --env production
+```
+
+Production mode runs **multiple web server instances** and separate **background economy workers** with automatic restart on failure and health monitoring.
+
+```bash
+# Save process list and enable startup on reboot
+pm2 save
+pm2 startup
+# Run the command it outputs to register the startup hook
+```
+
+---
+
+### Step 8 — Verify
+
+```bash
+pm2 list                              # All processes online?
+pm2 logs feliactyl-web                # Check for errors
+curl http://localhost:8000/health     # Health check
+```
+
+Expected health response:
+```json
+{ "status": "ok", "workers": 2, "queue": 0 }
+```
+
+---
+
+### Scaling
+
+```bash
+# Handle more concurrent users
+pm2 scale feliactyl-web 4
+
+# Process more economy transactions in parallel
+pm2 scale feliactyl-worker 3
+```
+
+---
+
+## Updating
+
+```bash
+cd /var/www/feliactyl
+git pull origin v2-features
+npm install
+pm2 reload ecosystem.config.js --env production
+```
+
+:::warning
+Always back up your `settings.json` and `.env` before updating.
+:::
