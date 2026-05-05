@@ -1,0 +1,12 @@
+[build]
+  base    = "feliactyl-docs"
+  command = "npm run build"
+  publish = "feliactyl-docs/build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
