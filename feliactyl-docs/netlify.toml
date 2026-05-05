@@ -1,7 +1,7 @@
 [build]
   base    = "feliactyl-docs"
   command = "npm run build"
-  publish = "feliactyl-docs/build"
+  publish = "build"
 
 [build.environment]
   NODE_VERSION = "20"

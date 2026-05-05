@@ -400,6 +400,23 @@ process.on('unhandledRejection', (reason, promise) => {
 
 app.get("/credentials", (req, res) => res.redirect("/settings"));
 
+// AFK page access guard - block access when AFK is disabled
+app.all("/earn", async (req, res, next) => {
+  let newsettings = JSON.parse(require("fs").readFileSync("./settings.json"));
+  if (newsettings.api.arcio.enabled !== true || newsettings.api.arcio['afk page'].enabled !== true) {
+    return res.redirect("/dashboard");
+  }
+  next();
+});
+
+app.all("/afk", async (req, res, next) => {
+  let newsettings = JSON.parse(require("fs").readFileSync("./settings.json"));
+  if (newsettings.api.arcio.enabled !== true || newsettings.api.arcio['afk page'].enabled !== true) {
+    return res.redirect("/dashboard");
+  }
+  next();
+});
+
 app.all("*", async (req, res) => {
   if (req.session.pterodactyl && req.session.userinfo) {
     const dbPteroId = await db.get("users-" + req.session.userinfo.id);
