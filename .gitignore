@@ -134,4 +134,7 @@ database.sqlite
 settings.json
 .setup_complete
 
+# Demo
+demo/
+
 bot
