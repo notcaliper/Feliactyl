@@ -102,6 +102,11 @@ class QueueService extends EventEmitter {
         try {
             await this.db.set(`job-${job.id}`, job);
             await this.db.set(`job-queue-${job.queue}-${job.id}`, job.id);
+            const keys = await this.db.get('job-keys') || [];
+            if (!keys.includes(`job-${job.id}`)) {
+                keys.push(`job-${job.id}`);
+                await this.db.set('job-keys', keys);
+            }
         } catch (err) {
             console.error('[QueueService] Failed to persist job:', err);
         }
@@ -114,6 +119,12 @@ class QueueService extends EventEmitter {
         try {
             await this.db.delete(`job-${job.id}`);
             await this.db.delete(`job-queue-${job.queue}-${job.id}`);
+            const keys = await this.db.get('job-keys') || [];
+            const index = keys.indexOf(`job-${job.id}`);
+            if (index !== -1) {
+                keys.splice(index, 1);
+                await this.db.set('job-keys', keys);
+            }
         } catch (err) {
             console.error('[QueueService] Failed to remove job:', err);
         }
@@ -211,6 +222,12 @@ class QueueService extends EventEmitter {
         try {
             await this.db.set(`dead-job-${job.id}`, deadJob);
             await this.db.delete(`job-${job.id}`);
+            const keys = await this.db.get('job-keys') || [];
+            const index = keys.indexOf(`job-${job.id}`);
+            if (index !== -1) {
+                keys.splice(index, 1);
+                await this.db.set('job-keys', keys);
+            }
         } catch (err) {
             console.error('[QueueService] Failed to move to dead letter:', err);
         }

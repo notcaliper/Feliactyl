@@ -328,6 +328,34 @@ async function withIdempotency(db, transactionId, operation) {
     return { success: true, cached: false, result };
 }
 
+/**
+ * Wait for a queued job to be processed by a worker
+ * @param {object} db - Keyv database instance
+ * @param {string} jobId - ID of the job
+ * @param {number} timeout - Max wait time in ms
+ * @returns {Promise<object>} - Job completion result
+ */
+async function waitForJob(db, jobId, timeout = 15000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+        const job = await db.get(`job-${jobId}`);
+        if (!job) {
+            // Check if it failed and moved to dead letter
+            const deadJob = await db.get(`dead-job-${jobId}`);
+            if (deadJob) {
+                return { success: false, error: deadJob.finalError || 'Job execution failed' };
+            }
+            // If not in pending and not in dead-letter, it completed successfully (since it was removed)
+            return { success: true };
+        }
+        if (job.error) {
+            return { success: false, error: job.error };
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return { success: false, error: 'Job execution timed out' };
+}
+
 module.exports = {
     withUserLock,
     deductCoinsAtomically,
@@ -337,5 +365,6 @@ module.exports = {
     giftCoinsAtomically,
     generateTransactionId,
     withIdempotency,
-    acquireUserLock
+    acquireUserLock,
+    waitForJob
 };

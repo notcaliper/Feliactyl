@@ -14,9 +14,13 @@ const {
     validateNumber,
     isValidAlphanumeric 
 } = require('../../functions/security.js');
-const { deductCoinsAtomically, addCoinsAtomically, giftCoinsAtomically } = require('../../functions/atomic.js');
+const { deductCoinsAtomically, addCoinsAtomically, giftCoinsAtomically, waitForJob } = require('../../functions/atomic.js');
+const { getManager } = require('../../services/serviceManager.js');
 
 module.exports.load = async function (app, db) {
+  const serviceManager = getManager();
+  const queueService = serviceManager.get('queue');
+
   app.get("/api", async (req, res) => {
     let settings = await check(req, res);
     if (!settings) {
@@ -395,8 +399,19 @@ module.exports.load = async function (app, db) {
     // Validate recipient ID format
     if (!isValidDiscordId(req.body.id)) return res.redirect(`/gift?err=INVALIDID`);
 
-    // Use atomic gift operation
-    const result = await giftCoinsAtomically(db, req.session.userinfo.id, req.body.id, coins);
+    // Use atomic gift operation (or Queue if queue service is available)
+    let result;
+    if (queueService) {
+        const job = await queueService.queue('coins.gift').add({
+            fromUserId: req.session.userinfo.id,
+            toUserId: req.body.id,
+            amount: coins
+        });
+        
+        result = await waitForJob(db, job.id);
+    } else {
+        result = await giftCoinsAtomically(db, req.session.userinfo.id, req.body.id, coins);
+    }
     
     if (!result.success) {
         if (result.error === 'Insufficient coins') return res.redirect(`/gift?err=CANTAFFORD`);

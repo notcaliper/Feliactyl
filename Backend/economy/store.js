@@ -4,13 +4,18 @@ const settings = require("../../settings.json");
 const fs = require("fs");
 const ejs = require("ejs");
 const log = require('../../functions/log.js');
-const { purchaseResourceAtomically, purchasePlanAtomically, withIdempotency, generateTransactionId } = require('../../functions/atomic.js');
+const { purchaseResourceAtomically, purchasePlanAtomically, withIdempotency, generateTransactionId, waitForJob } = require('../../functions/atomic.js');
+const { getManager } = require('../../services/serviceManager.js');
 
 module.exports.load = async function (app, db) {
   let maxram = null;
   let maxcpu = null;
   let maxservers = null;
   let maxdisk = null;
+  
+  const serviceManager = getManager();
+  const queueService = serviceManager.get('queue');
+
   app.post("/buyram", async (req, res) => {
     let newsettings = await enabledCheck(req, res);
     if (!newsettings) return;
@@ -37,14 +42,30 @@ module.exports.load = async function (app, db) {
     // Generate transaction ID for idempotency
     const txId = req.body.transactionId || generateTransactionId();
     
-    // Execute atomic purchase
+    // Execute atomic purchase via Queue if queue service is available, otherwise synchronously
     const result = await withIdempotency(db, txId, async () => {
-        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
-            coinCost: cost,
-            resourceType: 'ram',
-            amount: amount,
-            resourceValue: per
-        });
+        if (queueService) {
+            const job = await queueService.queue('store.purchase').add({
+                userId: req.session.userinfo.id,
+                resourceType: 'ram',
+                amount: amount,
+                coinCost: cost,
+                resourceValue: per
+            }, { id: txId });
+            
+            const waitResult = await waitForJob(db, job.id);
+            if (!waitResult.success) {
+                return { success: false, error: waitResult.error };
+            }
+            return { success: true };
+        } else {
+            return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+                coinCost: cost,
+                resourceType: 'ram',
+                amount: amount,
+                resourceValue: per
+            });
+        }
     });
     
     if (result.cached) {
@@ -89,12 +110,28 @@ module.exports.load = async function (app, db) {
     const txId = req.body.transactionId || generateTransactionId();
     
     const result = await withIdempotency(db, txId, async () => {
-        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
-            coinCost: cost,
-            resourceType: 'disk',
-            amount: amount,
-            resourceValue: per
-        });
+        if (queueService) {
+            const job = await queueService.queue('store.purchase').add({
+                userId: req.session.userinfo.id,
+                resourceType: 'disk',
+                amount: amount,
+                coinCost: cost,
+                resourceValue: per
+            }, { id: txId });
+            
+            const waitResult = await waitForJob(db, job.id);
+            if (!waitResult.success) {
+                return { success: false, error: waitResult.error };
+            }
+            return { success: true };
+        } else {
+            return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+                coinCost: cost,
+                resourceType: 'disk',
+                amount: amount,
+                resourceValue: per
+            });
+        }
     });
     
     if (result.cached) {
@@ -137,12 +174,28 @@ module.exports.load = async function (app, db) {
     const txId = req.body.transactionId || generateTransactionId();
     
     const result = await withIdempotency(db, txId, async () => {
-        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
-            coinCost: cost,
-            resourceType: 'cpu',
-            amount: amount,
-            resourceValue: per
-        });
+        if (queueService) {
+            const job = await queueService.queue('store.purchase').add({
+                userId: req.session.userinfo.id,
+                resourceType: 'cpu',
+                amount: amount,
+                coinCost: cost,
+                resourceValue: per
+            }, { id: txId });
+            
+            const waitResult = await waitForJob(db, job.id);
+            if (!waitResult.success) {
+                return { success: false, error: waitResult.error };
+            }
+            return { success: true };
+        } else {
+            return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+                coinCost: cost,
+                resourceType: 'cpu',
+                amount: amount,
+                resourceValue: per
+            });
+        }
     });
     
     if (result.cached) {
@@ -185,12 +238,28 @@ module.exports.load = async function (app, db) {
     const txId = req.body.transactionId || generateTransactionId();
     
     const result = await withIdempotency(db, txId, async () => {
-        return await purchaseResourceAtomically(db, req.session.userinfo.id, {
-            coinCost: cost,
-            resourceType: 'servers',
-            amount: amount,
-            resourceValue: per
-        });
+        if (queueService) {
+            const job = await queueService.queue('store.purchase').add({
+                userId: req.session.userinfo.id,
+                resourceType: 'servers',
+                amount: amount,
+                coinCost: cost,
+                resourceValue: per
+            }, { id: txId });
+            
+            const waitResult = await waitForJob(db, job.id);
+            if (!waitResult.success) {
+                return { success: false, error: waitResult.error };
+            }
+            return { success: true };
+        } else {
+            return await purchaseResourceAtomically(db, req.session.userinfo.id, {
+                coinCost: cost,
+                resourceType: 'servers',
+                amount: amount,
+                resourceValue: per
+            });
+        }
     });
     
     if (result.cached) {
@@ -234,7 +303,21 @@ module.exports.load = async function (app, db) {
     const txId = req.body.transactionId || generateTransactionId();
     
     const result = await withIdempotency(db, txId, async () => {
-        return await purchasePlanAtomically(db, req.session.userinfo.id, planName, planCost);
+        if (queueService) {
+            const job = await queueService.queue('plan.purchase').add({
+                userId: req.session.userinfo.id,
+                planName: planName,
+                planCost: planCost
+            }, { id: txId });
+            
+            const waitResult = await waitForJob(db, job.id);
+            if (!waitResult.success) {
+                return { success: false, error: waitResult.error };
+            }
+            return { success: true };
+        } else {
+            return await purchasePlanAtomically(db, req.session.userinfo.id, planName, planCost);
+        }
     });
     
     if (result.cached) {

@@ -57,6 +57,7 @@
       "admin": "Admin/Main.ejs",
       "admin/settings": "Admin/Settings.ejs",
       "admin/plans": "Admin/Plans.ejs",
+      "admin/discord": "Admin/Discord.ejs",
       "settings": "Resources/Pages/Settings.ejs"
    },
    "mustbeloggedin": [
@@ -68,6 +69,7 @@
       "/store",
       "/buy",
       "/admin",
+      "/admin/discord",
       "/redeem",
       "/linkvertise",
       "/j4r",
@@ -77,7 +79,8 @@
       "/admin",
       "/admin/settings",
       "/admin/plans",
-      "/admin/users"
+      "/admin/users",
+      "/admin/discord"
    ],
    "variables": {
       "faviconlink": "../assets/default/img/favicon.svg",

@@ -131,7 +131,9 @@ dist
 
 # Feliactyl Specific files 
 database.sqlite
+database.sqlite-*
 settings.json
 .setup_complete
 
 bot
+demo

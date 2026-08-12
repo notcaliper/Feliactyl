@@ -38,6 +38,12 @@ Copy `example.settings.json` to `settings.json` to get started. You can also edi
 "database": "mysql://user:pass@localhost:3306/feliactyl"
 ```
 
+:::info SQLite Performance & Concurrency
+If you are using SQLite in a scaled multi-process environment (with multiple web server threads and background workers):
+1. Feliactyl automatically initializes SQLite with a `30,000ms` (30 seconds) connection timeout (`busyTimeout`) to avoid transaction conflicts.
+2. WAL (Write-Ahead Logging) mode is programmatically enabled (`PRAGMA journal_mode=WAL;`) on start, allowing concurrent database reads and highly efficient sequential writes.
+:::
+
 ---
 
 ### `pterodactyl`
@@ -425,7 +431,7 @@ Advanced IP security controls.
 
 ### `workers`
 
-Background economy worker processes.
+Background economy worker processes that process transactions asynchronously using the persistent `QueueService`.
 
 ```json
 "workers": {
@@ -442,6 +448,17 @@ Background economy worker processes.
 | `count` | Number of worker processes to spawn |
 | `maxConcurrent` | Max concurrent jobs per worker |
 | `retryAttempts` | Retry failed economy jobs this many times |
+
+:::info Operations processed by Workers
+When background workers are enabled, the following heavy actions are automatically queued via the SQLite-backed database queue and processed asynchronously to keep the main web processes responsive and prevent race conditions:
+- **Store Purchases**: Resource purchases (RAM, Disk, CPU, Slots) in `store.js`
+- **Plan Upgrades**: Upgrading to a premium package in `store.js`
+- **Coin Gifting**: User-to-user coin transfers in `api.js`
+- **AFK Earning**: Periodic WebSocket-based AFK coin claims in `arcio.js` (processed asynchronously in a fire-and-forget manner)
+- **Server Creation**: Communicating with Pterodactyl panel API and billing in `servers.js`
+
+If background workers are disabled, these operations automatically fall back to synchronous in-thread execution on the web server process.
+:::
 
 ---
 

@@ -292,6 +292,7 @@ clone_feliactyl() {
   # Clone with retry
   retry 3 5 "Cloning repository" bash -c "
     if [ -d '/var/www/feliactyl/.git' ]; then
+      chown -R feliactyl:feliactyl /var/www/feliactyl
       cd /var/www/feliactyl && sudo -u feliactyl git pull
     else
       rm -rf /var/www/feliactyl
@@ -313,6 +314,9 @@ install_npm_deps() {
   step "Installing npm packages"
   cd /var/www/feliactyl || error_exit "Could not enter /var/www/feliactyl"
   
+  # Ensure proper ownership before npm operations
+  chown -R feliactyl:feliactyl /var/www/feliactyl
+  
   # Clean npm cache if previous attempt failed
   if [ -f "/tmp/npm-failed" ]; then
     warn "Previous npm failure detected, cleaning cache"
@@ -332,6 +336,8 @@ install_npm_deps() {
   mkdir -p /var/www/feliactyl/logs
   chown -R feliactyl:feliactyl /var/www/feliactyl/logs
   chown -R feliactyl:feliactyl /var/www/feliactyl/node_modules
+  # Ensure feliactyl can write to parent directory for database.sqlite
+  chown feliactyl:feliactyl /var/www/feliactyl
   
   checkpoint "npm_installed"
   success "npm packages installed"
@@ -346,14 +352,19 @@ configure_settings() {
   step "Configuring settings.json"
   cd /var/www/feliactyl || error_exit "Could not enter /var/www/feliactyl"
   
+  # Ensure proper ownership before file operations
+  chown -R feliactyl:feliactyl /var/www/feliactyl
+  
   # Backup existing settings
   if [ -f "settings.json" ] && [ ! -f "settings.json.backup" ]; then
-    sudo -u feliactyl cp settings.json settings.json.backup
+    cp settings.json settings.json.backup
+    chown feliactyl:feliactyl settings.json.backup
     success "Existing settings.json backed up"
   fi
   
   if [ ! -f "settings.json" ]; then
-    sudo -u feliactyl cp example.settings.json settings.json
+    cp example.settings.json settings.json
+    chown feliactyl:feliactyl settings.json
     success "settings.json created from example"
   else
     warn "settings.json already exists — will update selectively"
@@ -370,12 +381,43 @@ configure_settings() {
   read -rp "  Port to run on [8000]: " port
   port=${port:-8000}
 
-  sed -i "s|\"domain\": \".*pterodactyl|\"domain\": \"${ptero_domain}|g" settings.json
-  sed -i "s|\"key\": \"ptla.*\"|\"key\": \"${ptero_key}\"|g" settings.json
-  sed -i "s|\"id\": \".*oauth\"|\"id\": \"${oauth_id}\"|g" settings.json
-  sed -i "s|\"secret\": \".*\"|\"secret\": \"${oauth_secret}\"|g" settings.json
-  sed -i "s|\"link\": \"https://.*\"|\"link\": \"${feliactyl_domain}\"|g" settings.json
-  sed -i "s|\"port\": [0-9]*|\"port\": ${port}|g" settings.json
+  # Use jq if available, otherwise fallback to more robust sed patterns
+  if command -v jq &>/dev/null; then
+    # Use jq for proper JSON manipulation
+    if jq --arg domain "$ptero_domain" \
+         --arg key "$ptero_key" \
+         --arg id "$oauth_id" \
+         --arg secret "$oauth_secret" \
+         --arg link "$feliactyl_domain" \
+         --argjson port "$port" \
+         '.pterodactyl.domain = $domain |
+          .pterodactyl.key = $key |
+          .api.client.oauth2.id = $id |
+          .api.client.oauth2.secret = $secret |
+          .api.client.oauth2.link = $link |
+          .website.port = $port' settings.json > settings.json.tmp; then
+      mv settings.json.tmp settings.json
+      chown feliactyl:feliactyl settings.json
+    else
+      rm -f settings.json.tmp
+      warn "jq processing failed, falling back to sed"
+      # Fallback to sed
+      sed -i "s|\"domain\": \"[^\"]*\"|\"domain\": \"${ptero_domain}\"|g" settings.json
+      sed -i "s|\"key\": \"[^\"]*\"|\"key\": \"${ptero_key}\"|g" settings.json
+      sed -i "s|\"id\": \"[^\"]*\"|\"id\": \"${oauth_id}\"|g" settings.json
+      sed -i "s|\"secret\": \"[^\"]*\"|\"secret\": \"${oauth_secret}\"|g" settings.json
+      sed -i "s|\"link\": \"[^\"]*\"|\"link\": \"${feliactyl_domain}\"|g" settings.json
+      sed -i "s|\"port\": [0-9]*|\"port\": ${port}|g" settings.json
+    fi
+  else
+    # Fallback to sed with more specific patterns
+    sed -i "s|\"domain\": \"[^\"]*\"|\"domain\": \"${ptero_domain}\"|g" settings.json
+    sed -i "s|\"key\": \"[^\"]*\"|\"key\": \"${ptero_key}\"|g" settings.json
+    sed -i "s|\"id\": \"[^\"]*\"|\"id\": \"${oauth_id}\"|g" settings.json
+    sed -i "s|\"secret\": \"[^\"]*\"|\"secret\": \"${oauth_secret}\"|g" settings.json
+    sed -i "s|\"link\": \"[^\"]*\"|\"link\": \"${feliactyl_domain}\"|g" settings.json
+    sed -i "s|\"port\": [0-9]*|\"port\": ${port}|g" settings.json
+  fi
 
   success "settings.json updated"
   
@@ -387,34 +429,32 @@ configure_settings() {
   
   # Backup existing .env
   if [ -f ".env" ] && [ ! -f ".env.backup" ]; then
-    sudo -u feliactyl cp .env .env.backup
+    cp .env .env.backup
+    chown feliactyl:feliactyl .env.backup
     success "Existing .env backed up"
   fi
   
   if [ ! -f ".env" ]; then
-    sudo -u feliactyl cp .env.example .env
+    cp .env.example .env
     
     # Generate secure session secret
     session_secret=$(openssl rand -hex 32)
     
-    # Update .env with provided values (as feliactyl user)
-    sudo -u feliactyl sed -i "s|PTERODACTYL_KEY=.*|PTERODACTYL_KEY=${ptero_key}|g" .env
-    sudo -u feliactyl sed -i "s|DISCORD_OAUTH2_ID=.*|DISCORD_OAUTH2_ID=${oauth_id}|g" .env
-    sudo -u feliactyl sed -i "s|DISCORD_OAUTH2_SECRET=.*|DISCORD_OAUTH2_SECRET=${oauth_secret}|g" .env
-    sudo -u feliactyl sed -i "s|SESSION_SECRET=.*|SESSION_SECRET=${session_secret}|g" .env
-    sudo -u feliactyl sed -i "s|FELIACTYL_API_CODE=.*|FELIACTYL_API_CODE=$(openssl rand -hex 16)|g" .env
-    sudo -u feliactyl sed -i "/DISCORD_BOT_TOKEN/d" .env
+    # Update .env with provided values
+    sed -i "s|PTERODACTYL_KEY=.*|PTERODACTYL_KEY=${ptero_key}|g" .env
+    sed -i "s|DISCORD_OAUTH2_ID=.*|DISCORD_OAUTH2_ID=${oauth_id}|g" .env
+    sed -i "s|DISCORD_OAUTH2_SECRET=.*|DISCORD_OAUTH2_SECRET=${oauth_secret}|g" .env
+    sed -i "s|SESSION_SECRET=.*|SESSION_SECRET=${session_secret}|g" .env
+    sed -i "s|FELIACTYL_API_CODE=.*|FELIACTYL_API_CODE=$(openssl rand -hex 16)|g" .env
+    sed -i "/DISCORD_BOT_TOKEN/d" .env
     
+    # Secure the .env file
     chmod 600 .env
     chown feliactyl:feliactyl .env
     success ".env created with secure secrets (600 permissions)"
   else
     warn ".env already exists — skipping"
   fi
-  
-  # Update ecosystem.config.js with port
-  sed -i "s|PORT_TO_REPLACE|${port}|g" ecosystem.config.js 2>/dev/null || true
-  chown feliactyl:feliactyl ecosystem.config.js 2>/dev/null || true
   
   checkpoint "settings_configured"
 }
@@ -426,8 +466,14 @@ setup_webserver() {
   fi
   
   read -rp "  Your domain for Feliactyl (e.g. client.example.com): " domain
-  read -rp "  Port Feliactyl runs on [8000]: " port
-  port=${port:-8000}
+  
+  # Get port from already configured settings.json
+  if command -v jq &>/dev/null && [ -f "settings.json" ]; then
+    port=$(jq -r '.website.port // 8000' settings.json)
+  else
+    # Fallback to grep
+    port=$(grep '"port":' settings.json 2>/dev/null | head -1 | sed -n 's/.*"port": *\([0-9]*\).*/\1/p' || echo 8000)
+  fi
   
   # Validate domain format
   if [[ ! $domain =~ ^[a-zA-Z0-9.-]+$ ]]; then
@@ -441,7 +487,38 @@ setup_webserver() {
 
     apache2)
       step "Setting up Apache2"
+      
+      # Write HTTP-only config initially
       cat > /etc/apache2/sites-available/feliactyl.conf <<EOF
+<VirtualHost *:80>
+    ServerName ${domain}
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+
+    RewriteEngine On
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/afkwspath(.*) "ws://localhost:${port}/afkwspath\$1" [P,L]
+
+    ProxyPass        / http://localhost:${port}/
+    ProxyPassReverse / http://localhost:${port}/
+
+    RequestHeader set X-Forwarded-For %{REMOTE_ADDR}s
+</VirtualHost>
+EOF
+      a2ensite feliactyl.conf &>/dev/null
+      a2dissite 000-default.conf &>/dev/null
+      
+      # Test HTTP config first
+      if ! apachectl configtest 2>/dev/null; then
+        error_exit "Apache2 HTTP configuration invalid"
+      fi
+      
+      # Certbot with retry
+      if retry 2 30 "Obtaining SSL certificate" certbot certonly --apache -d "${domain}" --non-interactive --agree-tos -m "admin@${domain}" --quiet; then
+        # SSL obtained - update with HTTPS redirect and SSL
+        cat > /etc/apache2/sites-available/feliactyl.conf <<EOF
 <VirtualHost *:80>
     ServerName ${domain}
     RewriteEngine On
@@ -469,17 +546,14 @@ setup_webserver() {
     RequestHeader set X-Forwarded-For %{REMOTE_ADDR}s
 </VirtualHost>
 EOF
-      a2ensite feliactyl.conf &>/dev/null
-      a2dissite 000-default.conf &>/dev/null
-      
-      # Certbot with retry
-      if ! retry 2 30 "Obtaining SSL certificate" certbot certonly --apache -d "${domain}" --non-interactive --agree-tos -m "admin@${domain}" --quiet; then
-        warn "SSL certificate failed - will use HTTP only"
+        success "Apache2 configured with SSL"
+      else
+        warn "SSL certificate failed - running HTTP only"
       fi
       
       if apachectl configtest 2>/dev/null; then
         systemctl restart apache2
-        success "Apache2 configured and restarted"
+        success "Apache2 restarted"
       else
         error_exit "Apache2 configuration invalid"
       fi
@@ -512,7 +586,38 @@ EOF
 
     *)
       step "Setting up Nginx"
+      
+      # Write HTTP-only config initially (works without SSL)
       cat > /etc/nginx/sites-enabled/feliactyl.conf <<EOF
+server {
+    listen 80;
+    server_name ${domain};
+
+    location /afkwspath {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://localhost:${port}/afkwspath;
+    }
+
+    location / {
+        proxy_pass http://localhost:${port}/;
+        proxy_buffering off;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+}
+EOF
+      
+      # Test HTTP config first
+      if ! nginx -t; then
+        error_exit "Nginx HTTP configuration invalid"
+      fi
+      
+      # Try to obtain SSL certificate
+      if retry 2 30 "Obtaining SSL certificate" certbot certonly --nginx -d "${domain}" --non-interactive --agree-tos -m "admin@${domain}" --quiet; then
+        # SSL obtained - update config with HTTPS redirect and SSL
+        cat > /etc/nginx/sites-enabled/feliactyl.conf <<EOF
 server {
     listen 80;
     server_name ${domain};
@@ -545,20 +650,16 @@ server {
     }
 }
 EOF
-      # Certbot with retry
-      if ! retry 2 30 "Obtaining SSL certificate" certbot certonly --nginx -d "${domain}" --non-interactive --agree-tos -m "admin@${domain}" --quiet; then
-        warn "SSL certificate failed - will use HTTP only"
+        success "Nginx configured with SSL"
+      else
+        warn "SSL certificate failed - running HTTP only"
         warn "Fix DNS/ports, then run: certbot certonly --nginx -d ${domain}"
-        # Continue without SSL for now
       fi
       
       if nginx -t; then
         systemctl restart nginx
-        success "Nginx configured and restarted"
+        success "Nginx restarted"
       else
-        # Rollback config if invalid
-        warn "Nginx config test failed - restoring backup"
-        cp /etc/nginx/sites-enabled/feliactyl.conf.bak /etc/nginx/sites-enabled/feliactyl.conf 2>/dev/null || true
         error_exit "Nginx configuration invalid"
       fi
       ;;
@@ -612,8 +713,13 @@ start_feliactyl() {
     worker_instances=${worker_instances:-2}
     
     # Update ecosystem config with instance counts
-    sudo -u feliactyl sed -i "s|instances: process.env.WEB_INSTANCES.*|instances: ${web_instances},|g" ecosystem.config.js
-    sudo -u feliactyl sed -i "s|instances: process.env.WORKER_INSTANCES.*|instances: ${worker_instances},|g" ecosystem.config.js
+    # Match "instances: process.env.XXX || N," and replace the entire expression
+    sed -i "s|instances: process\.env\.WEB_INSTANCES\s*||\s*[0-9]*|instances: ${web_instances}|g" ecosystem.config.js
+    sed -i "s|instances: process\.env\.WORKER_INSTANCES\s*||\s*[0-9]*|instances: ${worker_instances}|g" ecosystem.config.js
+    # Also update the env vars in the file
+    sed -i "s|WEB_INSTANCES: [0-9]*|WEB_INSTANCES: ${web_instances}|g" ecosystem.config.js
+    sed -i "s|WORKER_INSTANCES: [0-9]*|WORKER_INSTANCES: ${worker_instances}|g" ecosystem.config.js
+    chown feliactyl:feliactyl ecosystem.config.js
     
     # Start with ecosystem file as feliactyl user
     sudo -u feliactyl pm2 start ecosystem.config.js --env production
@@ -632,13 +738,23 @@ start_feliactyl() {
   sudo -u feliactyl pm2 save
   
   # Generate startup script for feliactyl user
-  env PATH="$PATH:/usr/bin" sudo -u feliactyl pm2 startup systemd -u feliactyl --hp /var/www/feliactyl | tail -n1 | bash &>/dev/null || true
+  # Capture the generated command and execute it properly
+  startup_cmd=$(sudo -u feliactyl bash -c "export PATH=\"/usr/local/bin:/usr/bin:/bin:$PATH\"; pm2 startup systemd -u feliactyl --hp /var/www/feliactyl" 2>/dev/null | tail -n1)
+  if [ -n "$startup_cmd" ]; then
+    eval "$startup_cmd" &>/dev/null || true
+  fi
   
   success "PM2 configuration saved and set to run on boot (as feliactyl user)"
   
   # Check health with retry
   step "Checking service health"
-  if retry 5 3 "Waiting for service to start" bash -c "curl -sf http://localhost:${port:-8000}/health/live | grep -qi 'ok\|alive\|true'"; then
+  # Get port from settings.json for health check
+  if command -v jq &>/dev/null && [ -f "settings.json" ]; then
+    health_port=$(jq -r '.website.port // 8000' settings.json)
+  else
+    health_port=$(grep '"port":' settings.json 2>/dev/null | head -1 | sed -n 's/.*"port": *\([0-9]*\).*/\1/p' || echo 8000)
+  fi
+  if retry 5 3 "Waiting for service to start" bash -c "curl -sf http://localhost:${health_port}/health/live | grep -qi 'ok\|alive\|true'"; then
     success "Health check passed - service is running"
   else
     warn "Health check failed - check logs with: sudo -u feliactyl pm2 logs"
@@ -706,6 +822,35 @@ if ! has_checkpoint "dependencies_installed"; then
   install_node
   install_pm2
   checkpoint "dependencies_installed"
+else
+  # If resuming, we still need to know which webserver was selected
+  # Default to nginx if we can't determine
+  if [ -z "$WEBSERVER" ]; then
+    if [ -f /etc/nginx/sites-enabled/feliactyl.conf ]; then
+      WEBSERVER="nginx"
+    elif [ -f /etc/apache2/sites-available/feliactyl.conf ]; then
+      WEBSERVER="apache2"
+    elif [ -f /etc/caddy/Caddyfile ]; then
+      WEBSERVER="caddy"
+    else
+      warn "Could not determine webserver from previous install, defaulting to nginx"
+      WEBSERVER="nginx"
+    fi
+  fi
+  
+  # Also need domain for various operations - read from settings.json if not set
+  if [ -z "$domain" ] && [ -f "settings.json" ]; then
+    if command -v jq &>/dev/null; then
+      domain=$(jq -r '.api.client.oauth2.link // empty' settings.json | sed 's|https://||;s|http://||')
+    fi
+    # If still not set, try to extract from webserver config
+    if [ -z "$domain" ]; then
+      domain=$(grep 'server_name' /etc/nginx/sites-enabled/feliactyl.conf 2>/dev/null | head -1 | sed -n 's/.*server_name \([^;]*\);.*/\1/p')
+    fi
+    if [ -z "$domain" ]; then
+      domain=$(grep 'ServerName' /etc/apache2/sites-available/feliactyl.conf 2>/dev/null | head -1 | awk '{print $2}')
+    fi
+  fi
 fi
 
 clone_feliactyl

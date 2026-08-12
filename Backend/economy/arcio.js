@@ -3,11 +3,15 @@ const indexjs = require("../../index.js");
 const ejs = require("ejs");
 const chalk = require("chalk");
 const { addCoinsAtomically } = require('../../functions/atomic.js');
+const { getManager } = require('../../services/serviceManager.js');
 
 let currentlyonpage = {};
 let lastAwardTime = {}; // Track last award time per user for rate limiting
 
 module.exports.load = async function (app, db) {
+  const serviceManager = getManager();
+  const queueService = serviceManager.get('queue');
+
   app.get("/arcioerror", async (req, res) => {
     if (!req.session.pterodactyl) return res.redirect("/login");
     let theme = indexjs.get(req);
@@ -45,22 +49,36 @@ module.exports.load = async function (app, db) {
             return; // Too soon, possible clock sync issue
         }
         
-        // Atomic coin addition
-        const result = await addCoinsAtomically(db, userId, coinsPerInterval, 'afk_reward');
-        
-        if (!result.success) {
-            // Max balance reached or other error
-            ws.close();
-            return;
+        if (queueService) {
+            // Queue AFK reward asynchronously
+            try {
+                await queueService.queue('afk.reward').add({
+                    userId,
+                    coins: coinsPerInterval,
+                    timestamp: now
+                });
+                lastAwardTime[userId] = now;
+            } catch (err) {
+                console.error(chalk.red(`[Web:AFK] Failed to queue AFK reward for ${userId}:`), err.message);
+            }
+        } else {
+            // Fallback: Atomic coin addition in-thread
+            const result = await addCoinsAtomically(db, userId, coinsPerInterval, 'afk_reward');
+            
+            if (!result.success) {
+                // Max balance reached or other error
+                ws.close();
+                return;
+            }
+            
+            // Check if balance exceeded maximum
+            if (result.new > maxBalance) {
+                ws.close();
+                return;
+            }
+            
+            lastAwardTime[userId] = now;
         }
-        
-        // Check if balance exceeded maximum
-        if (result.new > maxBalance) {
-            ws.close();
-            return;
-        }
-        
-        lastAwardTime[userId] = now;
     }, intervalMs);
 
     ws.onclose = async () => {
@@ -70,4 +88,3 @@ module.exports.load = async function (app, db) {
     };
   });
 };
-

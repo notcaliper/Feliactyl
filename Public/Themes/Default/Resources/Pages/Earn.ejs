@@ -175,8 +175,10 @@
   <script src="/assets/default/js/app.js"></script>
   <%- include('../../Components/LoadingBar.ejs') %>
 
-  <!-- AFK earning logic (untouched) -->
+  <!-- AFK earning logic -->
+  <% if (typeof arcioafktext !== 'undefined' && arcioafktext) { %>
   <script><%- arcioafktext %></script>
+  <% } %>
 
   <!-- Adblocker detection -->
   <script>

@@ -20,6 +20,7 @@ const chalk = require("chalk");
 const QueueService = require('../services/queueService.js');
 const HealthService = require('../services/healthService.js');
 const { purchaseResourceAtomically, purchasePlanAtomically, giftCoinsAtomically, addCoinsAtomically } = require('../functions/atomic.js');
+const log = require('../functions/log.js');
 
 // Load settings
 const fs = require('fs');
@@ -32,7 +33,11 @@ try {
 }
 
 // Database connection
-const db = new Keyv(settings.database);
+const dbOptions = {};
+if (typeof settings.database === 'string' && settings.database.startsWith('sqlite://')) {
+    dbOptions.busyTimeout = 30000;
+}
+const db = new Keyv(settings.database, dbOptions);
 db.on('error', err => {
     console.error(chalk.red('[Worker] Database error:'), err);
 });
@@ -161,6 +166,49 @@ function setupProcessors() {
         return result;
     });
 
+    // Server creation processor
+    queue.queue('server.create').process(async (data, job) => {
+        const { userId, specs, cost, createdStatus, ram, cpu, disk, username, discriminator } = data;
+        
+        console.log(chalk.cyan(`[Worker] Processing server creation for user: ${userId} named: ${specs.name}`));
+        
+        const fetch = require('node-fetch');
+        let serverinfo = await fetch(
+            settings.pterodactyl.domain + "/api/application/servers",
+            {
+                method: "post",
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    "Authorization": `Bearer ${settings.pterodactyl.key}`, 
+                    "Accept": "application/json" 
+                },
+                body: JSON.stringify(specs)
+            }
+        );
+        
+        if (serverinfo.statusText !== "Created") {
+            const errText = await serverinfo.text();
+            console.error(chalk.red(`[Worker] Pterodactyl API error creating server:`), errText);
+            throw new Error('ERRORONCREATE');
+        }
+        
+        let serverinfotext = await serverinfo.json();
+        
+        // Bill user if they have created a server before
+        if (createdStatus) {
+            const coins = await db.get("coins-" + userId) ?? 0;
+            await db.set("coins-" + userId, Math.max(0, coins - cost));
+        }
+        
+        await db.set(`lastrenewal-${serverinfotext.attributes.id}`, Date.now());
+        await db.set(`createdserver-${userId}`, true);
+        
+        log('created server', `${username}#${discriminator} created a new server named \`${specs.name}\` with the following specs:\n\`\`\`Memory: ${ram} MB\nCPU: ${cpu}%\nDisk: ${disk}\`\`\``);
+        
+        console.log(chalk.green(`[Worker] Server created successfully for ${userId}`));
+        return { success: true };
+    });
+
     console.log(chalk.green('[Worker] Queue processors registered'));
 }
 
@@ -198,6 +246,29 @@ async function start() {
     
     // Setup processors
     setupProcessors();
+    
+    // Setup message listener for new jobs via IPC
+    process.on('message', async (msg) => {
+        if (msg && msg.type === 'job:added') {
+            const { jobId, queueName } = msg;
+            try {
+                const job = await db.get(`job-${jobId}`);
+                if (job && !job.processedAt) {
+                    if (!queue.queues.has(queueName)) {
+                        queue.queue(queueName);
+                    }
+                    const q = queue.queues.get(queueName);
+                    if (!q.some(j => j.id === job.id)) {
+                        q.push(job);
+                        q.sort((a, b) => b.priority - a.priority);
+                        queue.startProcessing(queueName);
+                    }
+                }
+            } catch (err) {
+                console.error(chalk.red(`[Worker] Error receiving job via IPC:`), err);
+            }
+        }
+    });
     
     // Recover any pending jobs from database
     await queue.recover();

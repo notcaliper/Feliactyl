@@ -43,7 +43,7 @@ module.exports.load = async function (app, db) {
         await db.set("coins-" + req.session.userinfo.id, coins - settings.renewals.cost)
 
         let unsuspendrequest = await fetch(
-            settings.pterodactyl.domain + "/api/application/servers/" + id + "/unsuspend",
+            settings.pterodactyl.domain + "/api/application/servers/" + req.query.id + "/unsuspend",
             {
                 method: "POST",
                 headers: {

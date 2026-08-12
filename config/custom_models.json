@@ -1,0 +1,13 @@
+[
+    {
+  "models": [
+    {
+      "title": "Nvidia Nemotron Nano Reasoning",
+      "provider": "openai",
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "apiKey": "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",
+      "apiBase": "https://integrate.api.nvidia.com/v1"
+    }
+  ]
+}
+]

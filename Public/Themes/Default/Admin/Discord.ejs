@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Discord Integration - <%= settings.name %></title>
+    <link rel="icon" type="image/png" href="<%= settings.icon %>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #07050b;
+            font-family: 'Outfit', sans-serif;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+
+        .navbar-admin {
+            background: rgba(13, 10, 20, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .premium-card {
+            background: rgba(20, 16, 32, 0.5);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .premium-card:hover {
+            border-color: rgba(139, 92, 246, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .glow-title {
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-premium:hover {
+            background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .form-control-premium {
+            background: rgba(10, 8, 16, 0.7);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            color: white;
+            border-radius: 10px;
+            padding: 12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control-premium:focus {
+            background: rgba(10, 8, 16, 0.9);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
+            color: white;
+        }
+
+        .form-check-input-premium {
+            background-color: rgba(10, 8, 16, 0.7);
+            border-color: rgba(139, 92, 246, 0.3);
+            width: 1.6em;
+            height: 1.6em;
+            cursor: pointer;
+        }
+
+        .form-check-input-premium:checked {
+            background-color: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+
+        .badge-premium {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .sidebar-item {
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: #9ca3af;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Admin Navbar -->
+    <nav class="navbar navbar-admin navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/admin">
+                <img src="<%= settings.icon %>" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                <span class="fw-bold"><%= settings.name %> Admin</span>
+            </a>
+            <div>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-3">Client Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 mb-4">
+                <div class="d-flex flex-column gap-2">
+                    <a href="/admin" class="sidebar-item">📊 Dashboard</a>
+                    <a href="/admin/settings" class="sidebar-item">⚙️ Panel Configs</a>
+                    <a href="/admin/plans" class="sidebar-item">💎 Package Plans</a>
+                    <a href="/admin/users" class="sidebar-item">👥 Users List</a>
+                    <a href="/admin/discord" class="sidebar-item active">🤖 Discord Bot</a>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-md-9 col-lg-10">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="glow-title m-0">Discord SaaS Configuration</h2>
+                    <span class="badge badge-premium">Universal Multi-Tenant Mode</span>
+                </div>
+
+                <% if (req.query.err === 'SUCCESS') { %>
+                    <div class="alert alert-success border-0 bg-success bg-opacity-10 text-success p-3 rounded-4 mb-4">
+                        🎉 Discord settings updated and synchronized successfully!
+                    </div>
+                <% } %>
+
+                <form action="/admin/discord/save" method="POST">
+                    <div class="row">
+                        <!-- Left Column: Guild Credentials & Roles -->
+                        <div class="col-lg-6">
+                            <div class="premium-card">
+                                <h4 class="fw-bold mb-4 text-purple">🔗 Connection Settings</h4>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Discord Guild (Server) ID</label>
+                                    <input type="text" name="guildId" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.guildId || '' %>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Panel URL for this Server</label>
+                                    <input type="text" name="panelUrl" class="form-control form-control-premium" placeholder="e.g. https://client.myhost.com" value="<%= discordConfig?.panelUrl || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Application API Key (starts with ptla_)</label>
+                                    <input type="password" name="apiKey" class="form-control form-control-premium" placeholder="••••••••••••••••" value="<%= discordConfig?.apiKey ? 'EXISTS_SECRET_KEY' : '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Client API Key (starts with ptlc_ - optional)</label>
+                                    <input type="password" name="clientKey" class="form-control form-control-premium" placeholder="••••••••••••••••" value="<%= discordConfig?.clientKey ? 'EXISTS_SECRET_KEY' : '' %>">
+                                </div>
+                            </div>
+
+                            <div class="premium-card">
+                                <h4 class="fw-bold mb-4">🛡️ Permissions & Roles Mapping</h4>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Admin Role ID</label>
+                                    <input type="text" name="roleAdmin" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.roles?.admin?.[0] || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Support Role ID</label>
+                                    <input type="text" name="roleSupport" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.roles?.support?.[0] || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Moderator Role ID</label>
+                                    <input type="text" name="roleModerator" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.roles?.moderator?.[0] || '' %>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Channels & Feature Flags -->
+                        <div class="col-lg-6">
+                            <div class="premium-card">
+                                <h4 class="fw-bold mb-4">📺 Notification Channels</h4>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Welcome Channel ID</label>
+                                    <input type="text" name="channelWelcome" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.channels?.welcome || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Leave Channel ID</label>
+                                    <input type="text" name="channelLeave" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.channels?.leave || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Community Announcement Channel ID</label>
+                                    <input type="text" name="channelAnnouncements" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.channels?.announcements || '' %>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Ticket Category (ID)</label>
+                                    <input type="text" name="ticketCategory" class="form-control form-control-premium" placeholder="e.g. 123456789012345678" value="<%= discordConfig?.ticketCategory || '' %>">
+                                </div>
+                            </div>
+
+                            <div class="premium-card">
+                                <h4 class="fw-bold mb-4">🚀 Bot Modules Enable/Disable</h4>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input form-check-input-premium" type="checkbox" name="featureTickets" <%= discordConfig?.features?.tickets !== false ? 'checked' : '' %>>
+                                    <label class="form-check-label ms-2 mt-1">Enable Support Tickets</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input form-check-input-premium" type="checkbox" name="featureAutomod" <%= discordConfig?.features?.automod !== false ? 'checked' : '' %>>
+                                    <label class="form-check-label ms-2 mt-1">Enable Auto Moderation</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input form-check-input-premium" type="checkbox" name="featureEconomy" <%= discordConfig?.features?.economy !== false ? 'checked' : '' %>>
+                                    <label class="form-check-label ms-2 mt-1">Enable Economy System (Coins, Daily, Shop)</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input form-check-input-premium" type="checkbox" name="featureAi" <%= discordConfig?.features?.ai !== false ? 'checked' : '' %>>
+                                    <label class="form-check-label ms-2 mt-1">Enable Gemini AI Support Assistant</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Bar -->
+                    <div class="premium-card d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Ensure Discord Bot has Administrator permission in your server.</span>
+                        <button type="submit" class="btn btn-premium px-5 py-3">Save Server Changes</button>
+                    </div>
+                </form>
+
+                <!-- Actions card -->
+                <div class="premium-card mt-4">
+                    <h4 class="fw-bold mb-4">🧪 Actions & Logs Testing</h4>
+                    <div class="d-flex gap-3">
+                        <form action="/admin/discord/test" method="POST">
+                            <input type="hidden" name="guildId" value="<%= discordConfig?.guildId || '' %>">
+                            <button type="submit" class="btn btn-outline-light px-4 py-2" <%= !discordConfig?.guildId ? 'disabled' : '' %>>Trigger Test Notification</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

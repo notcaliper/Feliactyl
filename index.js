@@ -26,7 +26,7 @@ const rateLimit = require('express-rate-limit');
 const { getManager } = require('./services/serviceManager.js');
 const WorkerManager = require('./services/workerManager.js');
 const HealthService = require('./services/healthService.js');
-global.Buffer = global.Buffer || require('buffer').Buffer;
+global.Buffer = global.Buffer;
 
 // Service instances
 const serviceManager = getManager();
@@ -54,9 +54,9 @@ settings = applySecureConfig(settings);
 // Check for placeholder secrets
 const secretWarnings = checkPlaceholderSecrets(settings);
 if (secretWarnings.length > 0) {
-    console.log(chalk.yellow("⚠️  Security Warnings:"));
-    secretWarnings.forEach(w => console.log(chalk.yellow(`   - ${w}`)));
-    console.log(chalk.yellow("   Set these in your .env file for better security.\n"));
+  console.log(chalk.yellow("⚠️  Security Warnings:"));
+  secretWarnings.forEach(w => console.log(chalk.yellow(`   - ${w}`)));
+  console.log(chalk.yellow("   Set these in your .env file for better security.\n"));
 }
 
 const defaultthemesettings = {
@@ -80,7 +80,7 @@ async function getLatestVersion() {
       _versionCache = { latest: j.tag_name.replace('v', ''), fetchedAt: now };
       return _versionCache.latest;
     }
-  } catch(e) {}
+  } catch (e) { }
   return null;
 }
 
@@ -126,11 +126,27 @@ module.exports.renderData = renderData;
 // Load database
 
 const Keyv = require("keyv");
-const db = new Keyv(settings.database);
+const dbOptions = {};
+
+if (typeof settings.database === 'string' && settings.database.startsWith('sqlite://')) {
+  dbOptions.busyTimeout = 30000; // 30 seconds busy timeout to handle lock contention
+}
+
+const db = new Keyv(settings.database, dbOptions);
 
 db.on('error', err => {
   console.log(chalk.red("Error: Cannot load database."))
 });
+
+// Enable WAL mode on SQLite database
+if (typeof settings.database === 'string' && settings.database.startsWith('sqlite://')) {
+  const store = db.opts.store || db.store;
+  if (store && typeof store.query === 'function') {
+    store.query('PRAGMA journal_mode=WAL;')
+      .then(() => console.log('[Main] SQLite database configured in WAL mode'))
+      .catch(err => console.error('[Main] Failed to set SQLite WAL mode:', err));
+  }
+}
 
 module.exports.db = db;
 
@@ -139,6 +155,7 @@ module.exports.db = db;
 
 const express = require("express");
 const app = express();
+app.set('trust proxy', 1);
 require('express-ws')(app);
 
 // Load express addons.
@@ -153,24 +170,24 @@ module.exports.app = app;
 
 // Security middleware
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://challenges.cloudflare.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://challenges.cloudflare.com"],
-            scriptSrcAttr: ["'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "https://challenges.cloudflare.com"],
-            frameSrc: ["https://challenges.cloudflare.com"],
-            objectSrc: ["'none'"]
-        }
-    },
-    hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://challenges.cloudflare.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://challenges.cloudflare.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://challenges.cloudflare.com"],
+      frameSrc: ["https://challenges.cloudflare.com"],
+      objectSrc: ["'none'"]
     }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
 }));
 
 // Rate limiting
@@ -183,15 +200,15 @@ app.use(generalLimiter);
 app.use('/api/', apiLimiter);
 app.use(['/login', '/submitlogin', '/callback'], authLimiter);
 
-app.use(session({ 
-    secret: settings.website.secret, 
-    resave: false, 
-    saveUninitialized: false,
-    cookie: {
-        secure: envStatus.isProduction,
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+app.use(session({
+  secret: settings.website.secret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: envStatus.isProduction,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
 }));
 
 app.use("/assets", express.static("./assets"));
@@ -209,58 +226,99 @@ app.use(express.urlencoded({ extended: true }));
 
 // Initialize services before starting server
 async function initializeServices() {
-    console.log(chalk.cyan('[Main] Initializing services...'));
-    
-    // Initialize worker manager if enabled
-    if (settings.workers?.enabled !== false) {
-        workerManager = new WorkerManager({
-            maxWorkers: settings.workers?.count || 2,
-            restartDelay: 5000,
-            maxRestarts: 5
-        });
-        
-        serviceManager.register('workers', workerManager);
-        serviceManager.markCritical('workers');
-        
-        await workerManager.start();
-        console.log(chalk.green('[Main] Worker manager started'));
-    }
-    
-    // Health service
-    const healthService = new HealthService({ checkInterval: 30000 });
-    
-    // Register health checks
-    healthService.register('database', async () => {
-        await db.get('health-check');
-        return true;
-    }, { weight: 2 });
-    
-    healthService.register('webserver', () => {
-        return listener && listener.listening;
-    }, { weight: 1 });
-    
+  console.log(chalk.cyan('[Main] Initializing services...'));
+
+  // Initialize Queue Service
+  const QueueService = require('./services/queueService.js');
+  const queueService = new QueueService(db, {
+    maxConcurrent: 5,
+    retryAttempts: 3
+  });
+  serviceManager.register('queue', queueService);
+
+  // Listen for queue events to broadcast new jobs to worker threads
+  queueService.on('job:added', (job) => {
     if (workerManager) {
-        healthService.register('workers', () => {
-            const stats = workerManager.getStats();
-            return stats.healthy > 0 || stats.total === 0;
-        }, { weight: 2 });
+      workerManager.broadcast({
+        type: 'job:added',
+        jobId: job.id,
+        queueName: job.queue
+      });
     }
-    
-    healthService.on('statusChange', (newStatus, oldStatus, results) => {
-        console.log(chalk.yellow(`[Health] Status changed: ${oldStatus} → ${newStatus}`));
-        if (newStatus === 'unhealthy') {
-            console.error(chalk.red('[Health] Unhealthy checks:'), results);
-        }
+  });
+
+  // Initialize worker manager if enabled
+  if (settings.workers?.enabled !== false) {
+    workerManager = new WorkerManager({
+      maxWorkers: settings.workers?.count || 2,
+      restartDelay: 5000,
+      maxRestarts: 5
     });
-    
-    healthService.start();
-    serviceManager.register('health', healthService);
-    
-    // Initialize all services
-    await serviceManager.initialize(db);
-    await serviceManager.start();
-    
-    console.log(chalk.green('[Main] All services initialized'));
+
+    serviceManager.register('workers', workerManager);
+    serviceManager.markCritical('workers');
+
+    await workerManager.start();
+    console.log(chalk.green('[Main] Worker manager started'));
+  }
+
+  // Health service
+  const healthService = new HealthService({ checkInterval: 30000 });
+
+  // Register health checks
+  healthService.register('database', async () => {
+    await db.get('health-check');
+    return true;
+  }, { weight: 2 });
+
+  healthService.register('webserver', () => {
+    return listener && listener.listening;
+  }, { weight: 1 });
+
+  if (workerManager) {
+    healthService.register('workers', () => {
+      const stats = workerManager.getStats();
+      return stats.healthy > 0 || stats.total === 0;
+    }, { weight: 2 });
+  }
+
+  healthService.on('statusChange', (newStatus, oldStatus, results) => {
+    console.log(chalk.yellow(`[Health] Status changed: ${oldStatus} → ${newStatus}`));
+    if (newStatus === 'unhealthy') {
+      console.error(chalk.red('[Health] Unhealthy checks:'), results);
+    }
+  });
+
+  healthService.start();
+  serviceManager.register('health', healthService);
+
+  // Register Discord Bot service if configured
+  if (settings.api?.client?.bot?.token || process.env.DISCORD_BOT_TOKEN) {
+    try {
+      const discordBot = require('./bot/src/index.js');
+      const botService = {
+        initialize: async (dbInstance) => {
+          await discordBot.initialize(dbInstance);
+        },
+        start: async () => {
+          await discordBot.start();
+        },
+        shutdown: async () => {
+          await discordBot.shutdown();
+        }
+      };
+      serviceManager.register('discord-bot', botService);
+      console.log(chalk.green('[Main] Discord bot service registered'));
+    } catch (err) {
+      console.error(chalk.red('[Main] Failed to register Discord bot service:'), err);
+    }
+  }
+
+  // Initialize all services
+  await serviceManager.initialize(db);
+  await serviceManager.start();
+
+  console.log(chalk.green('[Main] All services initialized'));
 }
 
 const listener = app.listen(settings.website.port, async function () {
@@ -285,13 +343,13 @@ const listener = app.listen(settings.website.port, async function () {
   console.log("📝 Sidenote: If you ever encounter a 502 Bad Gateway error,");
   console.log("   remember it's likely a proxy issue, not Feliactyl itself.");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  
+
   // Initialize services after server starts
   try {
-      await initializeServices();
+    await initializeServices();
   } catch (err) {
-      console.error(chalk.red('[Main] Service initialization failed:'), err);
-      // Don't crash - web server can still function
+    console.error(chalk.red('[Main] Service initialization failed:'), err);
+    // Don't crash - web server can still function
   }
 
 });
@@ -324,40 +382,40 @@ app.use(function (req, res, next) {
 // Load the API files.
 
 const router = glob.sync('./Backend/**/*.js');
-  for (const file of router) {
-    const router = require(file);
-    if (typeof router.load === 'function') router.load(app, db);
-  }
+for (const file of router) {
+  const router = require(file);
+  if (typeof router.load === 'function') router.load(app, db);
+}
 
 // Health check endpoints
 app.get('/health', async (req, res) => {
-    const health = serviceManager.get('health');
-    if (health) {
-        const status = health.getStatus();
-        res.status(status.status === 'healthy' ? 200 : status.status === 'degraded' ? 200 : 503).json(status);
-    } else {
-        res.json({ status: 'starting', uptime: Date.now() - startTime });
-    }
+  const health = serviceManager.get('health');
+  if (health) {
+    const status = health.getStatus();
+    res.status(status.status === 'healthy' ? 200 : status.status === 'degraded' ? 200 : 503).json(status);
+  } else {
+    res.json({ status: 'starting', uptime: Date.now() - startTime });
+  }
 });
 
 app.get('/health/ready', async (req, res) => {
-    const health = serviceManager.get('health');
-    if (health && health.isReady()) {
-        res.status(200).json({ ready: true });
-    } else {
-        res.status(503).json({ ready: false });
-    }
+  const health = serviceManager.get('health');
+  if (health && health.isReady()) {
+    res.status(200).json({ ready: true });
+  } else {
+    res.status(503).json({ ready: false });
+  }
 });
 
 app.get('/health/live', (req, res) => {
-    res.status(200).json({ alive: true });
+  res.status(200).json({ alive: true });
 });
 
 app.get('/health/workers', async (req, res) => {
-    if (!workerManager) {
-        return res.status(404).json({ error: 'Worker manager not enabled' });
-    }
-    res.json(workerManager.getStats());
+  if (!workerManager) {
+    return res.status(404).json({ error: 'Worker manager not enabled' });
+  }
+  res.json(workerManager.getStats());
 });
 
 // Track start time
@@ -365,24 +423,24 @@ const startTime = Date.now();
 
 // Graceful shutdown handlers
 async function gracefulShutdown(signal) {
-    console.log(chalk.yellow(`[Main] Received ${signal}, starting graceful shutdown...`));
-    
-    // Stop accepting new connections
-    listener.close(async () => {
-        console.log(chalk.cyan('[Main] HTTP server closed'));
-        
-        // Shutdown services
-        await serviceManager.shutdown(30000);
-        
-        console.log(chalk.green('[Main] Graceful shutdown complete'));
-        process.exit(0);
-    });
-    
-    // Force shutdown after timeout
-    setTimeout(() => {
-        console.error(chalk.red('[Main] Forced shutdown - timeout exceeded'));
-        process.exit(1);
-    }, 35000);
+  console.log(chalk.yellow(`[Main] Received ${signal}, starting graceful shutdown...`));
+
+  // Stop accepting new connections
+  listener.close(async () => {
+    console.log(chalk.cyan('[Main] HTTP server closed'));
+
+    // Shutdown services
+    await serviceManager.shutdown(30000);
+
+    console.log(chalk.green('[Main] Graceful shutdown complete'));
+    process.exit(0);
+  });
+
+  // Force shutdown after timeout
+  setTimeout(() => {
+    console.error(chalk.red('[Main] Forced shutdown - timeout exceeded'));
+    process.exit(1);
+  }, 35000);
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
@@ -390,12 +448,12 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {
-    console.error(chalk.red('[Main] Uncaught exception:'), err);
-    gracefulShutdown('uncaughtException');
+  console.error(chalk.red('[Main] Uncaught exception:'), err);
+  gracefulShutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error(chalk.red('[Main] Unhandled rejection at:'), promise, 'reason:', reason);
+  console.error(chalk.red('[Main] Unhandled rejection at:'), promise, 'reason:', reason);
 });
 
 app.get("/credentials", (req, res) => res.redirect("/settings"));
@@ -412,7 +470,7 @@ app.all("*", async (req, res) => {
   if (theme.settings.mustbeadmin.includes(req._parsedUrl.pathname)) {
     ejs.renderFile(
       `./Public/Themes/${theme.name}/${theme.settings.notfound}`,
-        await indexjs.renderData(req, db, theme),
+      await indexjs.renderData(req, db, theme),
       null,
       async function (err, str) {
         delete req.session.newaccount;
@@ -456,7 +514,7 @@ app.all("*", async (req, res) => {
 
         ejs.renderFile(
           `./Public/Themes/${theme.name}/${theme.settings.pages[req._parsedUrl.pathname.slice(1)] ? theme.settings.pages[req._parsedUrl.pathname.slice(1)] : theme.settings.notfound}`,
-            await indexjs.renderData(req, db, theme),
+          await indexjs.renderData(req, db, theme),
           null,
           function (err, str) {
             delete req.session.newaccount;
